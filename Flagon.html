@@ -6,686 +6,1372 @@
 <title>The Gilded Flagon</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-:root{--parchment:#f4e8c1;--dark-wood:#3b2410;--medium-wood:#6b3d1e;--light-wood:#a0622a;--ale-gold:#c8860a;--ale-light:#f5c842;--ink:#1a0f05;--aged-paper:#ede0b0;--muted:#8a7a60;--green:#2d6a2d;--red:#8b1a1a;}
+:root {
+  --parchment:#f4e8c1;--dark-wood:#2e1a09;--medium-wood:#5a3018;--light-wood:#9a5a22;
+  --ale-gold:#c8860a;--ale-light:#f5c842;--ink:#1a0f05;--aged-paper:#e8d89a;
+  --muted:#8a7a55;--success:#2d6a2d;--danger:#8b1a1a;--blue-light:#5b9bd5;
+  --food-green:#3a7a3a;--food-light:#6dc26d;
+}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);min-height:100vh;}
-#app{max-width:900px;margin:0 auto;}
-.hdr{background:linear-gradient(180deg,#0e0602,var(--dark-wood));border-bottom:3px solid var(--ale-gold);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;}
-.hdr-name{font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:var(--ale-gold);letter-spacing:2px;}
-.hdr-sub{font-size:11px;font-family:'Cinzel',serif;color:var(--muted);}
-.hdr-stats{display:flex;gap:8px;align-items:center;}
-.hdr-pill{font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--ale-light);background:rgba(0,0,0,.45);padding:4px 13px;border-radius:16px;border:1px solid var(--ale-gold);white-space:nowrap;}
-.level-pill{background:rgba(50,20,5,.7);border-color:#e0a030;color:#e0a030;}
-.xp-strip{height:5px;background:#1a0a02;border-bottom:1px solid rgba(200,134,10,.3);}
-.xp-fill{height:100%;background:linear-gradient(90deg,var(--ale-gold),var(--ale-light));transition:width .6s;}
-.main{display:grid;grid-template-columns:1fr 220px;min-height:520px;}
-.floor{background:var(--aged-paper);background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(139,100,50,.1) 40px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(139,100,50,.07) 60px);padding:16px;display:flex;flex-direction:column;gap:14px;}
-.sec-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
-.tables-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.tbl{aspect-ratio:1;background:var(--parchment);border:2px solid var(--light-wood);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:default;position:relative;transition:transform .12s;box-shadow:inset 0 2px 4px rgba(0,0,0,.15),2px 3px 0 rgba(0,0,0,.28);}
-.tbl.clickable{cursor:pointer;}.tbl.clickable:hover{transform:scale(1.06);}
-.tbl.empty{border-style:dashed;opacity:.55;}.tbl.locked{opacity:.3;border-color:#666;}
-.tbl.waiting{border-color:var(--ale-gold);}.tbl.food-wait{border-color:#c05010;}
-.tbl.cooking{border-color:#8a4a10;}.tbl.served{border-color:#5b8a3a;}.tbl.ready{border-color:var(--green);animation:pg 1.1s infinite;cursor:pointer;}
-@keyframes pg{0%,100%{box-shadow:inset 0 2px 4px rgba(0,0,0,.15),2px 3px 0 rgba(0,0,0,.28),0 0 0 0 rgba(45,106,45,.5);}50%{box-shadow:inset 0 2px 4px rgba(0,0,0,.15),2px 3px 0 rgba(0,0,0,.28),0 0 0 8px rgba(45,106,45,0);}}
-.tbl-icon{font-size:22px;}.tbl-lbl{font-size:9px;font-weight:700;color:var(--muted);margin-top:2px;text-align:center;line-height:1.3;max-width:80%;}
-.tbl-timer{position:absolute;top:-6px;right:-6px;background:var(--ale-gold);color:var(--ink);font-size:10px;font-weight:700;width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--dark-wood);}
-.tbl-timer.urgent{background:#c03030;color:#fff;}
-.kitchen-area{background:rgba(139,80,20,.1);border:1px dashed rgba(139,100,50,.4);border-radius:8px;padding:10px;}
-.kitchen-queue{display:flex;gap:6px;flex-wrap:wrap;min-height:26px;align-items:center;}
-.kq-item{background:var(--medium-wood);color:var(--parchment);border-radius:6px;padding:3px 8px;font-size:11px;display:flex;align-items:center;gap:4px;border:1px solid var(--light-wood);}
-.staff-row{display:flex;gap:7px;flex-wrap:wrap;}
-.staff-badge{background:var(--medium-wood);color:var(--parchment);border-radius:8px;padding:5px 9px;font-size:11px;display:flex;align-items:center;gap:5px;border:1px solid var(--light-wood);}
-.event-banner{background:linear-gradient(90deg,rgba(180,130,10,.25),rgba(180,130,10,.08));border:2px solid var(--ale-gold);border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:10px;}
-.ev-icon{font-size:22px;}.ev-text{font-size:12px;font-weight:700;color:var(--dark-wood);}.ev-sub{font-size:10px;color:var(--muted);}
-.sidebar{background:var(--dark-wood);background-image:repeating-linear-gradient(180deg,transparent,transparent 19px,rgba(0,0,0,.09) 20px);border-left:3px solid var(--ale-gold);padding:12px 11px;display:flex;flex-direction:column;gap:8px;}
-.sc{background:rgba(0,0,0,.35);border:1px solid rgba(200,134,10,.3);border-radius:8px;padding:9px;}
-.sl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:3px;}
-.sv{font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--ale-gold);}
-.ss{font-size:10px;color:var(--muted);line-height:1.6;}
-.rep-bg{height:5px;background:rgba(0,0,0,.4);border-radius:3px;margin-top:5px;}
-.rep-fill{height:5px;background:linear-gradient(90deg,var(--ale-gold),var(--ale-light));border-radius:3px;transition:width .5s;}
-.stock-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
-.stock-item{font-size:10px;color:var(--muted);}.stock-item span{color:var(--ale-light);font-weight:700;}.stock-item.low span{color:#e07070;}
-.btn{width:100%;padding:8px 7px;font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:.4px;border:1px solid var(--ale-gold);border-radius:6px;background:rgba(200,134,10,.15);color:var(--ale-gold);cursor:pointer;transition:background .12s,transform .1s;display:flex;align-items:center;justify-content:center;gap:5px;}
-.btn:hover{background:rgba(200,134,10,.3);}.btn:active{transform:scale(.97);}
-.btn.g{border-color:#5a9a3a;color:#5a9a3a;background:rgba(90,154,58,.1);}.btn.g:hover{background:rgba(90,154,58,.2);}
-.btn.r{border-color:#c05050;color:#c05050;background:rgba(192,80,80,.1);}.btn.r:hover{background:rgba(192,80,80,.2);}
+#app{max-width:960px;margin:0 auto;}
+
+/* HEADER */
+.hdr{background:linear-gradient(180deg,#0d0500,var(--dark-wood));border-bottom:3px solid var(--ale-gold);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.tavern-name{font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:var(--ale-gold);letter-spacing:2px;}
+.hdr-meta{display:flex;gap:10px;align-items:center;margin-top:2px;flex-wrap:wrap;}
+.day-badge{font-size:11px;font-family:'Cinzel',serif;color:var(--muted);}
+.level-badge{font-size:11px;font-family:'Cinzel',serif;color:var(--ale-light);background:rgba(200,134,10,.2);padding:2px 8px;border-radius:10px;border:1px solid rgba(200,134,10,.4);}
+.day-timer-pill{font-size:11px;font-family:'Cinzel',serif;background:rgba(0,0,0,.4);padding:2px 10px;border-radius:10px;border:1px solid rgba(200,134,10,.3);color:var(--parchment);}
+.day-timer-bar-wrap{width:80px;}
+.day-timer-bg{height:4px;background:rgba(0,0,0,.5);border-radius:2px;margin-top:2px;}
+.day-timer-fill{height:4px;border-radius:2px;background:linear-gradient(90deg,#e05020,#f0a030,#60c030);transition:width .5s linear;}
+.hdr-right{display:flex;gap:10px;align-items:center;}
+.xp-bar-wrap{width:100px;}
+.xp-label{font-size:9px;font-family:'Cinzel',serif;color:var(--muted);letter-spacing:1px;text-align:right;margin-bottom:2px;}
+.xp-bg{height:5px;background:rgba(0,0,0,.4);border-radius:3px;}
+.xp-fill{height:5px;background:linear-gradient(90deg,var(--ale-gold),var(--ale-light));border-radius:3px;transition:width .5s;}
+.coin-pill{font-family:'Cinzel',serif;font-size:16px;font-weight:600;color:var(--ale-light);background:rgba(0,0,0,.4);padding:5px 14px;border-radius:20px;border:1px solid var(--ale-gold);}
+
+/* LAYOUT */
+.main-wrap{display:grid;grid-template-columns:1fr 220px;}
+.floor{background:var(--aged-paper);background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(100,70,20,.12) 40px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(100,70,20,.08) 60px);padding:16px;min-height:520px;}
+.sidebar{background:var(--dark-wood);background-image:repeating-linear-gradient(180deg,transparent,transparent 19px,rgba(0,0,0,.1) 20px);border-left:3px solid var(--ale-gold);padding:12px 10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;}
+
+.sec-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.sec-title::after{content:'';flex:1;height:1px;background:rgba(139,100,50,.3);}
+
+/* TABS */
+.floor-tabs{display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid rgba(139,100,50,.3);}
+.tab-btn{font-family:'Cinzel',serif;font-size:11px;font-weight:600;padding:6px 12px;background:transparent;border:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .2s,border-color .2s;}
+.tab-btn.active{color:var(--ale-gold);border-bottom-color:var(--ale-gold);}
+.tab-btn:hover:not(.active){color:var(--parchment);}
+
+/* TABLES */
+.tables-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.table-slot{aspect-ratio:1;background:var(--parchment);border:2px solid var(--light-wood);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:default;position:relative;transition:transform .15s;box-shadow:inset 0 2px 4px rgba(0,0,0,.15),2px 3px 0 rgba(0,0,0,.3);}
+.table-slot.clickable{cursor:pointer;}
+.table-slot.clickable:hover{transform:scale(1.06);}
+.table-slot.empty{border-style:dashed;opacity:.5;}
+.table-slot.locked-slot{border-style:dashed;opacity:.3;background:#ccc;}
+.table-slot.waiting{border-color:var(--ale-gold);}
+.table-slot.served{border-color:#888;}
+.table-slot.ready{border-color:var(--success);animation:pgreen 1.1s infinite;}
+@keyframes pgreen{0%,100%{box-shadow:inset 0 2px 4px rgba(0,0,0,.15),2px 3px 0 rgba(0,0,0,.3),0 0 0 0 rgba(45,106,45,.5);}50%{box-shadow:inset 0 2px 4px rgba(0,0,0,.15),2px 3px 0 rgba(0,0,0,.3),0 0 0 8px rgba(45,106,45,0);}}
+.t-icon{font-size:22px;}
+.t-label{font-size:9px;font-weight:700;color:var(--muted);margin-top:2px;text-align:center;line-height:1.3;}
+.t-timer{position:absolute;top:-6px;right:-6px;background:var(--ale-gold);color:var(--ink);font-size:9px;font-weight:700;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--dark-wood);}
+
+/* FOOD KITCHEN */
+.food-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.food-card{background:rgba(255,255,255,.55);border:1.5px solid rgba(100,150,60,.4);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px;}
+.food-name{font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--ink);}
+.food-desc{font-size:11px;color:var(--muted);}
+.food-row{display:flex;align-items:center;justify-content:space-between;margin-top:2px;}
+.food-meta{font-size:11px;color:var(--food-green);font-weight:700;}
+.cook-btn{padding:4px 8px;background:var(--food-green);color:#fff;border:none;border-radius:5px;font-family:'Cinzel',serif;font-size:10px;font-weight:600;cursor:pointer;}
+.cook-btn:hover{background:var(--food-light);color:var(--ink);}
+.cook-btn:disabled{opacity:.4;cursor:not-allowed;}
+.ready-dish{display:flex;align-items:center;gap:6px;background:rgba(60,120,60,.15);border:1px solid rgba(60,150,60,.3);border-radius:8px;padding:6px 10px;cursor:pointer;transition:background .15s;margin-bottom:5px;}
+.ready-dish:hover{background:rgba(60,120,60,.28);}
+
+/* HUNTING */
+.hunt-zone{background:rgba(255,255,255,.5);border:1.5px solid rgba(80,120,50,.4);border-radius:10px;padding:10px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.hunt-zone:hover:not(.locked-zone){transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15);}
+.hunt-zone.locked-zone{opacity:.4;cursor:not-allowed;filter:grayscale(.5);}
+.hunt-zone-icon{font-size:24px;margin-bottom:4px;}
+.hunt-zone-name{font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--ink);}
+.hunt-zone-desc{font-size:10px;color:var(--muted);margin-top:2px;}
+.hunt-zone-cost{font-size:11px;color:var(--danger);font-weight:700;margin-top:4px;}
+.hunt-zone-loot{font-size:10px;color:var(--food-green);margin-top:2px;}
+.trap-card{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.45);border:1px solid rgba(100,70,20,.25);border-radius:8px;padding:8px 10px;margin-bottom:6px;}
+.trap-btn{padding:4px 10px;background:var(--medium-wood);color:var(--parchment);border:none;border-radius:5px;font-family:'Cinzel',serif;font-size:10px;font-weight:600;cursor:pointer;}
+.trap-btn:hover{background:var(--light-wood);}
+.trap-btn:disabled{opacity:.4;cursor:not-allowed;}
+.larder-badge{background:rgba(60,120,30,.18);border:1px solid rgba(60,150,30,.35);border-radius:8px;padding:5px 10px;font-size:12px;display:flex;flex-direction:column;gap:2px;color:var(--food-green);font-weight:700;}
+
+/* HUNT MINIGAME */
+.hunt-minigame{position:fixed;inset:0;background:rgba(5,15,5,.92);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
+.hunt-minigame.open{opacity:1;pointer-events:all;}
+.hunt-mg-panel{background:#1a2e10;border:3px solid #4a8a2a;border-radius:14px;padding:24px;max-width:420px;width:94%;color:#c8e8a0;}
+.hunt-mg-title{font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:#8eda4a;margin-bottom:4px;}
+.hunt-mg-sub{font-size:12px;color:#7a9a60;margin-bottom:16px;}
+.hunt-mg-scene{background:#0d1f08;border-radius:10px;margin-bottom:14px;height:120px;position:relative;overflow:hidden;}
+.hunt-target{font-size:44px;position:absolute;cursor:crosshair;user-select:none;line-height:1;}
+.hunt-mg-result{text-align:center;font-family:'Cinzel',serif;font-size:14px;color:#8eda4a;margin:8px 0;min-height:22px;}
+.hunt-mg-btns{display:flex;gap:8px;}
+.hunt-mg-btn{flex:1;padding:8px;font-family:'Cinzel',serif;font-size:12px;font-weight:600;border:1px solid #4a8a2a;border-radius:6px;background:rgba(74,138,42,.15);color:#8eda4a;cursor:pointer;}
+.hunt-mg-btn:hover{background:rgba(74,138,42,.3);}
+.hunt-mg-btn.primary{background:#4a8a2a;color:#fff;border-color:#4a8a2a;}
+.hunt-mg-btn.primary:hover{background:#5ab030;}
+.hunt-mg-btn:disabled{opacity:.35;cursor:not-allowed;}
+.hunt-timer-bar{height:6px;background:rgba(0,0,0,.4);border-radius:3px;margin-bottom:12px;overflow:hidden;}
+.hunt-timer-fill{height:6px;background:linear-gradient(90deg,#e05020,#f0a030,#60c030);border-radius:3px;width:100%;}
+.hunt-hits-row{display:flex;justify-content:space-between;font-size:11px;color:#7a9a60;margin-bottom:8px;}
+
+/* SIDEBAR ELEMENTS */
+.stat-card{background:rgba(0,0,0,.35);border:1px solid rgba(200,134,10,.25);border-radius:8px;padding:9px;}
+.stat-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:3px;}
+.stat-value{font-family:'Cinzel',serif;font-size:19px;font-weight:600;color:var(--ale-gold);}
+.stat-sub{font-size:10px;color:var(--muted);}
+.bar-bg{height:5px;background:rgba(0,0,0,.4);border-radius:3px;margin-top:5px;}
+.bar-fill{height:5px;border-radius:3px;transition:width .5s;}
+.bar-rep{background:linear-gradient(90deg,var(--ale-gold),var(--ale-light));}
+.bar-hunger{background:linear-gradient(90deg,#a05020,#e07030);}
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.mini-stat{background:rgba(0,0,0,.3);border-radius:6px;padding:6px 8px;border:1px solid rgba(200,134,10,.15);}
+.mini-stat .ms-val{font-family:'Cinzel',serif;font-size:15px;color:var(--ale-gold);}
+.mini-stat .ms-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.action-btn{width:100%;padding:8px 6px;font-family:'Cinzel',serif;font-size:11px;font-weight:600;letter-spacing:.4px;border:1px solid var(--ale-gold);border-radius:6px;background:rgba(200,134,10,.12);color:var(--ale-gold);cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.action-btn:hover{background:rgba(200,134,10,.28);}
+.action-btn:active{transform:scale(.97);}
+.action-btn:disabled{opacity:.35;cursor:not-allowed;}
+.action-btn.blue{border-color:var(--blue-light);color:var(--blue-light);background:rgba(91,155,213,.08);}
+.action-btn.blue:hover{background:rgba(91,155,213,.18);}
+.action-btn.green{border-color:var(--food-light);color:var(--food-light);background:rgba(109,194,109,.08);}
+.action-btn.green:hover{background:rgba(109,194,109,.18);}
+.btn-group{display:flex;flex-direction:column;gap:5px;}
+
+/* BANNERS */
+.event-banner{background:rgba(200,134,10,.18);border:1.5px solid var(--ale-gold);border-radius:8px;padding:8px 12px;margin-bottom:10px;display:none;}
+.event-banner.active{display:flex;align-items:center;gap:8px;}
+.event-banner-icon{font-size:22px;}
+.event-banner-text{font-size:12px;font-family:'Cinzel',serif;color:var(--ink);}
+.event-banner-sub{font-size:10px;color:var(--muted);}
+.level-up-banner{background:linear-gradient(135deg,rgba(200,134,10,.25),rgba(245,200,66,.15));border:2px solid var(--ale-gold);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:none;}
+.level-up-banner.show{display:block;animation:bannerPop .4s ease;}
+@keyframes bannerPop{from{transform:scale(.9);opacity:0;}to{transform:scale(1);opacity:1;}}
+.level-up-title{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--ale-gold);}
+.level-up-perks{font-size:11px;color:var(--ink);margin-top:4px;}
+
+/* LOG */
 .log-wrap{background:var(--dark-wood);border-top:3px solid var(--ale-gold);padding:8px 16px;max-height:110px;overflow-y:auto;}
-.log-e{font-size:11px;color:var(--parchment);padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04);animation:fi .35s forwards;}
-.log-e.g{color:var(--ale-light);}.log-e.r{color:#e07070;}.log-e.b{color:#7aaeee;}
-@keyframes fi{from{opacity:0;transform:translateX(-3px);}to{opacity:1;transform:none;}}
-.toast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--dark-wood);border:2px solid var(--ale-gold);color:var(--ale-light);font-family:'Cinzel',serif;font-size:13px;padding:7px 20px;border-radius:8px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:200;white-space:nowrap;}
+.log-entry{font-size:11px;color:#d4c8a8;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04);animation:fadeIn .35s forwards;}
+.log-entry.gold{color:var(--ale-light);}
+.log-entry.bad{color:#e08080;}
+.log-entry.green{color:#90d090;}
+.log-entry.blue{color:#80b4e0;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-3px);}to{opacity:1;transform:none;}}
+
+/* TOAST */
+.toast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--dark-wood);border:2px solid var(--ale-gold);color:var(--ale-light);font-family:'Cinzel',serif;font-size:13px;padding:7px 20px;border-radius:8px;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:200;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.modal{position:fixed;inset:0;background:rgba(8,4,0,.85);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
-.modal.open{opacity:1;pointer-events:all;}
-.mpanel{background:var(--aged-paper);border:3px solid var(--ale-gold);border-radius:13px;padding:22px;max-width:480px;width:94%;max-height:86vh;overflow-y:auto;}
-.mtitle{font-family:'Cinzel',serif;font-size:19px;color:var(--dark-wood);margin-bottom:14px;text-align:center;border-bottom:1px solid rgba(139,100,50,.3);padding-bottom:10px;}
-.shop-tabs{display:flex;gap:6px;margin-bottom:14px;}
-.stab{flex:1;padding:6px;font-family:'Cinzel',serif;font-size:11px;font-weight:600;border:1px solid rgba(139,100,50,.4);border-radius:6px;background:transparent;color:var(--medium-wood);cursor:pointer;text-align:center;}
-.stab.active{background:var(--medium-wood);color:var(--parchment);border-color:var(--medium-wood);}
-.shop-section{display:none;}.shop-section.active{display:block;}
-.si{display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid rgba(139,100,50,.25);border-radius:8px;padding:9px 11px;margin-bottom:7px;gap:8px;}
-.si-info{font-size:12px;color:var(--ink);flex:1;}
-.si-info strong{display:block;font-size:13px;font-weight:700;}
-.si-desc{color:var(--muted);}.si-cost{color:var(--ale-gold);font-weight:700;font-size:12px;}.si-req{color:#c05010;font-size:10px;}
-.sbuy{padding:5px 12px;background:var(--ale-gold);color:var(--ink);border:none;border-radius:5px;font-family:'Cinzel',serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
-.sbuy:hover{background:var(--ale-light);}.sbuy:disabled{opacity:.35;cursor:not-allowed;}
-.owned-badge{padding:5px 9px;background:rgba(45,106,45,.2);color:var(--green);border:1px solid var(--green);border-radius:5px;font-size:10px;font-weight:700;}
-.locked-badge{padding:5px 9px;background:rgba(80,80,80,.15);color:#888;border:1px solid #aaa;border-radius:5px;font-size:10px;}
-.cbtn{display:block;width:100%;margin-top:10px;padding:8px;background:var(--dark-wood);color:var(--parchment);border:none;border-radius:6px;font-family:'Cinzel',serif;font-size:12px;cursor:pointer;}
-.recipe-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-.recipe-card{background:white;border:2px solid rgba(139,100,50,.25);border-radius:8px;padding:9px;cursor:pointer;transition:border-color .15s,transform .12s;}
-.recipe-card:hover{border-color:var(--ale-gold);transform:scale(1.02);}
-.recipe-card.unavail{opacity:.4;cursor:not-allowed;pointer-events:none;}
-.rc-icon{font-size:26px;margin-bottom:4px;}.rc-name{font-size:12px;font-weight:700;color:var(--ink);}
-.rc-desc{font-size:10px;color:var(--muted);}.rc-price{font-size:11px;color:var(--ale-gold);font-weight:700;margin-top:3px;}
-.lu-panel{text-align:center;}
-.lu-lvl{font-family:'Cinzel',serif;font-size:44px;font-weight:700;color:var(--ale-gold);margin:10px 0;}
-.lu-perks{background:rgba(139,100,50,.1);border-radius:8px;padding:12px;margin:12px 0;text-align:left;}
-.lu-perk{font-size:13px;color:var(--ink);padding:3px 0;}
-.go-panel{text-align:center;}.go-title{font-family:'Cinzel',serif;font-size:26px;color:var(--dark-wood);margin-bottom:6px;}
-.go-sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
-.go-stats{background:rgba(139,100,50,.1);border-radius:8px;padding:12px;margin-bottom:18px;text-align:left;}
+
+/* SHOP MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(8,4,0,.84);display:flex;align-items:center;justify-content:center;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-bg.open{opacity:1;pointer-events:all;}
+.modal-panel{background:var(--aged-paper);border:3px solid var(--ale-gold);border-radius:12px;padding:20px;max-width:440px;width:94%;max-height:82vh;overflow-y:auto;}
+.modal-title{font-family:'Cinzel',serif;font-size:18px;color:var(--dark-wood);margin-bottom:4px;text-align:center;}
+.modal-sub{font-size:11px;color:var(--muted);text-align:center;margin-bottom:14px;}
+.shop-tabs{display:flex;gap:4px;margin-bottom:12px;}
+.shop-tab{flex:1;padding:5px;font-family:'Cinzel',serif;font-size:10px;font-weight:600;border:1px solid rgba(139,100,50,.4);border-radius:6px;background:rgba(255,255,255,.4);color:var(--muted);cursor:pointer;text-align:center;transition:all .15s;}
+.shop-tab.active{background:var(--ale-gold);color:var(--ink);border-color:var(--ale-gold);}
+.shop-section{display:none;}
+.shop-section.active{display:block;}
+.shop-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.6);border:1px solid rgba(139,100,50,.25);border-radius:8px;padding:9px 10px;margin-bottom:7px;gap:8px;}
+.shop-item-info{flex:1;}
+.shop-item-info strong{display:block;font-size:13px;font-weight:700;color:var(--ink);}
+.shop-item-info .si-desc{font-size:11px;color:var(--muted);}
+.si-price{font-size:12px;color:var(--ale-gold);font-weight:700;margin-top:2px;}
+.shop-buy{padding:5px 12px;background:var(--ale-gold);color:var(--ink);border:none;border-radius:6px;font-family:'Cinzel',serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.shop-buy:hover{background:var(--ale-light);}
+.shop-buy:disabled{opacity:.35;cursor:not-allowed;}
+.close-btn{display:block;width:100%;margin-top:10px;padding:7px;background:var(--dark-wood);color:var(--parchment);border:none;border-radius:6px;font-family:'Cinzel',serif;font-size:12px;cursor:pointer;}
+
+/* GAME OVER */
+.go-modal{position:fixed;inset:0;background:rgba(5,2,0,.94);display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .3s;}
+.go-modal.open{opacity:1;pointer-events:all;}
+.go-panel{background:var(--aged-paper);border:4px solid var(--ale-gold);border-radius:14px;padding:30px;max-width:380px;width:92%;text-align:center;}
+.go-title{font-family:'Cinzel',serif;font-size:24px;color:var(--dark-wood);margin-bottom:6px;}
+.go-sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.go-stats{background:rgba(139,100,50,.12);border-radius:8px;padding:14px;margin-bottom:18px;text-align:left;}
 .go-stats p{font-size:13px;color:var(--ink);padding:3px 0;}
-.go-grade{font-family:'Cinzel',serif;font-size:20px;color:var(--ale-gold);margin:8px 0;}
-.rbtn{padding:10px 28px;background:var(--ale-gold);color:var(--ink);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:14px;font-weight:700;cursor:pointer;}
-.rbtn:hover{background:var(--ale-light);}
+.go-grade{font-family:'Cinzel',serif;font-size:28px;font-weight:700;color:var(--ale-gold);margin-bottom:6px;}
+.restart-btn{padding:10px 28px;background:var(--ale-gold);color:var(--ink);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:14px;font-weight:700;cursor:pointer;}
+.restart-btn:hover{background:var(--ale-light);}
 </style>
 </head>
 <body>
 <div id="app">
   <div class="hdr">
     <div>
-      <div class="hdr-name">The Gilded Flagon</div>
-      <div class="hdr-sub">Day <span id="d-day">1</span> &nbsp;·&nbsp; <span id="d-season">Spring</span></div>
+      <div class="tavern-name">The Gilded Flagon</div>
+      <div class="hdr-meta">
+        <div class="day-badge">Day <span id="day-num">1</span>/365</div>
+        <div class="level-badge">Lv.<span id="lv-num">1</span> — <span id="lv-name">Humble Inn</span></div>
+        <div>
+          <div class="day-timer-pill">⏳ <span id="day-timer-text">60s</span> left today</div>
+          <div class="day-timer-bg"><div class="day-timer-fill" id="day-timer-fill" style="width:100%"></div></div>
+        </div>
+      </div>
     </div>
-    <div class="hdr-stats">
-      <div class="hdr-pill level-pill">Lv.<span id="d-level">1</span> <span id="d-lvname">Roadside Shack</span></div>
-      <div class="hdr-pill">🪙 <span id="d-gold">50</span></div>
+    <div class="hdr-right">
+      <div class="xp-bar-wrap">
+        <div class="xp-label">XP <span id="xp-text">0/50</span></div>
+        <div class="xp-bg"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+      </div>
+      <div class="coin-pill">🪙 <span id="gold-display">80</span></div>
     </div>
   </div>
-  <div class="xp-strip"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
 
-  <div class="main">
+  <div class="main-wrap">
     <div class="floor">
-      <div id="event-banner-wrap"></div>
-      <div>
-        <div class="sec-title">Tables</div>
+      <div class="event-banner" id="event-banner">
+        <div class="event-banner-icon" id="eb-icon">🎉</div>
+        <div><div class="event-banner-text" id="eb-text">Market Day</div><div class="event-banner-sub" id="eb-sub">More guests arriving!</div></div>
+      </div>
+      <div class="level-up-banner" id="level-up-banner">
+        <div class="level-up-title" id="lu-title">⭐ Leveled Up!</div>
+        <div class="level-up-perks" id="lu-perks"></div>
+      </div>
+      <div class="floor-tabs">
+        <button class="tab-btn active" onclick="switchTab('tables')">🍺 Tables</button>
+        <button class="tab-btn" onclick="switchTab('kitchen')">🍖 Kitchen</button>
+        <button class="tab-btn" onclick="switchTab('hunting')">🏹 Hunting</button>
+        <button class="tab-btn" onclick="switchTab('staff')">👥 Staff</button>
+      </div>
+
+      <!-- TABLES -->
+      <div id="tab-tables">
+        <div class="sec-title">Tavern Tables</div>
         <div class="tables-grid" id="tables-grid"></div>
+        <div class="sec-title">Restock</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="action-btn" style="width:auto;padding:6px 12px;" onclick="brewAle()">🍺 Brew Ale (-<span id="ale-cost-lbl">5</span>🪙)</button>
+          <button class="action-btn blue" style="width:auto;padding:6px 12px;" onclick="buyMead()">🍯 Mead (-8🪙)</button>
+          <button class="action-btn blue" style="width:auto;padding:6px 12px;" onclick="buyWine()">🍷 Wine (-12🪙)</button>
+          <button class="action-btn blue" style="width:auto;padding:6px 12px;" onclick="buySpirits()">🥃 Spirits (-18🪙)</button>
+        </div>
       </div>
-      <div id="kitchen-wrap" style="display:none">
-        <div class="sec-title">Kitchen <span style="font-size:9px;color:var(--muted);">(orders cooking)</span></div>
-        <div class="kitchen-area"><div class="kitchen-queue" id="kitchen-queue"></div></div>
+
+      <!-- KITCHEN -->
+      <div id="tab-kitchen" style="display:none;">
+        <div id="kitchen-locked-msg" style="text-align:center;padding:30px;font-family:'Cinzel',serif;color:var(--muted);">
+          🍖 Hire a Cook or buy the Kitchen upgrade to unlock food!
+        </div>
+        <div id="kitchen-panel" style="display:none;">
+          <div class="sec-title">Cook Food</div>
+          <div class="food-grid" id="food-grid"></div>
+          <div class="sec-title">Ready to Serve</div>
+          <div id="ready-food"></div>
+          <div id="no-ready-food" style="font-size:11px;color:var(--muted);font-style:italic;">No food ready — cook something!</div>
+        </div>
       </div>
-      <div>
-        <div class="sec-title">Staff on Duty</div>
-        <div class="staff-row" id="staff-row"><span style="font-size:11px;color:var(--muted);">No staff hired yet.</span></div>
+
+      <!-- HUNTING -->
+      <div id="tab-hunting" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="sec-title" style="margin-bottom:0;">Hunting Grounds</div>
+          <div style="font-size:12px;font-family:'Cinzel',serif;color:var(--ale-gold);">🥾 <span id="hunt-stam-txt">10/10</span> stamina</div>
+        </div>
+        <div style="height:6px;background:rgba(0,0,0,.3);border-radius:3px;margin-bottom:12px;"><div id="hunt-stam-bar" style="height:6px;background:linear-gradient(90deg,#3a7a3a,#6dc26d);border-radius:3px;transition:width .4s;width:100%;"></div></div>
+        <div class="sec-title">Zones</div>
+        <div id="hunt-zones" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
+        <div class="sec-title">Traps <span style="font-size:10px;font-weight:400;color:var(--muted);">(overnight)</span></div>
+        <div id="hunt-traps"></div>
+        <div class="sec-title">Larder</div>
+        <div id="hunt-larder" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+
+      <!-- STAFF -->
+      <div id="tab-staff" style="display:none;">
+        <div class="sec-title">Hired Staff</div>
+        <div id="staff-list-big" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+        <div class="sec-title">Summary</div>
+        <div id="staff-summary" style="font-size:12px;color:var(--muted);"></div>
       </div>
     </div>
 
     <div class="sidebar">
-      <div class="sc">
-        <div class="sl">Gold</div>
-        <div class="sv" id="sb-gold">50</div>
-        <div class="ss">Today: +<span id="sb-dayearned" style="color:var(--ale-light)">0</span>🪙</div>
+      <div class="stat-card">
+        <div class="stat-label">Gold</div>
+        <div class="stat-value" id="gold-sb">80</div>
+        <div class="stat-sub">coins in the coffer</div>
       </div>
-      <div class="sc">
-        <div class="sl">Reputation</div>
-        <div class="sv" id="sb-rep">10</div>
-        <div class="rep-bg"><div class="rep-fill" id="rep-fill" style="width:10%"></div></div>
-        <div class="ss" id="sb-replabel">Unknown Tavern</div>
+      <div class="stat-card">
+        <div class="stat-label">Reputation</div>
+        <div class="stat-value" id="rep-val">10</div>
+        <div class="bar-bg"><div class="bar-fill bar-rep" id="rep-bar" style="width:10%"></div></div>
+        <div class="stat-sub" id="rep-lbl">Unknown Tavern</div>
       </div>
-      <div class="sc">
-        <div class="sl">Pantry &amp; Cellar</div>
-        <div class="stock-grid" id="stock-grid"></div>
+      <div class="stat-card">
+        <div class="stat-label">Guest Hunger</div>
+        <div class="bar-bg"><div class="bar-fill bar-hunger" id="hunger-bar" style="width:50%"></div></div>
+        <div class="stat-sub">High hunger = bigger tips</div>
       </div>
-      <div class="sc">
-        <div class="sl">Experience</div>
-        <div class="ss" id="sb-xp">0 / 80 XP to Level 2</div>
-        <div class="rep-bg"><div class="rep-fill" id="xp-bar2" style="width:0%;background:linear-gradient(90deg,#5b9bd5,#8abcf0)"></div></div>
+      <div class="mini-stats">
+        <div class="mini-stat"><div class="ms-val" id="st-served">0</div><div class="ms-lbl">Served</div></div>
+        <div class="mini-stat"><div class="ms-val" id="st-earned">0</div><div class="ms-lbl">Earned</div></div>
+        <div class="mini-stat"><div class="ms-val" id="st-food">0</div><div class="ms-lbl">Dishes</div></div>
+        <div class="mini-stat"><div class="ms-val" id="st-hunted">0</div><div class="ms-lbl">Hunted</div></div>
       </div>
-      <button class="btn g" onclick="openShop('supply')">🛒 Supplies</button>
-      <button class="btn" onclick="openShop('staff')">⚔️ Hire Staff</button>
-      <button class="btn" onclick="openShop('upgrade')">🔨 Upgrades</button>
-      <button class="btn r" onclick="endDay()">🌙 End Day</button>
+      <div class="stat-card">
+        <div class="stat-label">Stock</div>
+        <div id="stock-lines" style="font-size:10px;color:var(--muted);line-height:1.8;"></div>
+      </div>
+      <div class="btn-group">
+        <button class="action-btn" onclick="endDay()">🌙 End Day Early</button>
+        <button class="action-btn green" onclick="openShop()">🏪 Shop & Hire</button>
+      </div>
     </div>
   </div>
-  <div class="log-wrap" id="log-wrap"></div>
+  <div class="log-wrap" id="event-log"></div>
+</div>
+
+<!-- HUNT MINIGAME -->
+<div class="hunt-minigame" id="hunt-minigame">
+  <div class="hunt-mg-panel">
+    <div class="hunt-mg-title" id="hm-title">🏹 The Hunt</div>
+    <div class="hunt-mg-sub" id="hm-sub">Click the animal before it escapes!</div>
+    <div class="hunt-timer-bar"><div class="hunt-timer-fill" id="hm-timer-fill"></div></div>
+    <div class="hunt-hits-row"><span id="hm-hits">Shots: 0 hit / 0 miss</span><span id="hm-stamina">🥾 10 stamina left</span></div>
+    <div class="hunt-mg-scene" id="hm-scene">
+      <div class="hunt-target" id="hm-target" onclick="hitTarget()">🦌</div>
+    </div>
+    <div class="hunt-mg-result" id="hm-result"></div>
+    <div class="hunt-mg-btns">
+      <button class="hunt-mg-btn" onclick="closeHuntGame()">← Retreat</button>
+      <button class="hunt-mg-btn primary" id="hm-again-btn" onclick="startHuntRound()" disabled>Hunt Again 🏹</button>
+    </div>
+  </div>
 </div>
 
 <!-- SHOP -->
-<div class="modal" id="shop-modal">
-  <div class="mpanel">
-    <div class="mtitle">Merchant's Quarter</div>
+<div class="modal-bg" id="shop-modal">
+  <div class="modal-panel">
+    <div class="modal-title">⚔️ Merchant's Quarter</div>
+    <div class="modal-sub">🪙 <span id="shop-gold">80</span> | Level <span id="shop-level">1</span></div>
     <div class="shop-tabs">
-      <button class="stab active" onclick="switchShopTab('supply')">🛒 Supplies</button>
-      <button class="stab" onclick="switchShopTab('staff')">⚔️ Staff</button>
-      <button class="stab" onclick="switchShopTab('upgrade')">🔨 Upgrades</button>
+      <div class="shop-tab active" onclick="shopTab('drinks')">🍺 Drinks</div>
+      <div class="shop-tab" onclick="shopTab('food')">🍖 Food</div>
+      <div class="shop-tab" onclick="shopTab('staff')">👥 Staff</div>
+      <div class="shop-tab" onclick="shopTab('upgrades')">⚙️ Upgrades</div>
+      <div class="shop-tab" onclick="shopTab('tables')">🪑 Tables</div>
     </div>
-    <div class="shop-section active" id="tab-supply"></div>
-    <div class="shop-section" id="tab-staff"></div>
-    <div class="shop-section" id="tab-upgrade"></div>
-    <button class="cbtn" onclick="closeShop()">Close</button>
-  </div>
-</div>
-
-<!-- FOOD ORDER -->
-<div class="modal" id="food-modal">
-  <div class="mpanel">
-    <div class="mtitle">🍽️ What shall they eat?</div>
-    <div class="recipe-grid" id="recipe-grid"></div>
-    <button class="cbtn" onclick="closeFoodModal()">Cancel</button>
-  </div>
-</div>
-
-<!-- LEVEL UP -->
-<div class="modal" id="lu-modal">
-  <div class="mpanel lu-panel">
-    <div style="font-size:13px;color:var(--muted);font-family:'Cinzel',serif;letter-spacing:2px;">TAVERN LEVEL UP!</div>
-    <div class="lu-lvl" id="lu-lvl">2</div>
-    <div style="font-family:'Cinzel',serif;font-size:18px;color:var(--dark-wood);margin-bottom:8px;" id="lu-name">Roadside Inn</div>
-    <div class="lu-perks" id="lu-perks"></div>
-    <button class="rbtn" onclick="closeLevelUp()">Onwards!</button>
+    <div id="shop-drinks" class="shop-section active"></div>
+    <div id="shop-food" class="shop-section"></div>
+    <div id="shop-staff" class="shop-section"></div>
+    <div id="shop-upgrades" class="shop-section"></div>
+    <div id="shop-tables" class="shop-section"></div>
+    <button class="close-btn" onclick="closeShop()">Close</button>
   </div>
 </div>
 
 <!-- GAME OVER -->
-<div class="modal" id="go-modal">
-  <div class="mpanel go-panel">
+<div class="go-modal" id="go-modal">
+  <div class="go-panel">
     <div class="go-title" id="go-title">The Tavern Closes</div>
     <div class="go-sub" id="go-sub">Your coffer ran dry.</div>
-    <div class="go-grade" id="go-grade"></div>
+    <div class="go-grade" id="go-grade">D</div>
     <div class="go-stats" id="go-stats"></div>
-    <button class="rbtn" onclick="restartGame()">Try Again</button>
+    <button class="restart-btn" onclick="restartGame()">🏚️ Open Again</button>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-const LEVELS=[
-  {lvl:1,name:'Roadside Shack', xp:0,   perks:[]},
-  {lvl:2,name:'Roadside Inn',   xp:80,   perks:['Guests arrive more often','New guests unlock']},
-  {lvl:3,name:'Village Tavern', xp:220,  perks:['Nobles visit regularly','All drink prices +1🪙','Spirits unlocked']},
-  {lvl:4,name:'Town Alehouse',  xp:450,  perks:['Special events more common','Rarer guests appear']},
-  {lvl:5,name:'City Inn',       xp:800,  perks:['Jester & Sommelier available','Tip bonuses doubled']},
-  {lvl:6,name:'Famous Tavern',  xp:1300, perks:['All tips doubled','Royal Charter available']},
-  {lvl:7,name:'Legendary Hall', xp:2000, perks:['Maximum prestige unlocked!']},
+// ================================================================
+// DATA
+// ================================================================
+const TOTAL_DAYS = 365;
+const DAY_DURATION_SEC = 90; // each in-game day lasts 90 real seconds
+
+const LEVELS = [
+  {lvl:1, name:'Humble Inn',      xpNeeded:60},
+  {lvl:2, name:'Roadside Tavern', xpNeeded:150},
+  {lvl:3, name:'Neighbourhood Pub',xpNeeded:280},
+  {lvl:4, name:'Merchant Lodge',  xpNeeded:450},
+  {lvl:5, name:'Renowned Inn',    xpNeeded:680},
+  {lvl:6, name:'Grand Tavern',    xpNeeded:980},
+  {lvl:7, name:'Legendary Alehouse',xpNeeded:1400},
+  {lvl:8, name:"The Realm's Finest",xpNeeded:Infinity},
 ];
 
-const DRINKS={
-  ale:  {price:4, icon:'🍺',name:'Ale',   stock:'ale'},
-  mead: {price:7, icon:'🍯',name:'Mead',  stock:'mead'},
-  wine: {price:11,icon:'🍷',name:'Wine',  stock:'wine'},
-  spirit:{price:15,icon:'🥃',name:'Spirits',stock:'spirit'},
+const DRINKS = {
+  ale:    {price:4,  stock:'ale',    icon:'🍺', name:'Ale'},
+  mead:   {price:7,  stock:'mead',   icon:'🍯', name:'Mead'},
+  wine:   {price:11, stock:'wine',   icon:'🍷', name:'Wine'},
+  spirits:{price:16, stock:'spirits',icon:'🥃', name:'Spirits'},
 };
 
-const FOODS=[
-  {id:'bread', name:'Bread & Butter',icon:'🍞',price:5, cookTime:3,rep:1,desc:'Simple and filling',reqLevel:1,ings:['bread']},
-  {id:'stew',  name:'Hearty Stew',   icon:'🥘',price:9, cookTime:4,rep:2,desc:'Thick and warming',  reqLevel:1,ings:['meat']},
-  {id:'soup',  name:'Mushroom Soup', icon:'🍲',price:8, cookTime:3,rep:1,desc:'Hot and fragrant',   reqLevel:2,ings:['bread']},
-  {id:'pie',   name:'Meat Pie',      icon:'🥧',price:12,cookTime:5,rep:2,desc:'Golden flaky crust', reqLevel:2,ings:['meat']},
-  {id:'roast', name:'Roast Chicken', icon:'🍗',price:14,cookTime:6,rep:3,desc:'Tavern classic',     reqLevel:2,ings:['game']},
-  {id:'cheese',name:'Cheese Board',  icon:'🧀',price:10,cookTime:2,rep:2,desc:'Aged to perfection', reqLevel:3,ings:['dairy']},
-  {id:'feast', name:'Noble Feast',   icon:'🍖',price:22,cookTime:8,rep:5,desc:'Fit for a lord',     reqLevel:3,ings:['game','meat']},
-  {id:'cake',  name:'Honey Cake',    icon:'🍰',price:16,cookTime:5,rep:4,desc:'Sweet indulgence',   reqLevel:4,ings:['honey']},
+const GUEST_TYPES = [
+  {name:'Traveler',  icon:'🧙', patience:10, orders:['ale'],           tipBase:1, rep:1, xp:2},
+  {name:'Merchant',  icon:'💼', patience:9,  orders:['mead','ale'],    tipBase:3, rep:2, xp:3},
+  {name:'Knight',    icon:'⚔️', patience:12, orders:['ale'],           tipBase:2, rep:2, xp:3},
+  {name:'Noble',     icon:'👑', patience:7,  orders:['wine','mead'],   tipBase:6, rep:5, xp:5},
+  {name:'Bard',      icon:'🎵', patience:16, orders:['ale'],           tipBase:0, rep:4, xp:4},
+  {name:'Wizard',    icon:'🔮', patience:8,  orders:['spirits','wine'],tipBase:5, rep:3, xp:4},
+  {name:'Pilgrim',   icon:'🚶', patience:14, orders:['ale'],           tipBase:1, rep:1, xp:2},
+  {name:'Sellsword', icon:'🗡️', patience:11, orders:['spirits','ale'], tipBase:2, rep:2, xp:3},
+  {name:'Duchess',   icon:'🎀', patience:5,  orders:['wine'],          tipBase:10,rep:6, xp:7},
+  {name:'Dwarf',     icon:'⛏️', patience:13, orders:['ale','spirits'], tipBase:2, rep:2, xp:3},
 ];
 
-const GUESTS=[
-  {name:'Traveler', icon:'🧙',patience:10,drink:'ale',   foods:['bread','stew'],              tip:1,rep:1,xp:4, foodChance:.35,minLvl:1},
-  {name:'Farmer',   icon:'👨‍🌾',patience:14,drink:'ale',   foods:['bread','stew','soup'],         tip:1,rep:1,xp:3, foodChance:.4, minLvl:1},
-  {name:'Merchant', icon:'💼',patience:9, drink:'mead',  foods:['stew','pie','roast'],          tip:3,rep:2,xp:6, foodChance:.55,minLvl:2},
-  {name:'Ranger',   icon:'🏹',patience:11,drink:'mead',  foods:['roast','stew'],                tip:2,rep:2,xp:7, foodChance:.45,minLvl:2},
-  {name:'Knight',   icon:'⚔️',patience:12,drink:'ale',   foods:['roast','feast'],               tip:2,rep:2,xp:6, foodChance:.5, minLvl:2},
-  {name:'Bard',     icon:'🎵',patience:16,drink:'ale',   foods:['bread','soup'],                tip:0,rep:3,xp:5, foodChance:.3, minLvl:1},
-  {name:'Noble',    icon:'👑',patience:6, drink:'wine',  foods:['feast','cheese','cake'],       tip:6,rep:4,xp:12,foodChance:.85,minLvl:3},
-  {name:'Elf',      icon:'🧝',patience:7, drink:'wine',  foods:['soup','cheese','cake'],        tip:5,rep:4,xp:11,foodChance:.65,minLvl:3},
-  {name:'Dwarf',    icon:'⛏️',patience:13,drink:'spirit',foods:['roast','feast'],               tip:3,rep:2,xp:8, foodChance:.7, minLvl:3},
-  {name:'Wizard',   icon:'🔮',patience:8, drink:'spirit',foods:['soup','cheese'],               tip:4,rep:3,xp:10,foodChance:.6, minLvl:4},
+const FOOD_MENU = [
+  {id:'bread', name:'Fresh Bread',   icon:'🍞', time:5,  cost:3,  salePrice:6,  tipBonus:1, unlockLvl:1, premium:false, desc:'Simple, filling'},
+  {id:'stew',  name:'Hearty Stew',   icon:'🍲', time:9,  cost:6,  salePrice:12, tipBonus:2, unlockLvl:1, premium:false, desc:'Warms the bones'},
+  {id:'roast', name:'Roast Chicken', icon:'🍗', time:14, cost:9,  salePrice:18, tipBonus:3, unlockLvl:2, premium:false, desc:'Guests love it'},
+  {id:'pie',   name:'Meat Pie',      icon:'🥧', time:11, cost:8,  salePrice:15, tipBonus:3, unlockLvl:2, premium:false, desc:'Crispy crust'},
+  {id:'fish',  name:'Grilled Fish',  icon:'🐟', time:7,  cost:7,  salePrice:13, tipBonus:2, unlockLvl:2, premium:false, desc:'Fresh catch'},
+  {id:'soup',  name:'Mushroom Soup', icon:'🍄', time:6,  cost:5,  salePrice:10, tipBonus:2, unlockLvl:3, premium:false, desc:'Forest flavour'},
+  {id:'cake',  name:'Sweet Cake',    icon:'🎂', time:13, cost:10, salePrice:20, tipBonus:4, unlockLvl:4, premium:true,  desc:'Dessert special'},
+  {id:'feast', name:'Noble Feast',   icon:'🍖', time:18, cost:15, salePrice:30, tipBonus:6, unlockLvl:5, premium:true,  desc:'Impresses nobles'},
 ];
 
-const EVENTS=[
-  {id:'festival',name:'Village Festival!',    desc:'All guests tip +3🪙 today.',      icon:'🎪',effect:'tipBonus',  val:3, repBonus:5},
-  {id:'storm',   name:'Storm Rages Outside',  desc:'Guests arrive twice as fast.',    icon:'⛈️',effect:'guestRush', val:2, repBonus:0},
-  {id:'noblecav',name:'Noble Caravan Visits', desc:'Nobles & Elves visit far more.',  icon:'🏰',effect:'nobles',    val:1, repBonus:3},
-  {id:'drought', name:'Drought – Ale Scarce', desc:'Brewing ale costs +4🪙 today.',   icon:'☀️',effect:'brewCost',  val:4, repBonus:0},
-  {id:'bard',    name:'Famous Bard Performs!',desc:'Guests wait +5 turns extra.',     icon:'🎺',effect:'patience',  val:5, repBonus:8},
-  {id:'guard',   name:'Town Guard Inspection',desc:'No rep lost from unhappy guests.',icon:'🛡️',effect:'noRepLoss', val:1, repBonus:4},
-  {id:'market',  name:'Market Day!',          desc:'All ingredients cost half today.',icon:'🧺',effect:'cheapIng',  val:.5,repBonus:2},
-  {id:'plague',  name:'Sickness in Town',     desc:'Fewer guests but bigger tips.',   icon:'🤧',effect:'plague',    val:1, repBonus:0},
-  {id:'rumor',   name:'Good Rumor Spreads!',  desc:'+10 reputation immediately.',     icon:'📣',effect:'repBoost',  val:10,repBonus:10},
+const HUNT_ZONES = [
+  {id:'meadow',   name:'Meadow',        icon:'🌾', lvlReq:1, staminaCost:2, animals:[
+    {name:'Rabbit',  icon:'🐇', ing:'rabbit',  yield:[1,2], chance:.75, diff:'easy'},
+    {name:'Pheasant',icon:'🦚', ing:'pheasant',yield:[1,1], chance:.55, diff:'easy'},
+  ]},
+  {id:'forest',   name:'Dark Forest',   icon:'🌲', lvlReq:2, staminaCost:3, animals:[
+    {name:'Deer',icon:'🦌', ing:'venison',yield:[2,4], chance:.55, diff:'medium'},
+    {name:'Boar',icon:'🐗', ing:'boar',   yield:[2,3], chance:.45, diff:'hard'},
+    {name:'Fox', icon:'🦊', ing:'fox',    yield:[1,2], chance:.65, diff:'medium'},
+  ]},
+  {id:'river',    name:'River Bank',    icon:'🏞️', lvlReq:2, staminaCost:2, animals:[
+    {name:'Salmon',icon:'🐟', ing:'salmon',yield:[2,4], chance:.7,  diff:'easy'},
+    {name:'Duck',  icon:'🦆', ing:'duck',  yield:[1,2], chance:.6,  diff:'easy'},
+  ]},
+  {id:'highland', name:'Highland Pass', icon:'⛰️', lvlReq:4, staminaCost:4, animals:[
+    {name:'Elk',          icon:'🦌', ing:'elk',  yield:[3,6], chance:.45, diff:'hard'},
+    {name:'Mountain Goat',icon:'🐐', ing:'goat', yield:[2,4], chance:.5,  diff:'medium'},
+    {name:'Bear',         icon:'🐻', ing:'bear', yield:[3,5], chance:.3,  diff:'vhard'},
+  ]},
+  {id:'enchanted',name:'Enchanted Grove',icon:'🍄', lvlReq:6, staminaCost:3, animals:[
+    {name:'Golden Hare', icon:'🐇', ing:'golden_hare',   yield:[1,2], chance:.5,  diff:'medium'},
+    {name:'Spirit Deer', icon:'🦌', ing:'spirit_venison',yield:[2,3], chance:.35, diff:'vhard'},
+  ]},
 ];
 
-const STAFF_LIST=[
-  {id:'barmaid',  name:'Barmaid',   icon:'🙋',desc:'Guests wait +4 longer. May auto-serve drinks.',  cost:30,wage:3,req:1,eff:'barmaid'},
-  {id:'guard',    name:'Guard',     icon:'🛡️',desc:'Prevents reputation loss from angry guests.',     cost:45,wage:4,req:1,eff:'guard'},
-  {id:'cook',     name:'Cook',      icon:'👨‍🍳',desc:'Unlocks kitchen! Guests order food. Tips +2🪙.', cost:50,wage:5,req:1,eff:'cook'},
-  {id:'server',   name:'Server',    icon:'🧑‍🍽️',desc:'Auto-serves one ready table per tick.',          cost:65,wage:6,req:2,eff:'server'},
-  {id:'sommelier',name:'Sommelier', icon:'🍾',desc:'Wine & spirits earn +3🪙 each.',                  cost:80,wage:7,req:3,eff:'sommelier'},
-  {id:'jester',   name:'Jester',    icon:'🤹',desc:'Guests get +6 patience. All tips +2🪙.',          cost:90,wage:8,req:4,eff:'jester'},
-  {id:'alchemist',name:'Alchemist', icon:'⚗️',desc:'Brewing ale costs only 2🪙 per batch.',           cost:110,wage:9,req:5,eff:'alchemist'},
+const INGREDIENTS = {
+  rabbit:        {name:'Rabbit',       icon:'🐇', cookable:['stew','pie']},
+  pheasant:      {name:'Pheasant',     icon:'🦚', cookable:['roast','pie']},
+  venison:       {name:'Venison',      icon:'🍖', cookable:['roast','stew','feast']},
+  boar:          {name:'Wild Boar',    icon:'🐗', cookable:['roast','feast']},
+  fox:           {name:'Fox Meat',     icon:'🦊', cookable:['stew']},
+  salmon:        {name:'Salmon',       icon:'🐟', cookable:['fish','soup']},
+  duck:          {name:'Duck',         icon:'🦆', cookable:['roast','pie']},
+  elk:           {name:'Elk Venison',  icon:'🦌', cookable:['feast','roast']},
+  goat:          {name:'Goat',         icon:'🐐', cookable:['stew','pie']},
+  bear:          {name:'Bear Meat',    icon:'🐻', cookable:['feast']},
+  golden_hare:   {name:'Golden Hare',  icon:'✨', cookable:['cake','feast']},
+  spirit_venison:{name:'Spirit Venison',icon:'🌟',cookable:['feast']},
+};
+
+const TRAP_TYPES = [
+  {id:'snare',  name:'Rope Snare', icon:'🪤', cost:15, lvlReq:1, ings:['rabbit','pheasant','fox'], yield:[1,2], desc:'Catches small game.'},
+  {id:'net',    name:'River Net',  icon:'🎣', cost:20, lvlReq:2, ings:['salmon','duck'],           yield:[2,4], desc:'Set in the river.'},
+  {id:'pitfall',name:'Pit Trap',   icon:'⛏️', cost:30, lvlReq:3, ings:['boar','venison','goat'],   yield:[1,3], desc:'For medium prey.'},
 ];
 
-const UPGRADES=[
-  {id:'table4',   name:'4th Table',        icon:'🪑',desc:'Add a 4th table.',                        cost:25, req:1,type:'table',tNum:4},
-  {id:'table5',   name:'5th Table',        icon:'🪑',desc:'Add a 5th table.',                        cost:40, req:2,type:'table',tNum:5},
-  {id:'table6',   name:'6th Table (VIP)',   icon:'🪑',desc:'Add a luxurious 6th table.',             cost:60, req:3,type:'table',tNum:6},
-  {id:'cellar',   name:'Ale Cellar',        icon:'🏚️',desc:'Brew ale for 3🪙 instead of 5.',         cost:35, req:1,type:'passive'},
-  {id:'sign',     name:'Grand Inn Sign',    icon:'📜',desc:'Nobles & Elves visit twice as often.',   cost:40, req:2,type:'passive'},
-  {id:'larder',   name:'Stocked Larder',    icon:'🧺',desc:'All food ingredients cost -2🪙.',        cost:55, req:2,type:'passive'},
-  {id:'fireplace',name:'Grand Fireplace',   icon:'🔥',desc:'All prices +1🪙. Guests love the warmth.',cost:60,req:3,type:'passive'},
-  {id:'vault',    name:'Gold Vault',        icon:'💰',desc:'Earn 5% interest on gold each night.',   cost:80, req:3,type:'passive'},
-  {id:'brewery',  name:'Own Brewery',       icon:'🍻',desc:'Brew 10 ale per batch instead of 5.',    cost:100,req:4,type:'passive'},
-  {id:'garden',   name:'Herb Garden',       icon:'🌿',desc:'Unlocks Cheese Board & Honey Cake.',     cost:85, req:4,type:'passive'},
-  {id:'stage',    name:'Performance Stage', icon:'🎭',desc:'Bard visits double your reputation gain.',cost:95,req:5,type:'passive'},
-  {id:'vault2',   name:'Royal Charter',     icon:'📋',desc:'10% interest on gold each night.',       cost:150,req:6,type:'passive'},
+const STAFF_CATALOG = [
+  {id:'barmaid',  name:'Barmaid',    icon:'🙋', desc:'Guests wait 4 ticks longer.',             cost:30, wage:3, lvlReq:1, stat:'Patience: +4'},
+  {id:'guard',    name:'Guard',      icon:'🛡️', desc:'Reduces rep loss from angry guests.',      cost:40, wage:4, lvlReq:1, stat:'Rep Guard: Active'},
+  {id:'cook',     name:'Cook',       icon:'👨‍🍳', desc:'Unlocks kitchen. Food cooks 30% faster.', cost:55, wage:5, lvlReq:1, stat:'Kitchen Speed: +30%'},
+  {id:'sommelier',name:'Sommelier',  icon:'🍾', desc:'Wine & spirits +3🪙. Nobles tip +3.',      cost:70, wage:6, lvlReq:3, stat:'Premium Drinks: Boosted'},
+  {id:'musician', name:'Musician',   icon:'🎶', desc:'Rep +1 per guest. Bards tip +5.',          cost:65, wage:5, lvlReq:3, stat:'Ambiance: Excellent'},
+  {id:'cleaner',  name:'Cleaner',    icon:'🧹', desc:'Tables reset instantly on guest leave.',   cost:50, wage:4, lvlReq:2, stat:'Turnover: Instant'},
+  {id:'greeter',  name:'Greeter',    icon:'🎩', desc:'Noble & Duchess visits doubled.',           cost:80, wage:7, lvlReq:4, stat:'Elite Guests: +100%'},
+  {id:'brewer',   name:'Brewer',     icon:'🧪', desc:'Ale yields 8 per brew, costs 4🪙.',        cost:60, wage:5, lvlReq:2, stat:'Brew Output: +60%'},
+  {id:'hunter',   name:'Hunter',     icon:'🏹', desc:'+5 max stamina. Brings ingredients daily.',cost:60, wage:5, lvlReq:2, stat:'Daily Ingredients: Active'},
 ];
 
-const SUPPLIES=[
-  {id:'brew_ale',  name:'Brew Ale',        icon:'🍺',stock:'ale',   baseAmt:()=>G.up.brewery?10:5, baseCost:5, eff:'cellar/alchemist'},
-  {id:'buy_mead',  name:'Buy Mead',        icon:'🍯',stock:'mead',  baseAmt:()=>4,  baseCost:8},
-  {id:'buy_wine',  name:'Buy Wine',        icon:'🍷',stock:'wine',  baseAmt:()=>3,  baseCost:12},
-  {id:'buy_spirit',name:'Buy Spirits',     icon:'🥃',stock:'spirit',baseAmt:()=>2,  baseCost:18, reqLvl:3},
-  {id:'buy_bread', name:'Bread Flour',     icon:'🍞',stock:'bread', baseAmt:()=>4,  baseCost:5,  reqStaff:'cook'},
-  {id:'buy_meat',  name:'Fresh Meat',      icon:'🥩',stock:'meat',  baseAmt:()=>3,  baseCost:9,  reqStaff:'cook'},
-  {id:'buy_game',  name:'Hunted Game',     icon:'🍗',stock:'game',  baseAmt:()=>2,  baseCost:12, reqStaff:'cook'},
-  {id:'buy_dairy', name:'Cheese & Dairy',  icon:'🧀',stock:'dairy', baseAmt:()=>3,  baseCost:7,  reqStaff:'cook', reqUp:'garden'},
-  {id:'buy_honey', name:'Wildflower Honey',icon:'🍯',stock:'honey', baseAmt:()=>2,  baseCost:9,  reqStaff:'cook', reqUp:'garden'},
+const UPGRADES_CATALOG = [
+  {id:'cellar',  name:'Ale Cellar',      icon:'🏚️', desc:'Brewing ale costs 3🪙.',               cost:35, lvlReq:1},
+  {id:'sign',    name:'Grand Sign',      icon:'📜', desc:'Nobles/Duchess appear +50% more.',       cost:45, lvlReq:2},
+  {id:'hearth',  name:'Stone Hearth',    icon:'🔥', desc:'Served guests drink for 2 extra ticks.', cost:50, lvlReq:2},
+  {id:'kitchen', name:'Kitchen Setup',   icon:'🍳', desc:'Unlocks kitchen without a cook.',         cost:60, lvlReq:1},
+  {id:'menu',    name:'Printed Menu',    icon:'📋', desc:'Guest substitutes drink if out of stock.',cost:40, lvlReq:2},
+  {id:'decor',   name:'Fine Decor',      icon:'🖼️', desc:'+3 rep when a Noble/Duchess visits.',    cost:65, lvlReq:3},
+  {id:'vault',   name:'Gold Vault',      icon:'💰', desc:'+10🪙 each dawn from overnight rent.',    cost:100,lvlReq:5},
+  {id:'repfloor',name:'Hall of Fame',    icon:'🏆', desc:'Reputation never drops below 20.',        cost:90, lvlReq:6},
+  {id:'boots',   name:'Hunting Boots',   icon:'🥾', desc:'+4 max hunting stamina.',                 cost:35, lvlReq:1},
+  {id:'bow',     name:'Reinforced Bow',  icon:'🏹', desc:'+15% hit chance hunting.',                cost:50, lvlReq:2},
+  {id:'lodge',   name:'Hunter\'s Lodge', icon:'🏕️', desc:'Traps resolve in 0 days (instant).',      cost:80, lvlReq:3},
 ];
 
-let G, tickInterval, foodModalTarget;
+const TABLE_SHOP = [
+  {id:'t4', name:'Extra Table',       icon:'🪑', desc:'4th table.',              cost:30,  lvlReq:1, count:4},
+  {id:'t5', name:'Common Room Bench', icon:'🛋️', desc:'5th table.',              cost:50,  lvlReq:2, count:5},
+  {id:'t6', name:'Merchant Corner',   icon:'🏮', desc:'6th table.',              cost:70,  lvlReq:3, count:6},
+  {id:'t7', name:'VIP Alcove',        icon:'👑', desc:'7th table — nobles love.',cost:100, lvlReq:5, count:7},
+  {id:'t8', name:'Grand Hall Wing',   icon:'🏛️', desc:'8th table.',              cost:130, lvlReq:7, count:8},
+];
 
-function initState(){
-  G={
-    gold:50,day:1,rep:10,xp:0,level:1,
-    dayEarned:0,totalEarned:0,guestsServed:0,foodServed:0,
-    tables:3,
-    TS:Array.from({length:3},()=>newSlot()),
-    staff:[],up:{},
-    stock:{ale:10,mead:0,wine:0,spirit:0,bread:0,meat:0,game:0,dairy:0,honey:0},
-    kq:[],activeEv:null,evDays:0,
+const SPECIAL_EVENTS = [
+  {icon:'🏪', name:'Market Day',        sub:'More merchants & travelers today!', guestMult:1.5},
+  {icon:'🎉', name:'Town Festival',     sub:'Reputation gains doubled!',         repMult:2, guestMult:1.3},
+  {icon:'🌧️', name:'Rainy Day',         sub:'Guests seek shelter — busier today!',guestMult:1.6},
+  {icon:'📯', name:'Royal Herald',      sub:'Noble visits tripled today!',        nobleMult:3},
+  {icon:'🎵', name:'Wandering Bard',    sub:'Tips increased today!',             tipMult:1.5, guestMult:1.1},
+  {icon:'☀️', name:'Summer Drought',    sub:'Ale sells for +2🪙 today!',          alePriceBonus:2, guestMult:0.9},
+];
+
+// ================================================================
+// STATE
+// ================================================================
+let S, UPG, CQ, EVT, tickInt, dayTimerInt, dayEndLock, curShopTab;
+let huntMG = {};
+
+function initState() {
+  S = {
+    gold:80, day:1, rep:10, xp:0, level:1,
+    ale:10, mead:0, wine:0, spirits:0,
+    tables:3, slots:[], staff:[],
+    totalEarned:0, guestsServed:0, dishesSold:0, totalHunted:0, daysComplete:0,
+    hungerLevel:50,
+    readyDishes:[],
+    larder:{},
+    traps:[],
+    daySecondsLeft: DAY_DURATION_SEC,
   };
+  UPG = {};
+  CQ = {};   // cookQueue: foodId -> ticksLeft
+  EVT = null;
+  dayEndLock = false;
+  curShopTab = 'drinks';
+  huntMG = {zone:null, animal:null, active:false, hits:0, misses:0, timerH:null, moveH:null};
+  S.slots = Array.from({length:3}, mkSlot);
 }
-function newSlot(){return{status:'empty',guest:null,timer:0,food:null,fTimer:0,wFood:false};}
-function has(eff){return G.staff.find(s=>s.eff===eff);}
-function curLv(){return LEVELS[G.level-1];}
-function nextLv(){return LEVELS[G.level]||null;}
-function repLabel(r){return r<15?'Unknown Tavern':r<30?'Local Haunt':r<50?'Respected Inn':r<70?'Famous Tavern':r<90?'Legendary Alehouse':"The Realm's Finest";}
-function priceBonus(){return (G.up.fireplace?1:0)+(G.level>=3?1:0);}
 
-function render(){
-  $('d-day').textContent=G.day;
-  $('d-gold').textContent=G.gold;
-  $('d-level').textContent=G.level;
-  $('d-lvname').textContent=curLv().name;
-  $('d-season').textContent=['Spring','Summer','Autumn','Winter'][Math.floor((G.day-1)/8)%4];
-  $('sb-gold').textContent=G.gold;
-  $('sb-dayearned').textContent=G.dayEarned;
-  $('sb-rep').textContent=G.rep;
-  $('rep-fill').style.width=Math.min(G.rep,100)+'%';
-  $('sb-replabel').textContent=repLabel(G.rep);
-  const nl=nextLv();
-  const pct=nl?Math.min((G.xp/nl.xp)*100,100):100;
-  $('xp-fill').style.width=pct+'%';
-  $('xp-bar2').style.width=pct+'%';
-  $('sb-xp').textContent=nl?`${G.xp} / ${nl.xp} XP → Lv.${nl.lvl}`:'MAX LEVEL';
-  renderStock();renderTables();renderStaff();renderKitchen();renderEvent();
+function mkSlot() {
+  return {status:'empty', guest:null, timer:0, hasFoodOrder:false, foodItem:null, foodReady:false};
 }
-function $(id){return document.getElementById(id);}
 
-function renderStock(){
-  const g=$('stock-grid');
-  const items=[{k:'ale',i:'🍺'},{k:'mead',i:'🍯'},{k:'wine',i:'🍷'},{k:'spirit',i:'🥃'},{k:'bread',i:'🍞'},{k:'meat',i:'🥩'},{k:'game',i:'🍗'},{k:'dairy',i:'🧀'},{k:'honey',i:'🍯'}];
-  g.innerHTML=items.map(({k,i})=>{
-    const v=G.stock[k];
-    if(v===0&&!['ale','mead','wine'].includes(k))return '';
-    return `<div class="stock-item ${v<=1?'low':''}">${i} <span>${v}</span></div>`;
+initState();
+
+// ================================================================
+// HELPERS
+// ================================================================
+const repLabel = r => r<15?'Unknown Tavern':r<30?'Local Haunt':r<50?'Respected Inn':r<70?'Famous Tavern':r<90?'Legendary Alehouse':"The Realm's Finest";
+const hasStaff = id => !!S.staff.find(s=>s.id===id);
+const hasUpg = id => !!UPG[id];
+const hasCook = () => hasStaff('cook');
+const hasKitchen = () => hasCook() || hasUpg('kitchen');
+const getLv = () => LEVELS[S.level-1];
+const getNextLv = () => LEVELS[S.level] || null;
+
+function aleCost() { return hasStaff('brewer') ? 4 : hasUpg('cellar') ? 3 : 5; }
+function aleYield() { return hasStaff('brewer') ? 8 : 5; }
+function maxStamina() { return 10 + (hasUpg('boots')?4:0) + (hasStaff('hunter')?5:0); }
+
+function drinkPrice(id) {
+  let p = DRINKS[id].price;
+  if (S.level>=6) p++;
+  if (id==='ale' && EVT && EVT.alePriceBonus) p += EVT.alePriceBonus;
+  if ((id==='wine'||id==='spirits') && hasStaff('sommelier')) p += 3;
+  return p;
+}
+
+function calcTip(guest, ts) {
+  let t = guest.tipBase;
+  if (S.level>=4) t++;
+  if (ts.foodReady && hasCook()) t += 2;
+  if (hasStaff('musician')) t++;
+  if (hasStaff('sommelier') && (guest.name==='Noble'||guest.name==='Duchess')) t += 3;
+  if (hasStaff('musician') && guest.name==='Bard') t += 5;
+  if (EVT && EVT.tipMult) t = Math.round(t * EVT.tipMult);
+  return Math.max(0, t);
+}
+
+function guestPool() {
+  const add = (g,w) => { for(let i=0;i<w;i++) pool.push(g); };
+  let pool = [];
+  add(0,4); add(2,3); add(4,2); add(6,3);
+  if(S.rep>=15){add(1,3);add(7,2);}
+  if(S.rep>=30){add(5,2);}
+  if(S.rep>=40||hasUpg('sign')){add(3,2);if(hasStaff('greeter'))add(3,3);}
+  if(S.rep>=50){add(9,2);}
+  if(S.level>=4||hasUpg('sign')){add(8,1);if(hasStaff('greeter'))add(8,2);}
+  if(EVT&&EVT.nobleMult){for(let i=0;i<EVT.nobleMult-1;i++){add(3,2);add(8,1);}}
+  return pool.map(i=>GUEST_TYPES[i]);
+}
+
+function guestChance() {
+  let b = 0.28 + (S.rep/100)*0.42;
+  if(hasStaff('barmaid')) b += 0.1;
+  if(S.level>=5) b += 0.05;
+  if(EVT&&EVT.guestMult) b *= EVT.guestMult;
+  return Math.min(b, 0.88);
+}
+
+function pickDrink(preferred) {
+  if(S[preferred]>0) return preferred;
+  if(!hasUpg('menu')) return null;
+  return Object.keys(DRINKS).find(d=>S[d]>0) || null;
+}
+
+function gainXP(amt) {
+  S.xp += amt;
+  const next = getNextLv();
+  if(next && S.xp >= next.xpNeeded) levelUp();
+}
+
+function levelUp() {
+  S.level++;
+  const lv = getLv();
+  const banner = document.getElementById('level-up-banner');
+  document.getElementById('lu-title').textContent = `⭐ Level ${S.level}: ${lv.name}!`;
+  document.getElementById('lu-perks').textContent = 'Keep growing your legend!';
+  banner.classList.add('show');
+  setTimeout(()=>banner.classList.remove('show'), 5000);
+  addLog(`⭐ Level Up! You are now Level ${S.level}: ${lv.name}!`, 'gold');
+  toast(`Level Up! ${lv.name}`);
+}
+
+function addIngredient(id, qty) { S.larder[id] = (S.larder[id]||0) + qty; }
+
+// ================================================================
+// ACTIONS — DRINKS
+// ================================================================
+function brewAle() {
+  const c = aleCost();
+  if(S.gold<c){toast(`Need ${c}🪙 to brew ale.`);return;}
+  S.gold-=c; S.ale+=aleYield();
+  addLog(`🍺 Brewed ${aleYield()} ale for ${c}🪙.`);
+  render();
+}
+function buyMead()    { buyDrink('mead',   8, 4); }
+function buyWine()    { buyDrink('wine',  12, 3); }
+function buySpirits() {
+  if(S.level<3){toast('Spirits unlock at Level 3!');return;}
+  buyDrink('spirits',18,3);
+}
+function buyDrink(id, cost, qty) {
+  if(S.gold<cost){toast(`Need ${cost}🪙.`);return;}
+  S.gold-=cost; S[id]+=qty;
+  addLog(`Bought ${qty} ${DRINKS[id].name}.`);
+  render();
+}
+
+// ================================================================
+// ACTIONS — TABLES
+// ================================================================
+function serveTable(i) {
+  const ts = S.slots[i];
+  if(!ts||ts.status!=='waiting') return;
+  let drinkId = null;
+  for(const d of ts.guest.orders){ drinkId=pickDrink(d); if(drinkId) break; }
+  if(!drinkId){ toast(`Out of ${ts.guest.orders.map(d=>DRINKS[d]?.name||d).join('/')}!`); return; }
+  S[drinkId]--;
+  ts.status='served';
+  const extra = hasUpg('hearth')?2:0;
+  ts.timer = (hasCook()?6:4) + extra + (S.level>=3?1:0);
+  if(hasKitchen() && S.hungerLevel>35 && Math.random()<0.5) ts.hasFoodOrder=true;
+  addLog(`Served ${DRINKS[drinkId].icon} to the ${ts.guest.name}.`, 'gold');
+  render();
+}
+
+function serveFoodToTable(i) {
+  const ts = S.slots[i];
+  if(!ts||ts.status!=='served'||!ts.hasFoodOrder||ts.foodReady) return;
+  if(!S.readyDishes.length){ toast('No food ready!'); return; }
+  const dish = S.readyDishes.shift();
+  ts.foodReady=true; ts.foodItem=dish.food;
+  S.hungerLevel = Math.max(0, S.hungerLevel - (dish.food.hunger||4));
+  S.dishesSold++;
+  addLog(`🍽️ Served ${dish.food.icon} ${dish.food.name} to ${ts.guest.name}. (+${dish.food.tipBonus} tip)`, 'green');
+  render();
+}
+
+function collectPayment(i) {
+  const ts = S.slots[i];
+  if(!ts||ts.status!=='ready') return;
+  const g = ts.guest;
+  const drinkId = g.orders.find(d=>DRINKS[d]) || g.orders[0];
+  const earned = drinkPrice(drinkId) + calcTip(g, ts);
+  const foodEarned = ts.foodReady && ts.foodItem ? ts.foodItem.salePrice : 0;
+  const total = earned + foodEarned;
+  S.gold += total; S.totalEarned += total; S.guestsServed++;
+  let repGain = g.rep;
+  if(EVT&&EVT.repMult) repGain=Math.round(repGain*EVT.repMult);
+  if(hasStaff('musician')) repGain++;
+  if(hasUpg('decor')&&(g.name==='Noble'||g.name==='Duchess')) repGain+=3;
+  S.rep = Math.min(100, S.rep+repGain);
+  if(hasUpg('repfloor')) S.rep=Math.max(20,S.rep);
+  gainXP(g.xp + (ts.foodReady?2:0));
+  addLog(`${g.icon} ${g.name} paid ${total}🪙!${foodEarned?` (food +${foodEarned}🪙)`:''} (+${repGain}rep)`, 'gold');
+  S.slots[i] = mkSlot();
+  render();
+}
+
+// ================================================================
+// ACTIONS — KITCHEN
+// ================================================================
+function cookFood(foodId) {
+  const food = FOOD_MENU.find(f=>f.id===foodId);
+  if(!food) return;
+  if(!hasKitchen()){ toast('No kitchen!'); return; }
+  if(S.gold<food.cost){ toast(`Need ${food.cost}🪙.`); return; }
+  if(CQ[foodId]){ toast('Already cooking that!'); return; }
+  S.gold -= food.cost;
+  CQ[foodId] = Math.ceil(food.time * (hasCook()?0.7:1));
+  addLog(`🍳 Cooking ${food.icon} ${food.name}...`);
+  render();
+}
+
+function cookWithIngredient(foodId, ingId) {
+  const food = FOOD_MENU.find(f=>f.id===foodId);
+  if(!food||!hasKitchen()) return;
+  if(!(S.larder[ingId]>0)){ toast('No ingredient!'); return; }
+  if(CQ[foodId]){ toast('Already cooking that!'); return; }
+  const disc = Math.ceil(food.cost*0.4);
+  if(S.gold<disc){ toast(`Need ${disc}🪙 (discounted).`); return; }
+  S.gold-=disc; S.larder[ingId]--;
+  if(S.larder[ingId]<=0) delete S.larder[ingId];
+  CQ[foodId] = Math.ceil(food.time*(hasCook()?0.7:1));
+  addLog(`🍳 Cooking ${food.icon} ${food.name} with hunted ${INGREDIENTS[ingId].name} (${disc}🪙).`);
+  render();
+}
+
+function collectDish(foodId) {
+  const food = FOOD_MENU.find(f=>f.id===foodId);
+  if(!food) return;
+  const ex = S.readyDishes.find(d=>d.food.id===foodId);
+  if(ex) ex.qty++; else S.readyDishes.push({food, qty:1});
+  addLog(`${food.icon} ${food.name} is ready to serve!`, 'green');
+}
+
+// ================================================================
+// HUNTING
+// ================================================================
+function openHuntGame(zoneId) {
+  const zone = HUNT_ZONES.find(z=>z.id===zoneId);
+  if(!zone) return;
+  if(S.level<zone.lvlReq){ toast(`Need Level ${zone.lvlReq}!`); return; }
+  if(S.stamina<zone.staminaCost){ toast(`Not enough stamina! Need ${zone.staminaCost}.`); return; }
+  const animal = zone.animals[Math.floor(Math.random()*zone.animals.length)];
+  huntMG = {zone, animal, active:false, hits:0, misses:0, timerH:null, moveH:null};
+  document.getElementById('hm-title').textContent = `🏹 Hunting in ${zone.name}`;
+  document.getElementById('hm-sub').textContent = `A ${animal.name} ${animal.icon} appeared! Click it.`;
+  document.getElementById('hm-result').textContent = '';
+  document.getElementById('hm-target').textContent = animal.icon;
+  document.getElementById('hm-target').style.display = 'block';
+  document.getElementById('hm-again-btn').disabled = true;
+  document.getElementById('hunt-minigame').classList.add('open');
+  updateHuntHUD();
+  setTimeout(startHuntRound, 400);
+}
+
+function updateHuntHUD() {
+  document.getElementById('hm-hits').textContent = `Shots: ${huntMG.hits} hit / ${huntMG.misses} miss`;
+  document.getElementById('hm-stamina').textContent = `🥾 ${S.stamina} stamina left`;
+}
+
+function startHuntRound() {
+  if(!huntMG.zone) return;
+  if(S.stamina < huntMG.zone.staminaCost) {
+    document.getElementById('hm-result').textContent = '😓 Out of stamina!';
+    document.getElementById('hm-again-btn').disabled = true;
+    return;
+  }
+  huntMG.active = true;
+  S.stamina -= huntMG.zone.staminaCost;
+  document.getElementById('hm-result').textContent = '';
+  document.getElementById('hm-again-btn').disabled = true;
+  document.getElementById('hm-target').style.display = 'block';
+  updateHuntHUD();
+  positionTarget(true);
+  const diff = huntMG.animal.diff;
+  const dur  = diff==='easy'?6000:diff==='medium'?4500:diff==='hard'?3500:2500;
+  const move = diff==='easy'?1200:diff==='medium'?850:diff==='hard'?600:400;
+  const fill = document.getElementById('hm-timer-fill');
+  fill.style.transition = 'none'; fill.style.width = '100%';
+  setTimeout(()=>{ fill.style.transition=`width ${dur}ms linear`; fill.style.width='0%'; }, 50);
+  clearInterval(huntMG.moveH); huntMG.moveH = setInterval(()=>positionTarget(false), move);
+  clearTimeout(huntMG.timerH); huntMG.timerH = setTimeout(()=>endHuntRound(false), dur);
+}
+
+function positionTarget(instant) {
+  const sc = document.getElementById('hm-scene');
+  const tg = document.getElementById('hm-target');
+  const sw = Math.max(10, sc.clientWidth-60), sh = Math.max(10, sc.clientHeight-60);
+  tg.style.transition = instant ? 'none' : 'left .22s ease, top .22s ease';
+  tg.style.left = Math.floor(Math.random()*sw) + 'px';
+  tg.style.top  = Math.floor(Math.random()*sh) + 'px';
+}
+
+function hitTarget() {
+  if(!huntMG.active) return;
+  clearTimeout(huntMG.timerH); clearInterval(huntMG.moveH);
+  endHuntRound(true);
+}
+
+function endHuntRound(hit) {
+  huntMG.active = false;
+  clearTimeout(huntMG.timerH); clearInterval(huntMG.moveH);
+  document.getElementById('hm-target').style.display = 'none';
+  document.getElementById('hm-timer-fill').style.width = '0%';
+  const a = huntMG.animal;
+  if(hit) huntMG.hits++; else huntMG.misses++;
+  updateHuntHUD();
+  const hitChance = a.chance + (hasUpg('bow')?0.15:0);
+  if(hit && Math.random()<hitChance) {
+    const qty = a.yield[0] + Math.floor(Math.random()*(a.yield[1]-a.yield[0]+1));
+    addIngredient(a.ing, qty);
+    S.totalHunted++;
+    gainXP(3);
+    const ing = INGREDIENTS[a.ing];
+    document.getElementById('hm-result').textContent = `🎯 Got ${qty}× ${ing.icon} ${ing.name}!`;
+    addLog(`🏹 Hunted ${qty}× ${ing.name} from the ${a.name}.`, 'green');
+  } else if(hit) {
+    document.getElementById('hm-result').textContent = `💨 The ${a.name} dodged your shot!`;
+    addLog(`🏹 ${a.name} dodged.`);
+  } else {
+    document.getElementById('hm-result').textContent = `💨 The ${a.name} escaped!`;
+    addLog(`🏹 ${a.name} escaped.`);
+  }
+  document.getElementById('hm-again-btn').disabled = S.stamina < huntMG.zone.staminaCost;
+  render();
+}
+
+function closeHuntGame() {
+  clearTimeout(huntMG.timerH); clearInterval(huntMG.moveH);
+  huntMG.active = false;
+  document.getElementById('hunt-minigame').classList.remove('open');
+  renderHunting();
+}
+
+// TRAPS
+function buyTrap(trapId) {
+  const trap = TRAP_TYPES.find(t=>t.id===trapId);
+  if(!trap) return;
+  if(S.level<trap.lvlReq){ toast(`Need Level ${trap.lvlReq}.`); return; }
+  if(S.gold<trap.cost){ toast(`Need ${trap.cost}🪙.`); return; }
+  if(S.traps.filter(t=>t.trapId===trapId).length>=2){ toast('Max 2 of each trap!'); return; }
+  S.gold -= trap.cost;
+  const days = hasUpg('lodge') ? 0 : 1;
+  S.traps.push({trapId, daysLeft:days});
+  addLog(`🪤 Set ${trap.name}${days===0?' — ready tomorrow!':' — check tomorrow!'}.`, 'green');
+  render();
+}
+
+function collectTrap(idx) {
+  const entry = S.traps[idx];
+  if(!entry||entry.daysLeft>0) return;
+  const trap = TRAP_TYPES.find(t=>t.id===entry.trapId);
+  if(!trap) return;
+  if(Math.random()<0.7) {
+    const ing = trap.ings[Math.floor(Math.random()*trap.ings.length)];
+    const qty = trap.yield[0]+Math.floor(Math.random()*(trap.yield[1]-trap.yield[0]+1));
+    // Make sure ing is a valid key (boar,venison,goat are all valid ingredient keys)
+    const ingKey = ing === 'venison' ? 'venison' : ing;
+    addIngredient(ingKey, qty);
+    addLog(`🪤 Trap caught ${qty}× ${INGREDIENTS[ingKey]?.name||ingKey}!`, 'green');
+    S.totalHunted++;
+  } else {
+    addLog('🪤 The trap was empty this time.');
+  }
+  S.traps.splice(idx,1);
+  render();
+}
+
+function tickTraps() {
+  S.traps.forEach(t=>{ if(t.daysLeft>0) t.daysLeft--; });
+}
+
+// ================================================================
+// TICK — game clock (every 1.8s for table/cook events)
+// ================================================================
+function gameTick() {
+  let changed = false;
+  // cook queue
+  for(const [id, ticks] of Object.entries(CQ)) {
+    CQ[id] = ticks-1;
+    if(CQ[id]<=0){ delete CQ[id]; collectDish(id); changed=true; }
+    else changed=true;
+  }
+  // table timers
+  S.slots.forEach((ts,i)=>{
+    if(ts.status==='waiting') {
+      ts.timer--;
+      if(ts.timer<=0) {
+        const loss = hasStaff('guard')?1:2;
+        addLog(`${ts.guest.icon} ${ts.guest.name} left angry! (-${loss}rep)`, 'bad');
+        S.rep = Math.max(0, S.rep-loss);
+        if(hasUpg('repfloor')) S.rep=Math.max(20,S.rep);
+        S.slots[i]=mkSlot(); changed=true;
+      }
+    } else if(ts.status==='served') {
+      ts.timer--;
+      if(ts.timer<=0){ ts.status='ready'; changed=true; }
+    }
+  });
+  // guest arrival
+  if(Math.random()<guestChance()){ spawnGuest(); changed=true; }
+  // hunger drift
+  S.hungerLevel = Math.min(100, S.hungerLevel+0.4);
+  if(changed) render();
+}
+
+function spawnGuest() {
+  const ei = S.slots.findIndex(ts=>ts.status==='empty');
+  if(ei===-1) return;
+  const pool = guestPool();
+  const g = {...pool[Math.floor(Math.random()*pool.length)]};
+  let pat = g.patience + (S.level>=3?2:0) + (hasStaff('barmaid')?4:0);
+  S.slots[ei] = {...mkSlot(), status:'waiting', guest:g, timer:pat};
+  addLog(`${g.icon} A ${g.name} sat at table ${ei+1}.`);
+}
+
+// ================================================================
+// DAY TIMER
+// ================================================================
+function startDayTimer() {
+  clearInterval(dayTimerInt);
+  dayTimerInt = setInterval(()=>{
+    if(dayEndLock) return;
+    S.daySecondsLeft--;
+    updateDayTimerUI();
+    if(S.daySecondsLeft<=0) endDay();
+  }, 1000);
+}
+
+function updateDayTimerUI() {
+  const pct = Math.max(0, S.daySecondsLeft/DAY_DURATION_SEC*100);
+  document.getElementById('day-timer-fill').style.width = pct+'%';
+  document.getElementById('day-timer-text').textContent = S.daySecondsLeft+'s';
+}
+
+function startTick() { clearInterval(tickInt); tickInt = setInterval(gameTick, 1800); }
+
+// ================================================================
+// END DAY
+// ================================================================
+function endDay() {
+  if(dayEndLock) return;
+  dayEndLock = true;
+  clearInterval(tickInt);
+  clearInterval(dayTimerInt);
+
+  // wages
+  const wages = S.staff.reduce((a,s)=>{ let w=s.wage; if(S.level>=6)w=Math.max(1,w-1); return a+w; }, 0);
+  if(wages>0){ S.gold-=wages; addLog(`Paid ${wages}🪙 wages.`, 'bad'); }
+
+  // vault
+  if(hasUpg('vault')){ S.gold+=10; addLog('💰 Vault rent +10🪙.', 'gold'); }
+
+  // traps tick
+  tickTraps();
+
+  // hunter delivers ingredients
+  if(hasStaff('hunter')) {
+    const zones = HUNT_ZONES.filter(z=>z.lvlReq<=S.level);
+    if(zones.length) {
+      const zone = zones[Math.floor(Math.random()*zones.length)];
+      const a = zone.animals[Math.floor(Math.random()*zone.animals.length)];
+      const qty = a.yield[0]+Math.floor(Math.random()*(a.yield[1]-a.yield[0]+1));
+      addIngredient(a.ing, qty);
+      addLog(`🏹 Hunter returned with ${qty}× ${INGREDIENTS[a.ing].name}!`, 'green');
+      S.totalHunted++;
+    }
+  }
+
+  // clear tables and cook queue
+  S.slots = S.slots.map(mkSlot);
+  CQ = {};
+
+  // refill stamina
+  S.stamina = maxStamina();
+
+  S.daysComplete++;
+  S.day++;
+  S.daySecondsLeft = DAY_DURATION_SEC;
+
+  // check game over
+  if(S.gold<0){ showGameOver(false,'bankruptcy'); return; }
+  if(S.day>TOTAL_DAYS){ showGameOver(true,''); return; }
+
+  // clear event
+  EVT = null;
+  document.getElementById('event-banner').classList.remove('active');
+
+  // roll new event
+  if(Math.random()<0.3) {
+    EVT = SPECIAL_EVENTS[Math.floor(Math.random()*SPECIAL_EVENTS.length)];
+    document.getElementById('eb-icon').textContent = EVT.icon;
+    document.getElementById('eb-text').textContent = EVT.name;
+    document.getElementById('eb-sub').textContent = EVT.sub;
+    document.getElementById('event-banner').classList.add('active');
+    addLog(`📣 ${EVT.name}: ${EVT.sub}`, 'blue');
+  }
+
+  addLog(`🌙 Day ${S.day-1} done. Dawn on day ${S.day}.`, 'gold');
+  dayEndLock = false;
+  render();
+  startTick();
+  startDayTimer();
+}
+
+// ================================================================
+// GAME OVER
+// ================================================================
+function grade() {
+  const sc = S.rep + Math.floor(S.guestsServed/5) + Math.floor(S.totalEarned/20) + S.level*8 + Math.floor(S.daysComplete/10)*5;
+  return sc>=300?'S':sc>=200?'A':sc>=120?'B':sc>=60?'C':'D';
+}
+
+function showGameOver(won, reason) {
+  clearInterval(tickInt); clearInterval(dayTimerInt);
+  document.getElementById('go-title').textContent = won ? '🏆 Year Complete!' : '💀 The Tavern Closes';
+  document.getElementById('go-sub').textContent = won ? 'You survived all 365 days!' : reason==='bankruptcy' ? 'Your coffer ran dry.' : 'The tavern could not go on.';
+  document.getElementById('go-grade').textContent = grade();
+  document.getElementById('go-stats').innerHTML = `
+    <p>📅 Days survived: <b>${S.daysComplete}</b> / ${TOTAL_DAYS}</p>
+    <p>🪙 Total earned: <b>${S.totalEarned}🪙</b></p>
+    <p>🍻 Guests served: <b>${S.guestsServed}</b></p>
+    <p>🍽️ Dishes sold: <b>${S.dishesSold}</b></p>
+    <p>🏹 Animals hunted: <b>${S.totalHunted}</b></p>
+    <p>⭐ Level reached: <b>${S.level} — ${getLv().name}</b></p>
+    <p>🏅 Reputation: <b>${S.rep} — ${repLabel(S.rep)}</b></p>
+  `;
+  document.getElementById('go-modal').classList.add('open');
+}
+
+function restartGame() {
+  document.getElementById('go-modal').classList.remove('open');
+  document.getElementById('event-log').innerHTML = '';
+  clearInterval(tickInt); clearInterval(dayTimerInt);
+  initState();
+  addLog('🍺 The Gilded Flagon reopens! 365 days, one year to build a legend.', 'gold');
+  addLog('Days end automatically — click "End Day Early" to advance sooner.');
+  render(); startTick(); startDayTimer();
+}
+
+// ================================================================
+// SHOP
+// ================================================================
+function openShop() {
+  document.getElementById('shop-gold').textContent = S.gold;
+  document.getElementById('shop-level').textContent = S.level;
+  renderShopSection(curShopTab);
+  document.getElementById('shop-modal').classList.add('open');
+}
+function closeShop() { document.getElementById('shop-modal').classList.remove('open'); }
+
+function shopTab(tab) {
+  curShopTab = tab;
+  const tabs = ['drinks','food','staff','upgrades','tables'];
+  document.querySelectorAll('.shop-tab').forEach((el,i)=>el.classList.toggle('active',tabs[i]===tab));
+  tabs.forEach(t=>document.getElementById('shop-'+t).classList.toggle('active',t===tab));
+  renderShopSection(tab);
+}
+
+function renderShopSection(tab) {
+  const fns = {drinks:renderShopDrinks,food:renderShopFood,staff:renderShopStaff,upgrades:renderShopUpgrades,tables:renderShopTables};
+  if(fns[tab]) fns[tab]();
+}
+
+function shopItem(icon, name, desc, cost, lvlReq, owned, canAfford, fn) {
+  const locked = lvlReq > S.level;
+  const label = owned?'✓ Owned':locked?`🔒 Lv${lvlReq}`:canAfford?'Buy':'Poor';
+  const disabled = owned||locked||!canAfford;
+  return `<div class="shop-item">
+    <div class="shop-item-info">
+      <strong>${icon} ${name}</strong>
+      <div class="si-desc">${desc}</div>
+      <div class="si-price">${owned?'Owned':locked?`Level ${lvlReq} required`:`${cost}🪙`}</div>
+    </div>
+    <button class="shop-buy" ${disabled?'disabled':''} onclick="${fn}">${label}</button>
+  </div>`;
+}
+
+function renderShopDrinks() {
+  document.getElementById('shop-drinks').innerHTML =
+    shopItem('🍺','Ale ('+aleYield()+'u)','Always popular.',aleCost(),1,false,S.gold>=aleCost(),'brewAle();closeShop()') +
+    shopItem('🍯','Mead (4u)','Sweet, higher price.',8,2,false,S.gold>=8,'buyMead();closeShop()') +
+    shopItem('🍷','Wine (3u)','Distinguished palate.',12,2,false,S.gold>=12,'buyWine();closeShop()') +
+    shopItem('🥃','Spirits (3u)','Premium, big tips.',18,3,false,S.gold>=18,'buySpirits();closeShop()');
+}
+
+function renderShopFood() {
+  const el = document.getElementById('shop-food');
+  if(!hasKitchen()){ el.innerHTML='<div style="padding:14px;font-size:12px;color:var(--muted);text-align:center;">Buy Kitchen Setup or hire a Cook first.</div>'; return; }
+  el.innerHTML = FOOD_MENU.map(f=>{
+    const locked = f.unlockLvl>S.level;
+    const cooking = !!CQ[f.id];
+    return shopItem(f.icon, f.name, `${f.desc} — sells ${f.salePrice}🪙, +${f.tipBonus}🪙 tip`, f.cost, f.unlockLvl, cooking, S.gold>=f.cost&&!locked, `cookFood('${f.id}');closeShop()`);
   }).join('');
 }
 
-function renderTables(){
-  const grid=$('tables-grid');grid.innerHTML='';
-  for(let i=0;i<6;i++){
-    const div=document.createElement('div');
-    const ts=G.TS[i];
-    if(!ts){div.className='tbl locked';div.innerHTML='<span class="tbl-icon">🔒</span><span class="tbl-lbl">Locked</span>';grid.appendChild(div);continue;}
-    if(ts.status==='empty'){div.className='tbl empty';div.innerHTML='<span class="tbl-icon">🍽️</span><span class="tbl-lbl">Empty</span>';}
-    else if(ts.status==='waiting'){
-      const urg=ts.timer<=3;
-      div.className='tbl waiting clickable';
-      div.innerHTML=`<span class="tbl-icon">${ts.guest.icon}</span><span class="tbl-lbl">${ts.guest.name}<br>${DRINKS[ts.guest.drink]?.icon||'🍺'}</span><div class="tbl-timer ${urg?'urgent':''}">${ts.timer}</div>`;
-      div.onclick=()=>serveDrink(i);
-    } else if(ts.status==='food-wait'){
-      const urg=ts.timer<=3;
-      div.className='tbl food-wait clickable';
-      div.innerHTML=`<span class="tbl-icon">${ts.guest.icon}</span><span class="tbl-lbl">${ts.guest.name}<br>🍽️ food?</span><div class="tbl-timer ${urg?'urgent':''}">${ts.timer}</div>`;
-      div.onclick=()=>openFoodModal(i);
-    } else if(ts.status==='cooking'){
-      div.className='tbl cooking';
-      div.innerHTML=`<span class="tbl-icon">${ts.guest.icon}</span><span class="tbl-lbl">${ts.guest.name}<br>⏳ Cooking</span><div class="tbl-timer">${ts.fTimer}</div>`;
-    } else if(ts.status==='drinking'){
-      div.className='tbl served';
-      div.innerHTML=`<span class="tbl-icon">${ts.guest.icon}</span><span class="tbl-lbl">${ts.guest.name}<br>🍻 Drinking</span><div class="tbl-timer">${ts.timer}</div>`;
-    } else if(ts.status==='eating'){
-      div.className='tbl served';
-      div.innerHTML=`<span class="tbl-icon">${ts.guest.icon}</span><span class="tbl-lbl">${ts.guest.name}<br>${ts.food?.icon||'🍽️'} Eating</span><div class="tbl-timer">${ts.timer}</div>`;
-    } else if(ts.status==='ready'){
-      div.className='tbl ready clickable';
-      div.innerHTML=`<span class="tbl-icon">${ts.guest.icon}</span><span class="tbl-lbl">Collect<br>payment!</span>`;
+function renderShopStaff() {
+  document.getElementById('shop-staff').innerHTML = STAFF_CATALOG.map(s=>
+    shopItem(s.icon, s.name, `${s.desc} Wage: ${s.wage}🪙/day.`, s.cost, s.lvlReq, hasStaff(s.id), S.gold>=s.cost, `buyStaff('${s.id}')`)
+  ).join('');
+}
+
+function buyStaff(id) {
+  const s = STAFF_CATALOG.find(x=>x.id===id);
+  if(!s||S.gold<s.cost||hasStaff(id)) return;
+  S.gold-=s.cost; S.staff.push({...s});
+  addLog(`${s.icon} ${s.name} hired! (${s.wage}🪙/day)`, 'gold');
+  closeShop(); render();
+}
+
+function renderShopUpgrades() {
+  document.getElementById('shop-upgrades').innerHTML = UPGRADES_CATALOG.map(u=>
+    shopItem(u.icon, u.name, u.desc, u.cost, u.lvlReq, hasUpg(u.id), S.gold>=u.cost, `buyUpgrade('${u.id}')`)
+  ).join('');
+}
+
+function buyUpgrade(id) {
+  const u = UPGRADES_CATALOG.find(x=>x.id===id);
+  if(!u||S.gold<u.cost||hasUpg(id)) return;
+  S.gold-=u.cost; UPG[id]=true;
+  addLog(`${u.icon} Upgrade: ${u.name}`, 'gold');
+  closeShop(); render();
+}
+
+function renderShopTables() {
+  document.getElementById('shop-tables').innerHTML = TABLE_SHOP.map(t=>
+    shopItem(t.icon, t.name, t.desc, t.cost, t.lvlReq, S.tables>=t.count, S.gold>=t.cost, `buyTable('${t.id}')`)
+  ).join('');
+}
+
+function buyTable(id) {
+  const t = TABLE_SHOP.find(x=>x.id===id);
+  if(!t||S.gold<t.cost||S.tables>=t.count) return;
+  S.gold-=t.cost;
+  while(S.tables<t.count){ S.tables++; S.slots.push(mkSlot()); }
+  addLog(`🪑 New table! (${S.tables} total)`, 'gold');
+  closeShop(); render();
+}
+
+// ================================================================
+// RENDER
+// ================================================================
+function switchTab(tab) {
+  ['tables','kitchen','hunting','staff'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(el) el.style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>
+    b.classList.toggle('active',['tables','kitchen','hunting','staff'][i]===tab));
+  if(tab==='hunting') renderHunting();
+}
+
+function render() {
+  // header
+  document.getElementById('gold-display').textContent = S.gold;
+  document.getElementById('gold-sb').textContent = S.gold;
+  document.getElementById('day-num').textContent = S.day;
+  document.getElementById('lv-num').textContent = S.level;
+  document.getElementById('lv-name').textContent = getLv().name;
+  const next = getNextLv();
+  const xpMax = next ? next.xpNeeded : LEVELS[LEVELS.length-2].xpNeeded;
+  const xpPct = next ? Math.min(100, Math.round(S.xp/xpMax*100)) : 100;
+  document.getElementById('xp-text').textContent = next ? `${S.xp}/${xpMax}` : 'MAX';
+  document.getElementById('xp-fill').style.width = xpPct+'%';
+
+  // sidebar
+  document.getElementById('rep-val').textContent = S.rep;
+  document.getElementById('rep-bar').style.width = Math.min(S.rep,100)+'%';
+  document.getElementById('rep-lbl').textContent = repLabel(S.rep);
+  document.getElementById('hunger-bar').style.width = Math.min(S.hungerLevel,100)+'%';
+  document.getElementById('st-served').textContent = S.guestsServed;
+  document.getElementById('st-earned').textContent = S.totalEarned;
+  document.getElementById('st-food').textContent = S.dishesSold;
+  document.getElementById('st-hunted').textContent = S.totalHunted;
+  document.getElementById('ale-cost-lbl').textContent = aleCost();
+  document.getElementById('stock-lines').innerHTML =
+    ['ale','mead','wine','spirits'].map(d=>`<div>${DRINKS[d].icon} ${DRINKS[d].name}: ${S[d]}</div>`).join('');
+  updateDayTimerUI();
+  renderTables();
+  renderKitchen();
+  renderStaffTab();
+}
+
+function renderTables() {
+  const grid = document.getElementById('tables-grid');
+  grid.innerHTML = '';
+  for(let i=0; i<Math.max(S.tables, S.slots.length); i++) {
+    const div = document.createElement('div');
+    const ts = S.slots[i];
+    if(!ts) {
+      div.className='table-slot locked-slot';
+      div.innerHTML='<span class="t-icon">🔒</span>';
+    } else if(ts.status==='empty') {
+      div.className='table-slot empty';
+      div.innerHTML='<span class="t-icon">🍽️</span><span class="t-label">Empty</span>';
+    } else if(ts.status==='waiting') {
+      div.className='table-slot waiting clickable';
+      const icons = ts.guest.orders.map(d=>DRINKS[d]?.icon||'?').join('');
+      div.innerHTML=`<span class="t-icon">${ts.guest.icon}</span><span class="t-label">${ts.guest.name}<br>${icons}</span><div class="t-timer">${ts.timer}</div>`;
+      div.onclick=()=>serveTable(i);
+    } else if(ts.status==='served') {
+      const needFood = ts.hasFoodOrder&&!ts.foodReady;
+      const hasFood = S.readyDishes.length>0;
+      div.className='table-slot served'+(needFood&&hasFood?' clickable':'');
+      let lbl = ts.guest.name+'<br>🍻 drinking';
+      if(ts.hasFoodOrder&&!ts.foodReady) lbl+=`<br><span style="font-size:8px;color:#a05020;">${hasFood?'🍽️ Serve food':'🍳 waiting...'}</span>`;
+      else if(ts.foodReady) lbl+=`<br><span style="font-size:8px;color:var(--food-green);">🍽️ eating!</span>`;
+      div.innerHTML=`<span class="t-icon">${ts.guest.icon}</span><span class="t-label">${lbl}</span><div class="t-timer">${ts.timer}</div>`;
+      if(needFood&&hasFood) div.onclick=()=>serveFoodToTable(i);
+    } else if(ts.status==='ready') {
+      div.className='table-slot ready clickable';
+      div.innerHTML=`<span class="t-icon">${ts.guest.icon}</span><span class="t-label">Collect<br>payment!</span>`;
       div.onclick=()=>collectPayment(i);
     }
     grid.appendChild(div);
   }
 }
 
-function renderStaff(){
-  const el=$('staff-row');
-  if(!G.staff.length){el.innerHTML='<span style="font-size:11px;color:var(--muted);">No staff hired.</span>';return;}
-  el.innerHTML=G.staff.map(s=>`<div class="staff-badge"><span>${s.icon}</span><span>${s.name}</span></div>`).join('');
+function renderKitchen() {
+  const locked = document.getElementById('kitchen-locked-msg');
+  const panel  = document.getElementById('kitchen-panel');
+  if(!hasKitchen()){ locked.style.display='block'; panel.style.display='none'; return; }
+  locked.style.display='none'; panel.style.display='block';
+
+  document.getElementById('food-grid').innerHTML = FOOD_MENU
+    .filter(f=>f.unlockLvl<=S.level && !(f.premium&&S.level<5))
+    .map(food=>{
+      const cooking = CQ[food.id];
+      return `<div class="food-card">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:20px;">${food.icon}</span>
+          <div><div class="food-name">${food.name}</div><div class="food-desc">${food.desc}</div></div>
+        </div>
+        <div class="food-row">
+          <div class="food-meta">💰${food.salePrice} | +${food.tipBonus}🪙</div>
+          ${cooking
+            ? `<div style="font-size:10px;color:var(--muted);">🕐${cooking}t</div>`
+            : `<button class="cook-btn" ${S.gold<food.cost?'disabled':''} onclick="cookFood('${food.id}')">Cook (${food.cost}🪙)</button>`}
+        </div>
+      </div>`;
+    }).join('');
+
+  const nrf = document.getElementById('no-ready-food');
+  const rf  = document.getElementById('ready-food');
+  if(!S.readyDishes.length){ nrf.style.display='block'; rf.innerHTML=''; return; }
+  nrf.style.display='none';
+  rf.innerHTML = S.readyDishes.map((d,idx)=>`
+    <div class="ready-dish" onclick="assignFood(${idx})">
+      <span style="font-size:20px;">${d.food.icon}</span>
+      <div><div style="font-size:12px;font-weight:700;color:var(--food-green);">${d.food.name} ×${d.qty}</div>
+      <div style="font-size:10px;color:var(--muted);">Click to serve next guest</div></div>
+    </div>`).join('');
 }
 
-function renderKitchen(){
-  $('kitchen-wrap').style.display=has('cook')?'block':'none';
-  const q=$('kitchen-queue');
-  if(!G.kq.length){q.innerHTML='<span style="font-size:11px;color:var(--muted);">Kitchen is idle.</span>';return;}
-  q.innerHTML=G.kq.map(k=>{const f=FOODS.find(f=>f.id===k.fid);return`<div class="kq-item"><span>${f?.icon||'🍽️'}</span><span>${f?.name||'?'} (${k.t})</span></div>`;}).join('');
+function assignFood(idx) {
+  const si = S.slots.findIndex(ts=>ts.status==='served'&&ts.hasFoodOrder&&!ts.foodReady);
+  if(si===-1){ toast('No guest waiting for food.'); return; }
+  serveFoodToTable(si);
 }
 
-function renderEvent(){
-  const wrap=$('event-banner-wrap');
-  if(!G.activeEv||G.evDays<=0){wrap.innerHTML='';return;}
-  wrap.innerHTML=`<div class="event-banner"><span class="ev-icon">${G.activeEv.icon}</span><div><div class="ev-text">${G.activeEv.name}</div><div class="ev-sub">${G.activeEv.desc} (${G.evDays} day${G.evDays>1?'s':''} left)</div></div></div>`;
+function renderStaffTab() {
+  const sl = document.getElementById('staff-list-big');
+  sl.innerHTML = S.staff.length ? S.staff.map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.4);border:1px solid rgba(139,100,50,.2);border-radius:8px;padding:9px 12px;">
+      <span style="font-size:24px;">${s.icon}</span>
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:13px;font-weight:600;">${s.name}</div>
+        <div style="font-size:11px;color:var(--muted);">${s.stat}</div>
+        <div style="font-size:10px;color:var(--danger);">Wage: ${s.wage}🪙/day</div>
+      </div>
+    </div>`).join('')
+    : '<div style="font-size:12px;color:var(--muted);font-style:italic;">No staff hired yet.</div>';
+  document.getElementById('staff-summary').textContent = S.staff.length
+    ? `Total wages: ${S.staff.reduce((a,s)=>a+s.wage,0)}🪙/day | ${S.staff.length} staff`
+    : 'Hire staff from the Shop!';
 }
 
-// ─── ACTIONS ───────────────────────────────────────────────────────────────
-function serveDrink(i){
-  const ts=G.TS[i];if(!ts||ts.status!=='waiting')return;
-  const dk=ts.guest.drink;
-  if(!G.stock[dk]){
-    const alt=Object.keys(DRINKS).find(k=>G.stock[k]>0);
-    if(alt){toast(`Out of ${DRINKS[dk].name}! Serving ${DRINKS[alt].name} instead.`);ts.guest.drink=alt;serveDrink(i);return;}
-    toast(`Out of ${DRINKS[dk]?.name||dk}! Visit Supplies.`);return;
-  }
-  G.stock[dk]--;
-  ts.status='drinking';ts.timer=has('cook')?5:4;
-  ts.wFood=has('cook')&&Math.random()<ts.guest.foodChance;
-  addLog(`Served ${DRINKS[dk].icon} ${DRINKS[dk].name} to the ${ts.guest.name}.`,'g');
-  render();
-}
+function renderHunting() {
+  const ms = maxStamina();
+  if(!S.stamina) S.stamina = ms;
+  document.getElementById('hunt-stam-txt').textContent = `${S.stamina}/${ms}`;
+  document.getElementById('hunt-stam-bar').style.width = Math.round(S.stamina/ms*100)+'%';
 
-function openFoodModal(tidx){
-  foodModalTarget=tidx;
-  const ts=G.TS[tidx];
-  const grid=$('recipe-grid');grid.innerHTML='';
-  FOODS.forEach(f=>{
-    if(f.reqLevel>G.level)return;
-    if(f.id==='cheese'&&!G.up.garden)return;
-    if(f.id==='cake'&&!G.up.garden)return;
-    const ingOk=f.ings.every(k=>G.stock[k]>0);
-    const gLikes=ts.guest.foods.includes(f.id);
-    const pb=priceBonus();
-    const card=document.createElement('div');
-    card.className='recipe-card'+(ingOk?'':' unavail');
-    card.innerHTML=`<div class="rc-icon">${f.icon}</div><div class="rc-name">${f.name}${gLikes?' ⭐':''}</div><div class="rc-desc">${f.desc}</div><div class="rc-price">${f.price+pb}🪙${ingOk?'':' <span style="color:#c05010">(out of stock)</span>'}</div>`;
-    if(ingOk)card.onclick=()=>orderFood(tidx,f.id);
-    grid.appendChild(card);
+  // zones
+  document.getElementById('hunt-zones').innerHTML = HUNT_ZONES.map(z=>{
+    const locked = S.level<z.lvlReq;
+    const noStam = S.stamina<z.staminaCost;
+    return `<div class="hunt-zone${locked?' locked-zone':''}" onclick="${locked?'toast(\'Need Level '+z.lvlReq+'!\')':noStam?'toast(\'Not enough stamina!\')':("openHuntGame('"+z.id+"')")}">
+      <div class="hunt-zone-icon">${z.icon}</div>
+      <div class="hunt-zone-name">${z.name}</div>
+      <div class="hunt-zone-desc">${z.desc}</div>
+      <div class="hunt-zone-loot">🎯 ${z.animals.map(a=>a.name).join(', ')}</div>
+      <div class="hunt-zone-cost">${locked?`🔒 Level ${z.lvlReq}`:noStam?`😓 Need ${z.staminaCost}🥾`:`🥾 ${z.staminaCost} stamina`}</div>
+    </div>`;
+  }).join('');
+
+  // traps
+  let trapsHtml = TRAP_TYPES.map(trap=>{
+    const locked = S.level<trap.lvlReq;
+    const count = S.traps.filter(t=>t.trapId===trap.id).length;
+    return `<div class="trap-card">
+      <div style="flex:1;">
+        <strong style="font-family:'Cinzel',serif;font-size:12px;">${trap.icon} ${trap.name}</strong>
+        <div style="font-size:10px;color:var(--muted);">${trap.desc}</div>
+        <div style="font-size:10px;color:${count?'var(--food-green)':'var(--muted)'};">${locked?`🔒 Level ${trap.lvlReq}`:count?`${count} active`:'Not set'}</div>
+      </div>
+      <button class="trap-btn" ${locked||count>=2?'disabled':''} onclick="buyTrap('${trap.id}')">${count>=2?'Max':'Set ('+trap.cost+'🪙)'}</button>
+    </div>`;
+  }).join('');
+  // ready traps
+  S.traps.forEach((t,i)=>{
+    if(t.daysLeft>0) return;
+    const trap = TRAP_TYPES.find(tr=>tr.id===t.trapId);
+    trapsHtml += `<div class="trap-card" style="border-color:var(--food-green);background:rgba(60,120,30,.15);">
+      <div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">✅ ${trap.icon} ${trap.name} — Ready!</strong></div>
+      <button class="trap-btn" style="background:var(--food-green);" onclick="collectTrap(${i})">Collect</button>
+    </div>`;
   });
-  $('food-modal').classList.add('open');
+  document.getElementById('hunt-traps').innerHTML = trapsHtml;
+
+  // larder
+  const entries = Object.entries(S.larder).filter(([,q])=>q>0);
+  document.getElementById('hunt-larder').innerHTML = entries.length
+    ? entries.map(([id,qty])=>{
+        const ing = INGREDIENTS[id];
+        if(!ing) return '';
+        const cookable = ing.cookable.filter(fid=>{
+          const f=FOOD_MENU.find(x=>x.id===fid);
+          return f && f.unlockLvl<=S.level;
+        });
+        const btns = cookable.map(fid=>{
+          const f=FOOD_MENU.find(x=>x.id===fid);
+          const disc=Math.ceil(f.cost*0.4);
+          return `<button onclick="cookWithIngredient('${fid}','${id}')" style="padding:2px 6px;font-size:9px;background:var(--food-green);color:#fff;border:none;border-radius:3px;cursor:pointer;margin:1px;">${f.icon}${f.name}(${disc}🪙)</button>`;
+        }).join('');
+        return `<div class="larder-badge">
+          <div style="display:flex;align-items:center;gap:5px;">${ing.icon} <b>${ing.name}</b> <span style="color:var(--muted);font-weight:400;">×${qty}</span></div>
+          <div>${btns||'<span style="font-size:9px;color:var(--muted);">Level up to cook</span>'}</div>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:12px;color:var(--muted);font-style:italic;">Empty — go hunting!</div>';
 }
 
-function orderFood(tidx,fid){
-  const ts=G.TS[tidx];const food=FOODS.find(f=>f.id===fid);
-  if(!food||!ts)return;
-  const ingMult=G.activeEv?.effect==='cheapIng'?0.5:1;
-  for(const ing of food.ings){if(!G.stock[ing]){toast(`Need more ${ing}!`);return;}G.stock[ing]--;}
-  const ct=Math.max(2,has('jester')?food.cookTime-1:food.cookTime);
-  G.kq.push({tidx,fid,t:ct});
-  ts.status='cooking';ts.food=food;ts.fTimer=ct;
-  closeFoodModal();
-  addLog(`🍳 Cooking ${food.name} for table ${tidx+1}...`);
-  render();
-}
-function closeFoodModal(){$('food-modal').classList.remove('open');}
-
-function collectPayment(i){
-  const ts=G.TS[i];if(!ts||ts.status!=='ready')return;
-  const g=ts.guest;
-  const pb=priceBonus();
-  const somBonus=['wine','spirit'].includes(g.drink)&&has('sommelier')?3:0;
-  const drinkEarned=(DRINKS[g.drink]?.price||4)+pb+somBonus;
-  const foodEarned=ts.food?(ts.food.price+pb):0;
-  let tip=g.tip+(has('cook')&&ts.food?2:0)+(has('jester')?2:0)+(G.level>=6?g.tip:0);
-  if(G.activeEv?.effect==='tipBonus')tip+=G.activeEv.val;
-  if(G.activeEv?.effect==='plague')tip+=2;
-  const total=drinkEarned+foodEarned+tip;
-  G.gold+=total;G.dayEarned+=total;G.totalEarned+=total;
-  const xpGain=g.xp+(ts.food?5:0);
-  G.xp+=xpGain;G.rep=Math.min(100,G.rep+g.rep+(ts.food?1:0));
-  G.guestsServed++;if(ts.food)G.foodServed++;
-  let desc=`${g.icon} ${g.name} paid ${total}🪙`;
-  if(ts.food)desc+=` (drink+meal)`;
-  addLog(desc+`! +${xpGain}XP`,'g');
-  Object.assign(ts,newSlot());
-  checkLevelUp();render();
+// ================================================================
+// LOG / TOAST
+// ================================================================
+function addLog(msg, type) {
+  const log = document.getElementById('event-log');
+  const el = document.createElement('div');
+  el.className = 'log-entry'+(type?' '+type:'');
+  el.textContent = msg;
+  log.prepend(el);
+  while(log.children.length>30) log.removeChild(log.lastChild);
 }
 
-function checkLevelUp(){
-  const nl=nextLv();if(!nl)return;
-  if(G.xp>=nl.xp){G.level++;showLevelUp();}
-}
-function showLevelUp(){
-  const ld=curLv();
-  $('lu-lvl').textContent=G.level;$('lu-name').textContent=ld.name;
-  $('lu-perks').innerHTML=ld.perks.map(p=>`<div class="lu-perk">✨ ${p}</div>`).join('')||'<div class="lu-perk">Keep growing your legend!</div>';
-  $('lu-modal').classList.add('open');
-  addLog(`🌟 LEVEL UP! The Gilded Flagon is now: ${ld.name} (Level ${G.level})`,'b');
-}
-function closeLevelUp(){$('lu-modal').classList.remove('open');}
-
-// ─── TICK ──────────────────────────────────────────────────────────────────
-function tick(){
-  let ch=false;
-  // Kitchen
-  G.kq=G.kq.filter(k=>{
-    k.t--;const ts=G.TS[k.tidx];if(ts)ts.fTimer=k.t;
-    if(k.t<=0){
-      const food=FOODS.find(f=>f.id===k.fid);
-      if(ts&&ts.status==='cooking'){ts.status='eating';ts.timer=5;ts.food=food;addLog(`${food?.icon} ${food?.name} ready! Table ${k.tidx+1} is eating.`,'g');ch=true;}
-      return false;
-    }return true;
-  });
-  // Tables
-  G.TS.forEach((ts,i)=>{
-    if(!ts)return;
-    if(ts.status==='waiting'||ts.status==='food-wait'){
-      ts.timer--;
-      if(ts.timer<=0){
-        const safe=G.activeEv?.effect==='noRepLoss'||has('guard');
-        addLog(`${ts.guest.icon} ${ts.guest.name} left without paying! (-2 rep)`,'r');
-        if(!safe)G.rep=Math.max(0,G.rep-2);else addLog('🛡️ Staff smoothed things over.');
-        Object.assign(ts,newSlot());ch=true;
-      }
-    } else if(ts.status==='drinking'){
-      ts.timer--;
-      if(ts.timer<=0){
-        if(ts.wFood&&has('cook')){ts.status='food-wait';const p=8+(has('barmaid')?3:0)+(has('jester')?4:0);ts.timer=p;}
-        else ts.status='ready';
-        ch=true;
-      }
-    } else if(ts.status==='eating'){ts.timer--;if(ts.timer<=0){ts.status='ready';ch=true;}}
-  });
-  // Auto-server
-  if(has('server')){const w=G.TS.findIndex(ts=>ts&&ts.status==='waiting');if(w!==-1&&Math.random()<.35){serveDrink(w);ch=true;}}
-  // Spawn
-  let sc=0.28+(G.rep/100)*0.38+(G.level-1)*0.04;
-  if(has('barmaid'))sc+=0.1;
-  if(G.activeEv?.effect==='guestRush')sc=Math.min(.95,sc*2.2);
-  if(G.activeEv?.effect==='plague')sc*=0.45;
-  sc=Math.min(sc,.9);
-  if(Math.random()<sc){spawnGuest();ch=true;}
-  if(ch)render();
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
 }
 
-function guestPool(){
-  let pool=GUESTS.filter(g=>g.minLvl<=G.level);
-  // Weight common guests more
-  let weighted=[];
-  pool.forEach(g=>{const w=g.minLvl===1?3:g.minLvl===2?2:1;for(let i=0;i<w;i++)weighted.push(g);});
-  if(G.up.sign){weighted=weighted.concat(GUESTS.filter(g=>['Noble','Elf'].includes(g.name)));}
-  if(G.activeEv?.effect==='nobles'){weighted=weighted.filter(g=>['Noble','Elf','Merchant'].includes(g.name));}
-  // Filter by available drinks
-  weighted=weighted.filter(g=>G.stock[g.drink]>0||Object.keys(DRINKS).some(k=>G.stock[k]>0));
-  return weighted.length?weighted:GUESTS.slice(0,2);
-}
+// ================================================================
+// START
+// ================================================================
+// Initialise stamina
+S.stamina = maxStamina();
 
-function spawnGuest(){
-  const empty=G.TS.findIndex(ts=>ts&&ts.status==='empty');if(empty===-1)return;
-  const pool=guestPool();
-  const guest={...pool[Math.floor(Math.random()*pool.length)]};
-  let pat=guest.patience+(has('barmaid')?4:0)+(has('jester')?6:0);
-  if(G.activeEv?.effect==='patience')pat+=G.activeEv.val;
-  G.TS[empty]={status:'waiting',guest,timer:pat,food:null,fTimer:0,wFood:false};
-  addLog(`${guest.icon} A ${guest.name} arrived and sits at table ${empty+1}.`);
-}
-
-function startTick(){clearInterval(tickInterval);tickInterval=setInterval(tick,1700);}
-
-function endDay(){
-  clearInterval(tickInterval);
-  const wages=G.staff.reduce((a,s)=>a+s.wage,0);
-  if(wages){G.gold-=wages;addLog(`💸 Paid ${wages}🪙 in wages.`,'r');}
-  if(G.up.vault){const i=Math.floor(G.gold*.05);G.gold+=i;addLog(`💰 Vault interest: +${i}🪙`,'g');}
-  if(G.up.vault2){const i=Math.floor(G.gold*.1);G.gold+=i;addLog(`📋 Charter interest: +${i}🪙`,'g');}
-  if(G.evDays>0)G.evDays--;
-  G.day++;G.dayEarned=0;
-  addLog(`🌙 Day ${G.day-1} ends. Day ${G.day} begins.`,'b');
-  G.TS.forEach(ts=>{if(ts)Object.assign(ts,newSlot());});
-  G.kq=[];
-  // Random event
-  if(Math.random()<.42&&(!G.activeEv||G.evDays<=0)){
-    const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
-    G.activeEv=ev;G.evDays=1+(G.level>=4?1:0);
-    if(ev.repBonus)G.rep=Math.min(100,G.rep+ev.repBonus);
-    if(ev.effect==='repBoost')G.rep=Math.min(100,G.rep+ev.val);
-    addLog(`📣 ${ev.name} — ${ev.desc}`,'b');
-  }
-  if(G.gold<0){showGameOver(false);return;}
-  if(G.day>30){showGameOver(true);return;}
-  render();startTick();
-}
-
-// ─── SHOP ─────────────────────────────────────────────────────────────────
-function openShop(tab){switchShopTab(tab||'supply');buildAllTabs();$('shop-modal').classList.add('open');}
-function closeShop(){$('shop-modal').classList.remove('open');}
-
-function switchShopTab(tab){
-  document.querySelectorAll('.stab').forEach((b,i)=>{b.classList.toggle('active',['supply','staff','upgrade'][i]===tab);});
-  document.querySelectorAll('.shop-section').forEach(s=>s.classList.remove('active'));
-  $('tab-'+tab).classList.add('active');
-  buildTab(tab);
-}
-function buildAllTabs(){['supply','staff','upgrade'].forEach(buildTab);}
-
-function buildTab(tab){
-  const el=$('tab-'+tab);el.innerHTML='';
-  if(tab==='supply'){
-    SUPPLIES.forEach(item=>{
-      if(item.reqLvl&&item.reqLvl>G.level)return;
-      if(item.reqStaff&&!has(item.reqStaff))return;
-      if(item.reqUp&&!G.up[item.reqUp])return;
-      let cost=item.baseCost;
-      if(item.stock==='ale'){if(G.up.cellar)cost=3;if(has('alchemist'))cost=2;}
-      if(G.activeEv?.effect==='cheapIng'&&['bread','meat','game','dairy','honey'].includes(item.stock))cost=Math.ceil(cost*.5);
-      if(G.up.larder&&['bread','meat','game','dairy','honey'].includes(item.stock))cost=Math.max(1,cost-2);
-      const amt=item.baseAmt();
-      const div=document.createElement('div');div.className='si';
-      div.innerHTML=`<div class="si-info"><strong>${item.icon} ${item.name}</strong><span class="si-desc">+${amt} ${item.stock}</span><br><span class="si-cost">${cost}🪙</span></div><button class="sbuy" ${G.gold>=cost?'':'disabled'} onclick="buySupply('${item.stock}',${cost},${amt})">${G.gold>=cost?'Buy':'Poor'}</button>`;
-      el.appendChild(div);
-    });
-  } else if(tab==='staff'){
-    STAFF_LIST.forEach(s=>{
-      const owned=G.staff.find(x=>x.id===s.id);
-      const locked=s.req>G.level;
-      const div=document.createElement('div');div.className='si';
-      let btn=owned?'<span class="owned-badge">Hired</span>':locked?`<span class="locked-badge">Lv.${s.req}</span>`:`<button class="sbuy" ${G.gold>=s.cost?'':'disabled'} onclick="buyStaff('${s.id}')">${G.gold>=s.cost?'Hire':'Poor'}</button>`;
-      div.innerHTML=`<div class="si-info"><strong>${s.icon} ${s.name}</strong><span class="si-desc">${s.desc}</span><br><span class="si-cost">${s.cost}🪙 hire · ${s.wage}🪙/day</span>${locked?`<br><span class="si-req">Requires Level ${s.req}</span>`:''}</div>${btn}`;
-      el.appendChild(div);
-    });
-  } else if(tab==='upgrade'){
-    UPGRADES.forEach(u=>{
-      const owned=u.type==='table'?G.tables>=u.tNum:G.up[u.id];
-      const locked=u.req>G.level;
-      const div=document.createElement('div');div.className='si';
-      let btn=owned?'<span class="owned-badge">Owned</span>':locked?`<span class="locked-badge">Lv.${u.req}</span>`:`<button class="sbuy" ${G.gold>=u.cost?'':'disabled'} onclick="buyUpgrade('${u.id}')">${G.gold>=u.cost?'Buy':'Poor'}</button>`;
-      div.innerHTML=`<div class="si-info"><strong>${u.icon} ${u.name}</strong><span class="si-desc">${u.desc}</span><br><span class="si-cost">${u.cost}🪙</span>${locked?`<br><span class="si-req">Requires Level ${u.req}</span>`:''}</div>${btn}`;
-      el.appendChild(div);
-    });
-  }
-}
-
-function buySupply(stock,cost,amt){
-  if(G.gold<cost){toast('Not enough gold!');return;}
-  G.gold-=cost;G.stock[stock]+=amt;
-  addLog(`Bought ${amt}x ${stock} for ${cost}🪙.`);buildTab('supply');render();
-}
-function buyStaff(id){
-  const s=STAFF_LIST.find(x=>x.id===id);if(!s||G.gold<s.cost)return;
-  G.gold-=s.cost;G.staff.push({...s});
-  addLog(`${s.icon} ${s.name} joins The Gilded Flagon!`,'g');buildTab('staff');render();
-}
-function buyUpgrade(id){
-  const u=UPGRADES.find(x=>x.id===id);if(!u||G.gold<u.cost)return;
-  G.gold-=u.cost;
-  if(u.type==='table'){G.tables++;G.TS.push(newSlot());}
-  else G.up[id]=true;
-  addLog(`✨ Upgraded: ${u.name}`,'g');buildTab('upgrade');render();
-}
-
-// ─── GAME OVER ─────────────────────────────────────────────────────────────
-function grade(){
-  const s=G.rep+G.level*12+Math.floor(G.totalEarned/8)+G.foodServed*2;
-  if(s>=200)return '👑 Legendary Innkeeper of the Realm';
-  if(s>=130)return '🏅 Master Tavernkeeper';
-  if(s>=70) return '🥈 Skilled Host & Brewer';
-  return '🥉 Apprentice Innkeeper';
-}
-function showGameOver(won){
-  $('go-title').textContent=won?'🏆 Your Legend is Written!':'💀 The Tavern Closes';
-  $('go-sub').textContent=won?'You survived 30 days — a true Innkeeper!':'Your coffer ran dry.';
-  $('go-grade').textContent=grade();
-  $('go-stats').innerHTML=`
-    <p>📅 Days survived: <strong>${G.day-1}</strong></p>
-    <p>🪙 Total earned: <strong>${G.totalEarned}🪙</strong></p>
-    <p>🍻 Guests served: <strong>${G.guestsServed}</strong></p>
-    <p>🍽️ Meals served: <strong>${G.foodServed}</strong></p>
-    <p>⭐ Reputation: <strong>${G.rep} – ${repLabel(G.rep)}</strong></p>
-    <p>🏰 Final level: <strong>Lv.${G.level} – ${curLv().name}</strong></p>
-  `;
-  $('go-modal').classList.add('open');
-}
-function restartGame(){
-  $('go-modal').classList.remove('open');$('lu-modal').classList.remove('open');
-  $('log-wrap').innerHTML='';clearInterval(tickInterval);initState();
-  addLog('🍺 The Gilded Flagon reopens its doors! Serve well and build your legend.','g');
-  addLog('Hire a Cook to unlock the kitchen and serve food to hungry guests.','b');
-  render();startTick();
-}
-function addLog(msg,type){
-  const el=$('log-wrap');const e=document.createElement('div');
-  e.className='log-e'+(type?' '+type:'');e.textContent=msg;
-  el.prepend(e);while(el.children.length>35)el.removeChild(el.lastChild);
-}
-function toast(msg){
-  const t=$('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2600);
-}
-
-initState();
-addLog('🍺 Welcome to The Gilded Flagon! Build a legendary tavern over 30 days.','g');
-addLog('Hire a Cook (Shop → Staff) to unlock the kitchen and serve food!','b');
-addLog('Click on waiting guests to serve them. Collect payment when they finish!');
-render();startTick();
+addLog('🍺 Welcome to The Gilded Flagon! You have 365 days to build a legend.', 'gold');
+addLog('Days run automatically (90 sec each). End early anytime.');
+render();
+startTick();
+startDayTimer();
 </script>
 </body>
 </html>
