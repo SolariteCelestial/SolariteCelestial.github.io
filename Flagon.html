@@ -6,11 +6,12 @@
 <title>The Gilded Flagon</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-:root {
+:root{
   --parchment:#f4e8c1;--dark-wood:#2e1a09;--medium-wood:#5a3018;--light-wood:#9a5a22;
   --ale-gold:#c8860a;--ale-light:#f5c842;--ink:#1a0f05;--aged-paper:#e8d89a;
   --muted:#8a7a55;--success:#2d6a2d;--danger:#8b1a1a;--blue-light:#5b9bd5;
   --food-green:#3a7a3a;--food-light:#6dc26d;
+  --night-bg:#1a1030;--day-bg:#e8d89a;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);min-height:100vh;}
@@ -22,10 +23,14 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 .hdr-meta{display:flex;gap:10px;align-items:center;margin-top:2px;flex-wrap:wrap;}
 .day-badge{font-size:11px;font-family:'Cinzel',serif;color:var(--muted);}
 .level-badge{font-size:11px;font-family:'Cinzel',serif;color:var(--ale-light);background:rgba(200,134,10,.2);padding:2px 8px;border-radius:10px;border:1px solid rgba(200,134,10,.4);}
-.day-timer-pill{font-size:11px;font-family:'Cinzel',serif;background:rgba(0,0,0,.4);padding:2px 10px;border-radius:10px;border:1px solid rgba(200,134,10,.3);color:var(--parchment);}
-.day-timer-bar-wrap{width:80px;}
-.day-timer-bg{height:4px;background:rgba(0,0,0,.5);border-radius:2px;margin-top:2px;}
-.day-timer-fill{height:4px;border-radius:2px;background:linear-gradient(90deg,#e05020,#f0a030,#60c030);transition:width .5s linear;}
+.phase-pill{font-size:11px;font-family:'Cinzel',serif;padding:2px 10px;border-radius:10px;border:1px solid;transition:all .5s;}
+.phase-pill.day{background:rgba(245,200,66,.15);border-color:rgba(245,200,66,.5);color:#f5c842;}
+.phase-pill.night{background:rgba(60,30,100,.4);border-color:rgba(120,80,200,.5);color:#c0a0ff;}
+.phase-timer-wrap{width:70px;}
+.phase-timer-bg{height:4px;background:rgba(0,0,0,.5);border-radius:2px;margin-top:3px;}
+.phase-timer-fill{height:4px;border-radius:2px;transition:width 1s linear;}
+.phase-timer-fill.day{background:linear-gradient(90deg,#f0a030,#f5c842);}
+.phase-timer-fill.night{background:linear-gradient(90deg,#3030a0,#8060e0);}
 .hdr-right{display:flex;gap:10px;align-items:center;}
 .xp-bar-wrap{width:100px;}
 .xp-label{font-size:9px;font-family:'Cinzel',serif;color:var(--muted);letter-spacing:1px;text-align:right;margin-bottom:2px;}
@@ -33,11 +38,27 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 .xp-fill{height:5px;background:linear-gradient(90deg,var(--ale-gold),var(--ale-light));border-radius:3px;transition:width .5s;}
 .coin-pill{font-family:'Cinzel',serif;font-size:16px;font-weight:600;color:var(--ale-light);background:rgba(0,0,0,.4);padding:5px 14px;border-radius:20px;border:1px solid var(--ale-gold);}
 
+/* PHASE TRANSITION OVERLAY */
+.phase-overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s;}
+.phase-overlay.show{opacity:1;pointer-events:all;}
+.phase-overlay.day-trans{background:rgba(245,200,50,.15);}
+.phase-overlay.night-trans{background:rgba(20,10,50,.5);}
+.phase-overlay-text{font-family:'Cinzel',serif;font-size:36px;font-weight:700;text-shadow:0 2px 20px rgba(0,0,0,.5);animation:phaseIn .5s ease;}
+.phase-overlay.day-trans .phase-overlay-text{color:#f5c842;}
+.phase-overlay.night-trans .phase-overlay-text{color:#c0a0ff;}
+@keyframes phaseIn{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+/* FLOOR THEME */
+.floor{background:var(--aged-paper);background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(100,70,20,.12) 40px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(100,70,20,.08) 60px);padding:16px;min-height:520px;transition:background .8s;}
+.floor.night-floor{background:#1e1428;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(100,80,160,.08) 40px);color:#e8d8c0;}
+.floor.night-floor .sec-title{color:#8070a0;}
+.floor.night-floor .sec-title::after{background:rgba(100,80,160,.3);}
+
 /* LAYOUT */
 .main-wrap{display:grid;grid-template-columns:1fr 220px;}
-.floor{background:var(--aged-paper);background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(100,70,20,.12) 40px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(100,70,20,.08) 60px);padding:16px;min-height:520px;}
 .sidebar{background:var(--dark-wood);background-image:repeating-linear-gradient(180deg,transparent,transparent 19px,rgba(0,0,0,.1) 20px);border-left:3px solid var(--ale-gold);padding:12px 10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;}
 
+/* SECTION TITLES */
 .sec-title{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
 .sec-title::after{content:'';flex:1;height:1px;background:rgba(139,100,50,.3);}
 
@@ -75,6 +96,9 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 .ready-dish{display:flex;align-items:center;gap:6px;background:rgba(60,120,60,.15);border:1px solid rgba(60,150,60,.3);border-radius:8px;padding:6px 10px;cursor:pointer;transition:background .15s;margin-bottom:5px;}
 .ready-dish:hover{background:rgba(60,120,60,.28);}
 
+/* AUTOMATION */
+.auto-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;background:rgba(91,155,213,.2);color:var(--blue-light);border:1px solid rgba(91,155,213,.4);border-radius:4px;padding:1px 5px;margin-left:4px;}
+
 /* HUNTING */
 .hunt-zone{background:rgba(255,255,255,.5);border:1.5px solid rgba(80,120,50,.4);border-radius:10px;padding:10px;cursor:pointer;transition:transform .15s,box-shadow .15s;}
 .hunt-zone:hover:not(.locked-zone){transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15);}
@@ -109,7 +133,7 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 .hunt-timer-fill{height:6px;background:linear-gradient(90deg,#e05020,#f0a030,#60c030);border-radius:3px;width:100%;}
 .hunt-hits-row{display:flex;justify-content:space-between;font-size:11px;color:#7a9a60;margin-bottom:8px;}
 
-/* SIDEBAR ELEMENTS */
+/* SIDEBAR */
 .stat-card{background:rgba(0,0,0,.35);border:1px solid rgba(200,134,10,.25);border-radius:8px;padding:9px;}
 .stat-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:3px;}
 .stat-value{font-family:'Cinzel',serif;font-size:19px;font-weight:600;color:var(--ale-gold);}
@@ -151,13 +175,14 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 .log-entry.bad{color:#e08080;}
 .log-entry.green{color:#90d090;}
 .log-entry.blue{color:#80b4e0;}
+.log-entry.purple{color:#c090ff;}
 @keyframes fadeIn{from{opacity:0;transform:translateX(-3px);}to{opacity:1;transform:none;}}
 
 /* TOAST */
 .toast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--dark-wood);border:2px solid var(--ale-gold);color:var(--ale-light);font-family:'Cinzel',serif;font-size:13px;padding:7px 20px;border-radius:8px;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:200;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* SHOP MODAL */
+/* SHOP */
 .modal-bg{position:fixed;inset:0;background:rgba(8,4,0,.84);display:flex;align-items:center;justify-content:center;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s;}
 .modal-bg.open{opacity:1;pointer-events:all;}
 .modal-panel{background:var(--aged-paper);border:3px solid var(--ale-gold);border-radius:12px;padding:20px;max-width:440px;width:94%;max-height:82vh;overflow-y:auto;}
@@ -189,25 +214,35 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 .go-grade{font-family:'Cinzel',serif;font-size:28px;font-weight:700;color:var(--ale-gold);margin-bottom:6px;}
 .restart-btn{padding:10px 28px;background:var(--ale-gold);color:var(--ink);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:14px;font-weight:700;cursor:pointer;}
 .restart-btn:hover{background:var(--ale-light);}
+
+/* DAY PHASE LOCKOUT NOTICE */
+.phase-notice{background:rgba(60,30,100,.3);border:1px solid rgba(120,80,200,.4);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#c0a0ff;font-family:'Cinzel',serif;display:none;}
+.phase-notice.show{display:block;}
 </style>
 </head>
 <body>
 <div id="app">
+  <!-- PHASE TRANSITION OVERLAY -->
+  <div class="phase-overlay" id="phase-overlay">
+    <div class="phase-overlay-text" id="phase-overlay-text">🌙 Night Falls</div>
+  </div>
+
+  <!-- HEADER -->
   <div class="hdr">
     <div>
       <div class="tavern-name">The Gilded Flagon</div>
       <div class="hdr-meta">
         <div class="day-badge">Day <span id="day-num">1</span>/365</div>
         <div class="level-badge">Lv.<span id="lv-num">1</span> — <span id="lv-name">Humble Inn</span></div>
-        <div>
-          <div class="day-timer-pill">⏳ <span id="day-timer-text">60s</span> left today</div>
-          <div class="day-timer-bg"><div class="day-timer-fill" id="day-timer-fill" style="width:100%"></div></div>
+        <div class="phase-pill day" id="phase-pill">☀️ Dawn — <span id="phase-timer-text">30s</span></div>
+        <div class="phase-timer-wrap">
+          <div class="phase-timer-bg"><div class="phase-timer-fill day" id="phase-timer-fill" style="width:100%"></div></div>
         </div>
       </div>
     </div>
     <div class="hdr-right">
       <div class="xp-bar-wrap">
-        <div class="xp-label">XP <span id="xp-text">0/50</span></div>
+        <div class="xp-label">XP <span id="xp-text">0/60</span></div>
         <div class="xp-bg"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
       </div>
       <div class="coin-pill">🪙 <span id="gold-display">80</span></div>
@@ -215,7 +250,8 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
   </div>
 
   <div class="main-wrap">
-    <div class="floor">
+    <div class="floor" id="floor">
+      <!-- Banners -->
       <div class="event-banner" id="event-banner">
         <div class="event-banner-icon" id="eb-icon">🎉</div>
         <div><div class="event-banner-text" id="eb-text">Market Day</div><div class="event-banner-sub" id="eb-sub">More guests arriving!</div></div>
@@ -224,6 +260,9 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
         <div class="level-up-title" id="lu-title">⭐ Leveled Up!</div>
         <div class="level-up-perks" id="lu-perks"></div>
       </div>
+      <div class="phase-notice" id="phase-notice">🌙 The tavern is open for the night — guests are arriving! Serve them before they leave.</div>
+
+      <!-- TABS -->
       <div class="floor-tabs">
         <button class="tab-btn active" onclick="switchTab('tables')">🍺 Tables</button>
         <button class="tab-btn" onclick="switchTab('kitchen')">🍖 Kitchen</button>
@@ -231,57 +270,60 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
         <button class="tab-btn" onclick="switchTab('staff')">👥 Staff</button>
       </div>
 
-      <!-- TABLES -->
+      <!-- TABLES TAB -->
       <div id="tab-tables">
         <div class="sec-title">Tavern Tables</div>
         <div class="tables-grid" id="tables-grid"></div>
-        <div class="sec-title">Restock</div>
+        <div class="sec-title">Restock <span id="auto-brew-badge" class="auto-badge" style="display:none;">⚙️ AUTO</span></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="action-btn" style="width:auto;padding:6px 12px;" onclick="brewAle()">🍺 Brew Ale (-<span id="ale-cost-lbl">5</span>🪙)</button>
-          <button class="action-btn blue" style="width:auto;padding:6px 12px;" onclick="buyMead()">🍯 Mead (-8🪙)</button>
-          <button class="action-btn blue" style="width:auto;padding:6px 12px;" onclick="buyWine()">🍷 Wine (-12🪙)</button>
-          <button class="action-btn blue" style="width:auto;padding:6px 12px;" onclick="buySpirits()">🥃 Spirits (-18🪙)</button>
+          <button class="action-btn" style="width:auto;padding:6px 12px;" onclick="brewAle()">🍺 Ale (-<span id="ale-cost-lbl">5</span>🪙)</button>
+          <button id="btn-mead" class="action-btn blue" style="width:auto;padding:6px 12px;" onclick="buyMead()">🍯 Mead (-8🪙)</button>
+          <button id="btn-wine" class="action-btn blue" style="width:auto;padding:6px 12px;" onclick="buyWine()">🍷 Wine (-12🪙)</button>
+          <button id="btn-spirits" class="action-btn blue" style="width:auto;padding:6px 12px;" onclick="buySpirits()">🥃 Spirits (-18🪙)</button>
         </div>
       </div>
 
-      <!-- KITCHEN -->
+      <!-- KITCHEN TAB -->
       <div id="tab-kitchen" style="display:none;">
         <div id="kitchen-locked-msg" style="text-align:center;padding:30px;font-family:'Cinzel',serif;color:var(--muted);">
           🍖 Hire a Cook or buy the Kitchen upgrade to unlock food!
         </div>
         <div id="kitchen-panel" style="display:none;">
-          <div class="sec-title">Cook Food</div>
+          <div class="sec-title">Cook Food <span id="auto-cook-badge" class="auto-badge" style="display:none;">⚙️ AUTO</span></div>
           <div class="food-grid" id="food-grid"></div>
           <div class="sec-title">Ready to Serve</div>
           <div id="ready-food"></div>
-          <div id="no-ready-food" style="font-size:11px;color:var(--muted);font-style:italic;">No food ready — cook something!</div>
+          <div id="no-ready-food" style="font-size:11px;color:var(--muted);font-style:italic;">No food ready — cook during the day!</div>
         </div>
       </div>
 
-      <!-- HUNTING -->
+      <!-- HUNTING TAB -->
       <div id="tab-hunting" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <div class="sec-title" style="margin-bottom:0;">Hunting Grounds</div>
-          <div style="font-size:12px;font-family:'Cinzel',serif;color:var(--ale-gold);">🥾 <span id="hunt-stam-txt">10/10</span> stamina</div>
+          <div style="font-size:12px;font-family:'Cinzel',serif;color:var(--ale-gold);">🥾 <span id="hunt-stam-txt">10/10</span></div>
         </div>
         <div style="height:6px;background:rgba(0,0,0,.3);border-radius:3px;margin-bottom:12px;"><div id="hunt-stam-bar" style="height:6px;background:linear-gradient(90deg,#3a7a3a,#6dc26d);border-radius:3px;transition:width .4s;width:100%;"></div></div>
-        <div class="sec-title">Zones</div>
+        <div id="hunt-day-only" class="phase-notice" style="display:none;">🌙 Hunting is a daytime activity. The forest is too dangerous at night!</div>
         <div id="hunt-zones" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
-        <div class="sec-title">Traps <span style="font-size:10px;font-weight:400;color:var(--muted);">(overnight)</span></div>
+        <div class="sec-title">Traps <span style="font-size:10px;font-weight:400;color:var(--muted);">(passive overnight)</span></div>
         <div id="hunt-traps"></div>
         <div class="sec-title">Larder</div>
         <div id="hunt-larder" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
       </div>
 
-      <!-- STAFF -->
+      <!-- STAFF TAB -->
       <div id="tab-staff" style="display:none;">
         <div class="sec-title">Hired Staff</div>
         <div id="staff-list-big" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-        <div class="sec-title">Summary</div>
+        <div class="sec-title">Automation Active</div>
+        <div id="auto-list" style="font-size:12px;color:var(--muted);font-style:italic;">No automation yet.</div>
+        <div class="sec-title" style="margin-top:8px;">Summary</div>
         <div id="staff-summary" style="font-size:12px;color:var(--muted);"></div>
       </div>
     </div>
 
+    <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="stat-card">
         <div class="stat-label">Gold</div>
@@ -290,9 +332,10 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
       </div>
       <div class="stat-card">
         <div class="stat-label">Reputation</div>
-        <div class="stat-value" id="rep-val">10</div>
-        <div class="bar-bg"><div class="bar-fill bar-rep" id="rep-bar" style="width:10%"></div></div>
+        <div class="stat-value" id="rep-val">0/50</div>
+        <div class="bar-bg"><div class="bar-fill bar-rep" id="rep-bar" style="width:0%"></div></div>
         <div class="stat-sub" id="rep-lbl">Unknown Tavern</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px;">Title earned: <span id="title-earned">—</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Guest Hunger</div>
@@ -310,7 +353,7 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
         <div id="stock-lines" style="font-size:10px;color:var(--muted);line-height:1.8;"></div>
       </div>
       <div class="btn-group">
-        <button class="action-btn" onclick="endDay()">🌙 End Day Early</button>
+        <button class="action-btn" id="skip-btn" onclick="skipPhase()">⏩ Skip Phase</button>
         <button class="action-btn green" onclick="openShop()">🏪 Shop & Hire</button>
       </div>
     </div>
@@ -324,7 +367,7 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
     <div class="hunt-mg-title" id="hm-title">🏹 The Hunt</div>
     <div class="hunt-mg-sub" id="hm-sub">Click the animal before it escapes!</div>
     <div class="hunt-timer-bar"><div class="hunt-timer-fill" id="hm-timer-fill"></div></div>
-    <div class="hunt-hits-row"><span id="hm-hits">Shots: 0 hit / 0 miss</span><span id="hm-stamina">🥾 10 stamina left</span></div>
+    <div class="hunt-hits-row"><span id="hm-hits">Shots: 0/0</span><span id="hm-stamina">🥾 10 left</span></div>
     <div class="hunt-mg-scene" id="hm-scene">
       <div class="hunt-target" id="hm-target" onclick="hitTarget()">🦌</div>
     </div>
@@ -371,18 +414,30 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 
 <script>
 // ================================================================
-// DATA
+// CONSTANTS
 // ================================================================
-const TOTAL_DAYS = 365;
-const DAY_DURATION_SEC = 90; // each in-game day lasts 90 real seconds
+const TOTAL_DAYS   = 365;
+const DAY_SEC      = 30;   // daytime: prep, hunt, cook
+const NIGHT_SEC    = 60;   // nighttime: customers arrive
+const GAME_TICK_MS = 1800; // table/cook tick interval (ms)
+
+// Reputation: title unlocked every 50 rep. Rep resets to 0 at 100, title kept.
+const REP_TITLES = [
+  {threshold:0,   title:'Unknown Tavern'},
+  {threshold:50,  title:'Local Haunt'},
+  {threshold:100, title:'Respected Inn'},   // earned at 2nd milestone (rep reset once)
+  {threshold:150, title:'Famous Tavern'},
+  {threshold:200, title:'Legendary Alehouse'},
+  {threshold:300, title:"The Realm's Finest"},
+];
 
 const LEVELS = [
-  {lvl:1, name:'Humble Inn',      xpNeeded:60},
-  {lvl:2, name:'Roadside Tavern', xpNeeded:150},
+  {lvl:1, name:'Humble Inn',       xpNeeded:60},
+  {lvl:2, name:'Roadside Tavern',  xpNeeded:150},
   {lvl:3, name:'Neighbourhood Pub',xpNeeded:280},
-  {lvl:4, name:'Merchant Lodge',  xpNeeded:450},
-  {lvl:5, name:'Renowned Inn',    xpNeeded:680},
-  {lvl:6, name:'Grand Tavern',    xpNeeded:980},
+  {lvl:4, name:'Merchant Lodge',   xpNeeded:450},
+  {lvl:5, name:'Renowned Inn',     xpNeeded:680},
+  {lvl:6, name:'Grand Tavern',     xpNeeded:980},
   {lvl:7, name:'Legendary Alehouse',xpNeeded:1400},
   {lvl:8, name:"The Realm's Finest",xpNeeded:Infinity},
 ];
@@ -419,23 +474,23 @@ const FOOD_MENU = [
 ];
 
 const HUNT_ZONES = [
-  {id:'meadow',   name:'Meadow',        icon:'🌾', lvlReq:1, staminaCost:2, animals:[
+  {id:'meadow',   name:'Meadow',         icon:'🌾', lvlReq:1, staminaCost:2, animals:[
     {name:'Rabbit',  icon:'🐇', ing:'rabbit',  yield:[1,2], chance:.75, diff:'easy'},
     {name:'Pheasant',icon:'🦚', ing:'pheasant',yield:[1,1], chance:.55, diff:'easy'},
   ]},
-  {id:'forest',   name:'Dark Forest',   icon:'🌲', lvlReq:2, staminaCost:3, animals:[
+  {id:'forest',   name:'Dark Forest',    icon:'🌲', lvlReq:2, staminaCost:3, animals:[
     {name:'Deer',icon:'🦌', ing:'venison',yield:[2,4], chance:.55, diff:'medium'},
     {name:'Boar',icon:'🐗', ing:'boar',   yield:[2,3], chance:.45, diff:'hard'},
     {name:'Fox', icon:'🦊', ing:'fox',    yield:[1,2], chance:.65, diff:'medium'},
   ]},
-  {id:'river',    name:'River Bank',    icon:'🏞️', lvlReq:2, staminaCost:2, animals:[
+  {id:'river',    name:'River Bank',     icon:'🏞️', lvlReq:2, staminaCost:2, animals:[
     {name:'Salmon',icon:'🐟', ing:'salmon',yield:[2,4], chance:.7,  diff:'easy'},
     {name:'Duck',  icon:'🦆', ing:'duck',  yield:[1,2], chance:.6,  diff:'easy'},
   ]},
-  {id:'highland', name:'Highland Pass', icon:'⛰️', lvlReq:4, staminaCost:4, animals:[
-    {name:'Elk',          icon:'🦌', ing:'elk',  yield:[3,6], chance:.45, diff:'hard'},
-    {name:'Mountain Goat',icon:'🐐', ing:'goat', yield:[2,4], chance:.5,  diff:'medium'},
-    {name:'Bear',         icon:'🐻', ing:'bear', yield:[3,5], chance:.3,  diff:'vhard'},
+  {id:'highland', name:'Highland Pass',  icon:'⛰️', lvlReq:4, staminaCost:4, animals:[
+    {name:'Elk',           icon:'🦌', ing:'elk',  yield:[3,6], chance:.45, diff:'hard'},
+    {name:'Mountain Goat', icon:'🐐', ing:'goat', yield:[2,4], chance:.5,  diff:'medium'},
+    {name:'Bear',          icon:'🐻', ing:'bear', yield:[3,5], chance:.3,  diff:'vhard'},
   ]},
   {id:'enchanted',name:'Enchanted Grove',icon:'🍄', lvlReq:6, staminaCost:3, animals:[
     {name:'Golden Hare', icon:'🐇', ing:'golden_hare',   yield:[1,2], chance:.5,  diff:'medium'},
@@ -444,78 +499,86 @@ const HUNT_ZONES = [
 ];
 
 const INGREDIENTS = {
-  rabbit:        {name:'Rabbit',       icon:'🐇', cookable:['stew','pie']},
-  pheasant:      {name:'Pheasant',     icon:'🦚', cookable:['roast','pie']},
-  venison:       {name:'Venison',      icon:'🍖', cookable:['roast','stew','feast']},
-  boar:          {name:'Wild Boar',    icon:'🐗', cookable:['roast','feast']},
-  fox:           {name:'Fox Meat',     icon:'🦊', cookable:['stew']},
-  salmon:        {name:'Salmon',       icon:'🐟', cookable:['fish','soup']},
-  duck:          {name:'Duck',         icon:'🦆', cookable:['roast','pie']},
-  elk:           {name:'Elk Venison',  icon:'🦌', cookable:['feast','roast']},
-  goat:          {name:'Goat',         icon:'🐐', cookable:['stew','pie']},
-  bear:          {name:'Bear Meat',    icon:'🐻', cookable:['feast']},
-  golden_hare:   {name:'Golden Hare',  icon:'✨', cookable:['cake','feast']},
-  spirit_venison:{name:'Spirit Venison',icon:'🌟',cookable:['feast']},
+  rabbit:        {name:'Rabbit',        icon:'🐇', cookable:['stew','pie']},
+  pheasant:      {name:'Pheasant',      icon:'🦚', cookable:['roast','pie']},
+  venison:       {name:'Venison',       icon:'🍖', cookable:['roast','stew','feast']},
+  boar:          {name:'Wild Boar',     icon:'🐗', cookable:['roast','feast']},
+  fox:           {name:'Fox Meat',      icon:'🦊', cookable:['stew']},
+  salmon:        {name:'Salmon',        icon:'🐟', cookable:['fish','soup']},
+  duck:          {name:'Duck',          icon:'🦆', cookable:['roast','pie']},
+  elk:           {name:'Elk Venison',   icon:'🦌', cookable:['feast','roast']},
+  goat:          {name:'Goat',          icon:'🐐', cookable:['stew','pie']},
+  bear:          {name:'Bear Meat',     icon:'🐻', cookable:['feast']},
+  golden_hare:   {name:'Golden Hare',   icon:'✨', cookable:['cake','feast']},
+  spirit_venison:{name:'Spirit Venison',icon:'🌟', cookable:['feast']},
 };
 
 const TRAP_TYPES = [
   {id:'snare',  name:'Rope Snare', icon:'🪤', cost:15, lvlReq:1, ings:['rabbit','pheasant','fox'], yield:[1,2], desc:'Catches small game.'},
-  {id:'net',    name:'River Net',  icon:'🎣', cost:20, lvlReq:2, ings:['salmon','duck'],           yield:[2,4], desc:'Set in the river.'},
-  {id:'pitfall',name:'Pit Trap',   icon:'⛏️', cost:30, lvlReq:3, ings:['boar','venison','goat'],   yield:[1,3], desc:'For medium prey.'},
+  {id:'net',    name:'River Net',  icon:'🎣', cost:20, lvlReq:2, ings:['salmon','duck'],            yield:[2,4], desc:'Set in the river.'},
+  {id:'pitfall',name:'Pit Trap',   icon:'⛏️', cost:30, lvlReq:3, ings:['boar','venison','goat'],    yield:[1,3], desc:'For medium prey.'},
 ];
 
 const STAFF_CATALOG = [
-  {id:'barmaid',  name:'Barmaid',    icon:'🙋', desc:'Guests wait 4 ticks longer.',             cost:30, wage:3, lvlReq:1, stat:'Patience: +4'},
-  {id:'guard',    name:'Guard',      icon:'🛡️', desc:'Reduces rep loss from angry guests.',      cost:40, wage:4, lvlReq:1, stat:'Rep Guard: Active'},
-  {id:'cook',     name:'Cook',       icon:'👨‍🍳', desc:'Unlocks kitchen. Food cooks 30% faster.', cost:55, wage:5, lvlReq:1, stat:'Kitchen Speed: +30%'},
-  {id:'sommelier',name:'Sommelier',  icon:'🍾', desc:'Wine & spirits +3🪙. Nobles tip +3.',      cost:70, wage:6, lvlReq:3, stat:'Premium Drinks: Boosted'},
-  {id:'musician', name:'Musician',   icon:'🎶', desc:'Rep +1 per guest. Bards tip +5.',          cost:65, wage:5, lvlReq:3, stat:'Ambiance: Excellent'},
-  {id:'cleaner',  name:'Cleaner',    icon:'🧹', desc:'Tables reset instantly on guest leave.',   cost:50, wage:4, lvlReq:2, stat:'Turnover: Instant'},
-  {id:'greeter',  name:'Greeter',    icon:'🎩', desc:'Noble & Duchess visits doubled.',           cost:80, wage:7, lvlReq:4, stat:'Elite Guests: +100%'},
-  {id:'brewer',   name:'Brewer',     icon:'🧪', desc:'Ale yields 8 per brew, costs 4🪙.',        cost:60, wage:5, lvlReq:2, stat:'Brew Output: +60%'},
-  {id:'hunter',   name:'Hunter',     icon:'🏹', desc:'+5 max stamina. Brings ingredients daily.',cost:60, wage:5, lvlReq:2, stat:'Daily Ingredients: Active'},
+  {id:'barmaid',  name:'Barmaid',     icon:'🙋', desc:'Guests wait 4 ticks longer.',              cost:30, wage:3, lvlReq:1, stat:'Patience: +4'},
+  {id:'guard',    name:'Guard',       icon:'🛡️', desc:'Reduces rep loss from angry guests.',       cost:40, wage:4, lvlReq:1, stat:'Rep Guard: Active'},
+  {id:'cook',     name:'Cook',        icon:'👨‍🍳', desc:'Unlocks kitchen. Food 30% faster.',          cost:55, wage:5, lvlReq:1, stat:'Kitchen Speed: +30%'},
+  {id:'sommelier',name:'Sommelier',   icon:'🍾', desc:'Wine & spirits +3🪙. Nobles tip +3.',        cost:70, wage:6, lvlReq:3, stat:'Premium Drinks: Boosted'},
+  {id:'musician', name:'Musician',    icon:'🎶', desc:'Rep +1/guest. Bards tip +5.',               cost:65, wage:5, lvlReq:3, stat:'Ambiance: Excellent'},
+  {id:'cleaner',  name:'Cleaner',     icon:'🧹', desc:'Tables instant-reset on guest leave.',      cost:50, wage:4, lvlReq:2, stat:'Turnover: Instant'},
+  {id:'greeter',  name:'Greeter',     icon:'🎩', desc:'Noble & Duchess visits doubled.',            cost:80, wage:7, lvlReq:4, stat:'Elite Guests: +100%'},
+  {id:'brewer',   name:'Brewer',      icon:'🧪', desc:'Ale yields 8 per brew, costs 4🪙.',         cost:60, wage:5, lvlReq:2, stat:'Brew Output: +60%'},
+  {id:'hunter',   name:'Hunter',      icon:'🏹', desc:'+5 stamina. Brings ingredients at dawn.',   cost:60, wage:5, lvlReq:2, stat:'Daily Hunt: Active'},
 ];
 
 const UPGRADES_CATALOG = [
-  {id:'cellar',  name:'Ale Cellar',      icon:'🏚️', desc:'Brewing ale costs 3🪙.',               cost:35, lvlReq:1},
-  {id:'sign',    name:'Grand Sign',      icon:'📜', desc:'Nobles/Duchess appear +50% more.',       cost:45, lvlReq:2},
-  {id:'hearth',  name:'Stone Hearth',    icon:'🔥', desc:'Served guests drink for 2 extra ticks.', cost:50, lvlReq:2},
-  {id:'kitchen', name:'Kitchen Setup',   icon:'🍳', desc:'Unlocks kitchen without a cook.',         cost:60, lvlReq:1},
-  {id:'menu',    name:'Printed Menu',    icon:'📋', desc:'Guest substitutes drink if out of stock.',cost:40, lvlReq:2},
-  {id:'decor',   name:'Fine Decor',      icon:'🖼️', desc:'+3 rep when a Noble/Duchess visits.',    cost:65, lvlReq:3},
-  {id:'vault',   name:'Gold Vault',      icon:'💰', desc:'+10🪙 each dawn from overnight rent.',    cost:100,lvlReq:5},
-  {id:'repfloor',name:'Hall of Fame',    icon:'🏆', desc:'Reputation never drops below 20.',        cost:90, lvlReq:6},
-  {id:'boots',   name:'Hunting Boots',   icon:'🥾', desc:'+4 max hunting stamina.',                 cost:35, lvlReq:1},
-  {id:'bow',     name:'Reinforced Bow',  icon:'🏹', desc:'+15% hit chance hunting.',                cost:50, lvlReq:2},
-  {id:'lodge',   name:'Hunter\'s Lodge', icon:'🏕️', desc:'Traps resolve in 0 days (instant).',      cost:80, lvlReq:3},
+  {id:'cellar',    name:'Ale Cellar',       icon:'🏚️', desc:'Brewing ale costs 3🪙.',                          cost:35,  lvlReq:1},
+  {id:'sign',      name:'Grand Sign',       icon:'📜', desc:'Nobles/Duchess appear +50% more.',                cost:45,  lvlReq:2},
+  {id:'hearth',    name:'Stone Hearth',     icon:'🔥', desc:'Served guests drink 2 extra ticks.',              cost:50,  lvlReq:2},
+  {id:'kitchen',   name:'Kitchen Setup',    icon:'🍳', desc:'Unlocks kitchen without a cook.',                  cost:60,  lvlReq:1},
+  {id:'menu',      name:'Printed Menu',     icon:'📋', desc:'Guest substitutes drink if out of stock.',         cost:40,  lvlReq:2},
+  {id:'decor',     name:'Fine Decor',       icon:'🖼️', desc:'+3 rep when Noble/Duchess visits.',               cost:65,  lvlReq:3},
+  {id:'vault',     name:'Gold Vault',       icon:'💰', desc:'+10🪙 at dawn each day.',                         cost:100, lvlReq:5},
+  {id:'repfloor',  name:'Hall of Fame',     icon:'🏆', desc:'Rep never drops below 5.',                         cost:90,  lvlReq:6},
+  {id:'boots',     name:'Hunting Boots',    icon:'🥾', desc:'+4 max stamina.',                                  cost:35,  lvlReq:1},
+  {id:'bow',       name:'Reinforced Bow',   icon:'🏹', desc:'+15% hunt hit chance.',                            cost:50,  lvlReq:2},
+  {id:'lodge',     name:'Hunter\'s Lodge',  icon:'🏕️', desc:'+6 stamina. Traps resolve instantly.',             cost:80,  lvlReq:3},
+  // AUTOMATION upgrades
+  {id:'auto_brew', name:'Auto-Brewery',     icon:'⚙️', desc:'Automatically brews ale at dawn if stock < 5.',   cost:120, lvlReq:3},
+  {id:'auto_serve',name:'Auto-Barmaid',     icon:'🤖', desc:'Automatically serves waiting guests every tick.',  cost:150, lvlReq:4},
+  {id:'auto_collect',name:'Auto-Till',      icon:'🏧', desc:'Automatically collects payment from finished guests.',cost:130,lvlReq:4},
+  {id:'auto_cook', name:'Auto-Kitchen',     icon:'🍲', desc:'Automatically starts cooking cheapest dish at dawn if larder has ingredients.',cost:140,lvlReq:5},
+  {id:'auto_restock',name:'Auto-Cellar',    icon:'🛒', desc:'Buys mead and wine automatically at dawn if stock is 0.',cost:160,lvlReq:5},
 ];
 
 const TABLE_SHOP = [
-  {id:'t4', name:'Extra Table',       icon:'🪑', desc:'4th table.',              cost:30,  lvlReq:1, count:4},
-  {id:'t5', name:'Common Room Bench', icon:'🛋️', desc:'5th table.',              cost:50,  lvlReq:2, count:5},
-  {id:'t6', name:'Merchant Corner',   icon:'🏮', desc:'6th table.',              cost:70,  lvlReq:3, count:6},
-  {id:'t7', name:'VIP Alcove',        icon:'👑', desc:'7th table — nobles love.',cost:100, lvlReq:5, count:7},
-  {id:'t8', name:'Grand Hall Wing',   icon:'🏛️', desc:'8th table.',              cost:130, lvlReq:7, count:8},
+  {id:'t4', name:'Extra Table',       icon:'🪑', desc:'4th table.',             cost:30,  lvlReq:1, count:4},
+  {id:'t5', name:'Common Room Bench', icon:'🛋️', desc:'5th table.',             cost:50,  lvlReq:2, count:5},
+  {id:'t6', name:'Merchant Corner',   icon:'🏮', desc:'6th table.',             cost:70,  lvlReq:3, count:6},
+  {id:'t7', name:'VIP Alcove',        icon:'👑', desc:'7th — nobles love it.',  cost:100, lvlReq:5, count:7},
+  {id:'t8', name:'Grand Hall Wing',   icon:'🏛️', desc:'8th table.',             cost:130, lvlReq:7, count:8},
 ];
 
 const SPECIAL_EVENTS = [
-  {icon:'🏪', name:'Market Day',        sub:'More merchants & travelers today!', guestMult:1.5},
-  {icon:'🎉', name:'Town Festival',     sub:'Reputation gains doubled!',         repMult:2, guestMult:1.3},
-  {icon:'🌧️', name:'Rainy Day',         sub:'Guests seek shelter — busier today!',guestMult:1.6},
-  {icon:'📯', name:'Royal Herald',      sub:'Noble visits tripled today!',        nobleMult:3},
-  {icon:'🎵', name:'Wandering Bard',    sub:'Tips increased today!',             tipMult:1.5, guestMult:1.1},
-  {icon:'☀️', name:'Summer Drought',    sub:'Ale sells for +2🪙 today!',          alePriceBonus:2, guestMult:0.9},
+  {icon:'🏪', name:'Market Day',     sub:'More merchants & travelers today!', guestMult:1.5},
+  {icon:'🎉', name:'Town Festival',  sub:'Reputation gains doubled!',          repMult:2, guestMult:1.3},
+  {icon:'🌧️', name:'Rainy Day',      sub:'Guests seek shelter — busier!',      guestMult:1.6},
+  {icon:'📯', name:'Royal Herald',   sub:'Noble visits tripled tonight!',       nobleMult:3},
+  {icon:'🎵', name:'Wandering Bard', sub:'Tips increased tonight!',            tipMult:1.5, guestMult:1.1},
+  {icon:'☀️', name:'Summer Drought', sub:'Ale sells for +2🪙 tonight!',        alePriceBonus:2, guestMult:0.9},
 ];
 
 // ================================================================
 // STATE
 // ================================================================
-let S, UPG, CQ, EVT, tickInt, dayTimerInt, dayEndLock, curShopTab;
-let huntMG = {};
+let S, UPG, CQ, EVT, tickInt, phaseTimerInt, dayEndLock, curShopTab, huntMG;
 
 function initState() {
   S = {
-    gold:80, day:1, rep:10, xp:0, level:1,
+    gold:80, day:1, level:1, xp:0,
+    rep:0,           // rep within current 0-100 bracket
+    repTotal:0,      // lifetime rep accumulated (for title milestones)
+    repTitleIdx:0,   // index into REP_TITLES of highest earned title
     ale:10, mead:0, wine:0, spirits:0,
     tables:3, slots:[], staff:[],
     totalEarned:0, guestsServed:0, dishesSold:0, totalHunted:0, daysComplete:0,
@@ -523,72 +586,105 @@ function initState() {
     readyDishes:[],
     larder:{},
     traps:[],
-    daySecondsLeft: DAY_DURATION_SEC,
+    phase:'day',     // 'day' | 'night'
+    phaseSecondsLeft: DAY_SEC,
   };
-  UPG = {};
-  CQ = {};   // cookQueue: foodId -> ticksLeft
-  EVT = null;
-  dayEndLock = false;
-  curShopTab = 'drinks';
-  huntMG = {zone:null, animal:null, active:false, hits:0, misses:0, timerH:null, moveH:null};
+  UPG={};CQ={};EVT=null;dayEndLock=false;curShopTab='drinks';
+  huntMG={zone:null,animal:null,active:false,hits:0,misses:0,timerH:null,moveH:null};
   S.slots = Array.from({length:3}, mkSlot);
+  S.stamina = 10; // will be properly set after helpers are defined
 }
-
-function mkSlot() {
-  return {status:'empty', guest:null, timer:0, hasFoodOrder:false, foodItem:null, foodReady:false};
-}
-
-initState();
+function mkSlot(){return{status:'empty',guest:null,timer:0,hasFoodOrder:false,foodItem:null,foodReady:false};}
 
 // ================================================================
 // HELPERS
 // ================================================================
-const repLabel = r => r<15?'Unknown Tavern':r<30?'Local Haunt':r<50?'Respected Inn':r<70?'Famous Tavern':r<90?'Legendary Alehouse':"The Realm's Finest";
 const hasStaff = id => !!S.staff.find(s=>s.id===id);
-const hasUpg = id => !!UPG[id];
-const hasCook = () => hasStaff('cook');
+const hasUpg   = id => !!UPG[id];
+const hasCook  = ()  => hasStaff('cook');
 const hasKitchen = () => hasCook() || hasUpg('kitchen');
-const getLv = () => LEVELS[S.level-1];
-const getNextLv = () => LEVELS[S.level] || null;
+const getLv    = ()  => LEVELS[S.level-1];
+const getNextLv= ()  => LEVELS[S.level] || null;
+const isNight  = ()  => S.phase === 'night';
 
-function aleCost() { return hasStaff('brewer') ? 4 : hasUpg('cellar') ? 3 : 5; }
+function maxStamina() {
+  return 10
+    + (hasUpg('boots') ? 4 : 0)
+    + (hasUpg('lodge') ? 6 : 0)
+    + (hasStaff('hunter') ? 5 : 0);
+}
+function aleCost()  { return hasStaff('brewer') ? 4 : hasUpg('cellar') ? 3 : 5; }
 function aleYield() { return hasStaff('brewer') ? 8 : 5; }
-function maxStamina() { return 10 + (hasUpg('boots')?4:0) + (hasStaff('hunter')?5:0); }
+
+// Reputation: cumulative, titles unlock at 50-rep milestones, rep resets to 0 on each 100
+function addRep(amount) {
+  if(EVT && EVT.repMult) amount = Math.round(amount * EVT.repMult);
+  if(hasStaff('musician')) amount++;
+  if(amount<=0) return;
+  S.rep += amount;
+  S.repTotal += amount;
+  // Check for new title milestone (every 50 total rep)
+  const milestonesReached = Math.floor(S.repTotal / 50);
+  const newTitleIdx = Math.min(milestonesReached, REP_TITLES.length-1);
+  if(newTitleIdx > S.repTitleIdx) {
+    S.repTitleIdx = newTitleIdx;
+    const t = REP_TITLES[S.repTitleIdx];
+    addLog(`🏅 New title earned: "${t.title}"!`, 'purple');
+    toast(`New title: ${t.title}!`);
+  }
+  // Rep resets every 100
+  while(S.rep >= 100) {
+    S.rep -= 100;
+    addLog('⭐ Reputation prestige! Reset to 0 — your legend grows.', 'gold');
+  }
+  if(hasUpg('repfloor')) S.rep = Math.max(5, S.rep);
+}
+
+function loseRep(amount) {
+  S.rep = Math.max(hasUpg('repfloor')?5:0, S.rep - amount);
+}
+
+function repDisplay() {
+  return `${S.rep}/100`;
+}
+
+function repTitle() {
+  return REP_TITLES[S.repTitleIdx].title;
+}
 
 function drinkPrice(id) {
   let p = DRINKS[id].price;
-  if (S.level>=6) p++;
-  if (id==='ale' && EVT && EVT.alePriceBonus) p += EVT.alePriceBonus;
-  if ((id==='wine'||id==='spirits') && hasStaff('sommelier')) p += 3;
+  if(S.level>=6) p++;
+  if(id==='ale' && EVT && EVT.alePriceBonus) p += EVT.alePriceBonus;
+  if((id==='wine'||id==='spirits') && hasStaff('sommelier')) p += 3;
   return p;
 }
 
 function calcTip(guest, ts) {
   let t = guest.tipBase;
-  if (S.level>=4) t++;
-  if (ts.foodReady && hasCook()) t += 2;
-  if (hasStaff('musician')) t++;
-  if (hasStaff('sommelier') && (guest.name==='Noble'||guest.name==='Duchess')) t += 3;
-  if (hasStaff('musician') && guest.name==='Bard') t += 5;
-  if (EVT && EVT.tipMult) t = Math.round(t * EVT.tipMult);
+  if(S.level>=4) t++;
+  if(ts.foodReady && hasCook()) t += 2;
+  if(hasStaff('sommelier') && (guest.name==='Noble'||guest.name==='Duchess')) t += 3;
+  if(hasStaff('musician') && guest.name==='Bard') t += 5;
+  if(EVT && EVT.tipMult) t = Math.round(t * EVT.tipMult);
   return Math.max(0, t);
 }
 
 function guestPool() {
-  const add = (g,w) => { for(let i=0;i<w;i++) pool.push(g); };
   let pool = [];
-  add(0,4); add(2,3); add(4,2); add(6,3);
-  if(S.rep>=15){add(1,3);add(7,2);}
-  if(S.rep>=30){add(5,2);}
-  if(S.rep>=40||hasUpg('sign')){add(3,2);if(hasStaff('greeter'))add(3,3);}
-  if(S.rep>=50){add(9,2);}
+  const add = (g,w)=>{ for(let i=0;i<w;i++) pool.push(g); };
+  add(0,4);add(2,3);add(4,2);add(6,3);
+  if(S.repTotal>=15){add(1,3);add(7,2);}
+  if(S.repTotal>=30){add(5,2);}
+  if(S.repTotal>=50||hasUpg('sign')){add(3,2);if(hasStaff('greeter'))add(3,3);}
+  if(S.repTotal>=80){add(9,2);}
   if(S.level>=4||hasUpg('sign')){add(8,1);if(hasStaff('greeter'))add(8,2);}
   if(EVT&&EVT.nobleMult){for(let i=0;i<EVT.nobleMult-1;i++){add(3,2);add(8,1);}}
   return pool.map(i=>GUEST_TYPES[i]);
 }
 
 function guestChance() {
-  let b = 0.28 + (S.rep/100)*0.42;
+  let b = 0.28 + (S.repTotal/300)*0.42;
   if(hasStaff('barmaid')) b += 0.1;
   if(S.level>=5) b += 0.05;
   if(EVT&&EVT.guestMult) b *= EVT.guestMult;
@@ -610,604 +706,599 @@ function gainXP(amt) {
 function levelUp() {
   S.level++;
   const lv = getLv();
-  const banner = document.getElementById('level-up-banner');
   document.getElementById('lu-title').textContent = `⭐ Level ${S.level}: ${lv.name}!`;
-  document.getElementById('lu-perks').textContent = 'Keep growing your legend!';
-  banner.classList.add('show');
-  setTimeout(()=>banner.classList.remove('show'), 5000);
-  addLog(`⭐ Level Up! You are now Level ${S.level}: ${lv.name}!`, 'gold');
+  document.getElementById('lu-perks').textContent = 'New doors are opening for your tavern!';
+  const banner = document.getElementById('level-up-banner');
+  banner.classList.add('show'); setTimeout(()=>banner.classList.remove('show'),5000);
+  addLog(`⭐ Level Up! Level ${S.level}: ${lv.name}!`, 'gold');
   toast(`Level Up! ${lv.name}`);
 }
 
-function addIngredient(id, qty) { S.larder[id] = (S.larder[id]||0) + qty; }
+function addIngredient(id, qty){ S.larder[id]=(S.larder[id]||0)+qty; }
+
+// ================================================================
+// AUTOMATION
+// ================================================================
+function runDawnAutomation() {
+  // auto-brew if stock < 5
+  if(hasUpg('auto_brew') && S.ale < 5) {
+    const c = aleCost();
+    if(S.gold >= c){ S.gold-=c; S.ale+=aleYield(); addLog(`⚙️ Auto-Brewery brewed ${aleYield()} ale.`); }
+  }
+  // auto-restock mead/wine
+  if(hasUpg('auto_restock')) {
+    if(S.mead===0 && S.gold>=8){ S.gold-=8; S.mead+=4; addLog('⚙️ Auto-Cellar bought mead.'); }
+    if(S.wine===0 && S.gold>=12){ S.gold-=12; S.wine+=3; addLog('⚙️ Auto-Cellar bought wine.'); }
+  }
+  // auto-cook: start cooking the cheapest available dish if larder has ingredients
+  if(hasUpg('auto_cook') && hasKitchen()) {
+    const allIngs = Object.keys(S.larder).filter(id=>S.larder[id]>0);
+    for(const ingId of allIngs) {
+      const ing = INGREDIENTS[ingId];
+      if(!ing) continue;
+      const cookable = ing.cookable.map(fid=>FOOD_MENU.find(f=>f.id===fid)).filter(f=>f&&f.unlockLvl<=S.level&&!CQ[f.id]);
+      if(cookable.length) {
+        cookable.sort((a,b)=>a.cost-b.cost);
+        const food = cookable[0];
+        const disc = Math.ceil(food.cost*0.4);
+        if(S.gold>=disc){ S.gold-=disc; S.larder[ingId]--; if(S.larder[ingId]<=0)delete S.larder[ingId]; CQ[food.id]=Math.ceil(food.time*(hasCook()?0.7:1)); addLog(`⚙️ Auto-Kitchen started cooking ${food.icon} ${food.name}.`); break; }
+      }
+    }
+  }
+}
+
+function runNightAutomation() {
+  // auto-serve waiting tables
+  if(hasUpg('auto_serve')) {
+    S.slots.forEach((ts,i)=>{
+      if(ts.status==='waiting'){
+        let drinkId=null;
+        for(const d of ts.guest.orders){drinkId=pickDrink(d);if(drinkId)break;}
+        if(drinkId){S[drinkId]--;ts.status='served';const extra=hasUpg('hearth')?2:0;ts.timer=(hasCook()?6:4)+extra+(S.level>=3?1:0);if(hasKitchen()&&S.hungerLevel>35&&Math.random()<0.5)ts.hasFoodOrder=true;addLog(`⚙️ Auto-Barmaid served ${DRINKS[drinkId].icon} to the ${ts.guest.name}.`,'gold');}
+      }
+    });
+  }
+  // auto-collect payment
+  if(hasUpg('auto_collect')) {
+    S.slots.forEach((ts,i)=>{
+      if(ts.status==='ready') collectPayment(i);
+    });
+  }
+}
 
 // ================================================================
 // ACTIONS — DRINKS
 // ================================================================
-function brewAle() {
-  const c = aleCost();
-  if(S.gold<c){toast(`Need ${c}🪙 to brew ale.`);return;}
-  S.gold-=c; S.ale+=aleYield();
-  addLog(`🍺 Brewed ${aleYield()} ale for ${c}🪙.`);
-  render();
-}
-function buyMead()    { buyDrink('mead',   8, 4); }
-function buyWine()    { buyDrink('wine',  12, 3); }
-function buySpirits() {
-  if(S.level<3){toast('Spirits unlock at Level 3!');return;}
-  buyDrink('spirits',18,3);
-}
-function buyDrink(id, cost, qty) {
-  if(S.gold<cost){toast(`Need ${cost}🪙.`);return;}
-  S.gold-=cost; S[id]+=qty;
-  addLog(`Bought ${qty} ${DRINKS[id].name}.`);
-  render();
-}
+function brewAle(){const c=aleCost();if(S.gold<c){toast(`Need ${c}🪙.`);return;}S.gold-=c;S.ale+=aleYield();addLog(`🍺 Brewed ${aleYield()} ale for ${c}🪙.`);render();}
+function buyMead(){if(S.level<2){toast('Mead unlocks at Level 2!');return;}buyDrink('mead',8,4);}
+function buyWine(){if(S.level<2){toast('Wine unlocks at Level 2!');return;}buyDrink('wine',12,3);}
+function buySpirits(){if(S.level<3){toast('Spirits unlock at Level 3!');return;}buyDrink('spirits',18,3);}
+function buyDrink(id,cost,qty){if(S.gold<cost){toast(`Need ${cost}🪙.`);return;}S.gold-=cost;S[id]+=qty;addLog(`Bought ${qty} ${DRINKS[id].name}.`);render();}
 
 // ================================================================
 // ACTIONS — TABLES
 // ================================================================
-function serveTable(i) {
-  const ts = S.slots[i];
-  if(!ts||ts.status!=='waiting') return;
-  let drinkId = null;
-  for(const d of ts.guest.orders){ drinkId=pickDrink(d); if(drinkId) break; }
-  if(!drinkId){ toast(`Out of ${ts.guest.orders.map(d=>DRINKS[d]?.name||d).join('/')}!`); return; }
-  S[drinkId]--;
-  ts.status='served';
-  const extra = hasUpg('hearth')?2:0;
-  ts.timer = (hasCook()?6:4) + extra + (S.level>=3?1:0);
-  if(hasKitchen() && S.hungerLevel>35 && Math.random()<0.5) ts.hasFoodOrder=true;
-  addLog(`Served ${DRINKS[drinkId].icon} to the ${ts.guest.name}.`, 'gold');
+function serveTable(i){
+  const ts=S.slots[i];
+  if(!ts||ts.status!=='waiting')return;
+  let drinkId=null;
+  for(const d of ts.guest.orders){drinkId=pickDrink(d);if(drinkId)break;}
+  if(!drinkId){toast(`Out of ${ts.guest.orders.map(d=>DRINKS[d]?.name||d).join('/')}!`);return;}
+  S[drinkId]--;ts.status='served';
+  const extra=hasUpg('hearth')?2:0;
+  ts.timer=(hasCook()?6:4)+extra+(S.level>=3?1:0);
+  if(hasKitchen()&&S.hungerLevel>35&&Math.random()<0.5)ts.hasFoodOrder=true;
+  addLog(`Served ${DRINKS[drinkId].icon} to the ${ts.guest.name}.`,'gold');
   render();
 }
 
-function serveFoodToTable(i) {
-  const ts = S.slots[i];
-  if(!ts||ts.status!=='served'||!ts.hasFoodOrder||ts.foodReady) return;
-  if(!S.readyDishes.length){ toast('No food ready!'); return; }
-  const dish = S.readyDishes.shift();
-  ts.foodReady=true; ts.foodItem=dish.food;
-  S.hungerLevel = Math.max(0, S.hungerLevel - (dish.food.hunger||4));
+function serveFoodToTable(i){
+  const ts=S.slots[i];
+  if(!ts||ts.status!=='served'||!ts.hasFoodOrder||ts.foodReady)return;
+  if(!S.readyDishes.length){toast('No food ready!');return;}
+  const dish=S.readyDishes.shift();
+  ts.foodReady=true;ts.foodItem=dish.food;
+  S.hungerLevel=Math.max(0,S.hungerLevel-(dish.food.hunger||4));
   S.dishesSold++;
-  addLog(`🍽️ Served ${dish.food.icon} ${dish.food.name} to ${ts.guest.name}. (+${dish.food.tipBonus} tip)`, 'green');
+  addLog(`🍽️ Served ${dish.food.icon} to ${ts.guest.name}. (+${dish.food.tipBonus} tip)`,'green');
   render();
 }
 
-function collectPayment(i) {
-  const ts = S.slots[i];
-  if(!ts||ts.status!=='ready') return;
-  const g = ts.guest;
-  const drinkId = g.orders.find(d=>DRINKS[d]) || g.orders[0];
-  const earned = drinkPrice(drinkId) + calcTip(g, ts);
-  const foodEarned = ts.foodReady && ts.foodItem ? ts.foodItem.salePrice : 0;
-  const total = earned + foodEarned;
-  S.gold += total; S.totalEarned += total; S.guestsServed++;
-  let repGain = g.rep;
-  if(EVT&&EVT.repMult) repGain=Math.round(repGain*EVT.repMult);
-  if(hasStaff('musician')) repGain++;
-  if(hasUpg('decor')&&(g.name==='Noble'||g.name==='Duchess')) repGain+=3;
-  S.rep = Math.min(100, S.rep+repGain);
-  if(hasUpg('repfloor')) S.rep=Math.max(20,S.rep);
-  gainXP(g.xp + (ts.foodReady?2:0));
-  addLog(`${g.icon} ${g.name} paid ${total}🪙!${foodEarned?` (food +${foodEarned}🪙)`:''} (+${repGain}rep)`, 'gold');
-  S.slots[i] = mkSlot();
+function collectPayment(i){
+  const ts=S.slots[i];
+  if(!ts||ts.status!=='ready')return;
+  const g=ts.guest;
+  const drinkId=g.orders.find(d=>DRINKS[d])||g.orders[0];
+  const earned=drinkPrice(drinkId)+calcTip(g,ts);
+  const foodEarned=ts.foodReady&&ts.foodItem?ts.foodItem.salePrice:0;
+  const total=earned+foodEarned;
+  S.gold+=total;S.totalEarned+=total;S.guestsServed++;
+  let repGain=g.rep;
+  if(hasUpg('decor')&&(g.name==='Noble'||g.name==='Duchess'))repGain+=3;
+  addRep(repGain);
+  gainXP(g.xp+(ts.foodReady?2:0));
+  addLog(`${g.icon} ${g.name} paid ${total}🪙!${foodEarned?` (food +${foodEarned}🪙)`:''}  (+${repGain}rep)`,'gold');
+  S.slots[i]=mkSlot();
   render();
 }
 
 // ================================================================
 // ACTIONS — KITCHEN
 // ================================================================
-function cookFood(foodId) {
-  const food = FOOD_MENU.find(f=>f.id===foodId);
-  if(!food) return;
-  if(!hasKitchen()){ toast('No kitchen!'); return; }
-  if(S.gold<food.cost){ toast(`Need ${food.cost}🪙.`); return; }
-  if(CQ[foodId]){ toast('Already cooking that!'); return; }
-  S.gold -= food.cost;
-  CQ[foodId] = Math.ceil(food.time * (hasCook()?0.7:1));
-  addLog(`🍳 Cooking ${food.icon} ${food.name}...`);
-  render();
+function cookFood(foodId){
+  const food=FOOD_MENU.find(f=>f.id===foodId);
+  if(!food||!hasKitchen())return;
+  if(S.gold<food.cost){toast(`Need ${food.cost}🪙.`);return;}
+  if(CQ[foodId]){toast('Already cooking that!');return;}
+  S.gold-=food.cost;CQ[foodId]=Math.ceil(food.time*(hasCook()?0.7:1));
+  addLog(`🍳 Cooking ${food.icon} ${food.name}...`);render();
 }
 
-function cookWithIngredient(foodId, ingId) {
-  const food = FOOD_MENU.find(f=>f.id===foodId);
-  if(!food||!hasKitchen()) return;
-  if(!(S.larder[ingId]>0)){ toast('No ingredient!'); return; }
-  if(CQ[foodId]){ toast('Already cooking that!'); return; }
-  const disc = Math.ceil(food.cost*0.4);
-  if(S.gold<disc){ toast(`Need ${disc}🪙 (discounted).`); return; }
-  S.gold-=disc; S.larder[ingId]--;
-  if(S.larder[ingId]<=0) delete S.larder[ingId];
-  CQ[foodId] = Math.ceil(food.time*(hasCook()?0.7:1));
-  addLog(`🍳 Cooking ${food.icon} ${food.name} with hunted ${INGREDIENTS[ingId].name} (${disc}🪙).`);
-  render();
+function cookWithIngredient(foodId,ingId){
+  const food=FOOD_MENU.find(f=>f.id===foodId);
+  if(!food||!hasKitchen())return;
+  if(!(S.larder[ingId]>0)){toast('No ingredient!');return;}
+  if(CQ[foodId]){toast('Already cooking that!');return;}
+  const disc=Math.ceil(food.cost*0.4);
+  if(S.gold<disc){toast(`Need ${disc}🪙.`);return;}
+  S.gold-=disc;S.larder[ingId]--;if(S.larder[ingId]<=0)delete S.larder[ingId];
+  CQ[foodId]=Math.ceil(food.time*(hasCook()?0.7:1));
+  addLog(`🍳 Cooking ${food.icon} with ${INGREDIENTS[ingId]?.name||ingId} (${disc}🪙).`);render();
 }
 
-function collectDish(foodId) {
-  const food = FOOD_MENU.find(f=>f.id===foodId);
-  if(!food) return;
-  const ex = S.readyDishes.find(d=>d.food.id===foodId);
-  if(ex) ex.qty++; else S.readyDishes.push({food, qty:1});
-  addLog(`${food.icon} ${food.name} is ready to serve!`, 'green');
+function collectDish(foodId){
+  const food=FOOD_MENU.find(f=>f.id===foodId);if(!food)return;
+  const ex=S.readyDishes.find(d=>d.food.id===foodId);
+  if(ex)ex.qty++;else S.readyDishes.push({food,qty:1});
+  addLog(`${food.icon} ${food.name} is ready!`,'green');
 }
 
 // ================================================================
 // HUNTING
 // ================================================================
-function openHuntGame(zoneId) {
-  const zone = HUNT_ZONES.find(z=>z.id===zoneId);
-  if(!zone) return;
-  if(S.level<zone.lvlReq){ toast(`Need Level ${zone.lvlReq}!`); return; }
-  if(S.stamina<zone.staminaCost){ toast(`Not enough stamina! Need ${zone.staminaCost}.`); return; }
-  const animal = zone.animals[Math.floor(Math.random()*zone.animals.length)];
-  huntMG = {zone, animal, active:false, hits:0, misses:0, timerH:null, moveH:null};
-  document.getElementById('hm-title').textContent = `🏹 Hunting in ${zone.name}`;
-  document.getElementById('hm-sub').textContent = `A ${animal.name} ${animal.icon} appeared! Click it.`;
-  document.getElementById('hm-result').textContent = '';
-  document.getElementById('hm-target').textContent = animal.icon;
-  document.getElementById('hm-target').style.display = 'block';
-  document.getElementById('hm-again-btn').disabled = true;
+function openHuntGame(zoneId){
+  if(isNight()){toast('Too dark to hunt! Come back during the day.');return;}
+  const zone=HUNT_ZONES.find(z=>z.id===zoneId);
+  if(!zone)return;
+  if(S.level<zone.lvlReq){toast(`Need Level ${zone.lvlReq}!`);return;}
+  if(S.stamina<zone.staminaCost){toast(`Not enough stamina! Need ${zone.staminaCost}.`);return;}
+  const animal=zone.animals[Math.floor(Math.random()*zone.animals.length)];
+  huntMG={zone,animal,active:false,hits:0,misses:0,timerH:null,moveH:null};
+  document.getElementById('hm-title').textContent=`🏹 Hunting in ${zone.name}`;
+  document.getElementById('hm-sub').textContent=`A ${animal.name} ${animal.icon} appeared! Click it.`;
+  document.getElementById('hm-result').textContent='';
+  document.getElementById('hm-target').textContent=animal.icon;
+  document.getElementById('hm-target').style.display='block';
+  document.getElementById('hm-again-btn').disabled=true;
   document.getElementById('hunt-minigame').classList.add('open');
+  updateHuntHUD();setTimeout(startHuntRound,400);
+}
+
+function updateHuntHUD(){
+  document.getElementById('hm-hits').textContent=`Shots: ${huntMG.hits}hit/${huntMG.misses}miss`;
+  document.getElementById('hm-stamina').textContent=`🥾${S.stamina}left`;
+}
+
+function startHuntRound(){
+  if(!huntMG.zone)return;
+  if(S.stamina<huntMG.zone.staminaCost){document.getElementById('hm-result').textContent='😓 Out of stamina!';document.getElementById('hm-again-btn').disabled=true;return;}
+  huntMG.active=true;S.stamina-=huntMG.zone.staminaCost;
+  document.getElementById('hm-result').textContent='';document.getElementById('hm-again-btn').disabled=true;
+  document.getElementById('hm-target').style.display='block';
+  updateHuntHUD();positionTarget(true);
+  const diff=huntMG.animal.diff;
+  const dur=diff==='easy'?6000:diff==='medium'?4500:diff==='hard'?3500:2500;
+  const move=diff==='easy'?1200:diff==='medium'?850:diff==='hard'?600:400;
+  const fill=document.getElementById('hm-timer-fill');
+  fill.style.transition='none';fill.style.width='100%';
+  setTimeout(()=>{fill.style.transition=`width ${dur}ms linear`;fill.style.width='0%';},50);
+  clearInterval(huntMG.moveH);huntMG.moveH=setInterval(()=>positionTarget(false),move);
+  clearTimeout(huntMG.timerH);huntMG.timerH=setTimeout(()=>endHuntRound(false),dur);
+}
+
+function positionTarget(instant){
+  const sc=document.getElementById('hm-scene'),tg=document.getElementById('hm-target');
+  const sw=Math.max(10,sc.clientWidth-60),sh=Math.max(10,sc.clientHeight-60);
+  tg.style.transition=instant?'none':'left .22s ease, top .22s ease';
+  tg.style.left=Math.floor(Math.random()*sw)+'px';tg.style.top=Math.floor(Math.random()*sh)+'px';
+}
+
+function hitTarget(){if(!huntMG.active)return;clearTimeout(huntMG.timerH);clearInterval(huntMG.moveH);endHuntRound(true);}
+
+function endHuntRound(hit){
+  huntMG.active=false;clearTimeout(huntMG.timerH);clearInterval(huntMG.moveH);
+  document.getElementById('hm-target').style.display='none';
+  document.getElementById('hm-timer-fill').style.width='0%';
+  const a=huntMG.animal;
+  if(hit)huntMG.hits++;else huntMG.misses++;
   updateHuntHUD();
-  setTimeout(startHuntRound, 400);
-}
-
-function updateHuntHUD() {
-  document.getElementById('hm-hits').textContent = `Shots: ${huntMG.hits} hit / ${huntMG.misses} miss`;
-  document.getElementById('hm-stamina').textContent = `🥾 ${S.stamina} stamina left`;
-}
-
-function startHuntRound() {
-  if(!huntMG.zone) return;
-  if(S.stamina < huntMG.zone.staminaCost) {
-    document.getElementById('hm-result').textContent = '😓 Out of stamina!';
-    document.getElementById('hm-again-btn').disabled = true;
-    return;
-  }
-  huntMG.active = true;
-  S.stamina -= huntMG.zone.staminaCost;
-  document.getElementById('hm-result').textContent = '';
-  document.getElementById('hm-again-btn').disabled = true;
-  document.getElementById('hm-target').style.display = 'block';
-  updateHuntHUD();
-  positionTarget(true);
-  const diff = huntMG.animal.diff;
-  const dur  = diff==='easy'?6000:diff==='medium'?4500:diff==='hard'?3500:2500;
-  const move = diff==='easy'?1200:diff==='medium'?850:diff==='hard'?600:400;
-  const fill = document.getElementById('hm-timer-fill');
-  fill.style.transition = 'none'; fill.style.width = '100%';
-  setTimeout(()=>{ fill.style.transition=`width ${dur}ms linear`; fill.style.width='0%'; }, 50);
-  clearInterval(huntMG.moveH); huntMG.moveH = setInterval(()=>positionTarget(false), move);
-  clearTimeout(huntMG.timerH); huntMG.timerH = setTimeout(()=>endHuntRound(false), dur);
-}
-
-function positionTarget(instant) {
-  const sc = document.getElementById('hm-scene');
-  const tg = document.getElementById('hm-target');
-  const sw = Math.max(10, sc.clientWidth-60), sh = Math.max(10, sc.clientHeight-60);
-  tg.style.transition = instant ? 'none' : 'left .22s ease, top .22s ease';
-  tg.style.left = Math.floor(Math.random()*sw) + 'px';
-  tg.style.top  = Math.floor(Math.random()*sh) + 'px';
-}
-
-function hitTarget() {
-  if(!huntMG.active) return;
-  clearTimeout(huntMG.timerH); clearInterval(huntMG.moveH);
-  endHuntRound(true);
-}
-
-function endHuntRound(hit) {
-  huntMG.active = false;
-  clearTimeout(huntMG.timerH); clearInterval(huntMG.moveH);
-  document.getElementById('hm-target').style.display = 'none';
-  document.getElementById('hm-timer-fill').style.width = '0%';
-  const a = huntMG.animal;
-  if(hit) huntMG.hits++; else huntMG.misses++;
-  updateHuntHUD();
-  const hitChance = a.chance + (hasUpg('bow')?0.15:0);
-  if(hit && Math.random()<hitChance) {
-    const qty = a.yield[0] + Math.floor(Math.random()*(a.yield[1]-a.yield[0]+1));
-    addIngredient(a.ing, qty);
-    S.totalHunted++;
-    gainXP(3);
-    const ing = INGREDIENTS[a.ing];
-    document.getElementById('hm-result').textContent = `🎯 Got ${qty}× ${ing.icon} ${ing.name}!`;
-    addLog(`🏹 Hunted ${qty}× ${ing.name} from the ${a.name}.`, 'green');
-  } else if(hit) {
-    document.getElementById('hm-result').textContent = `💨 The ${a.name} dodged your shot!`;
+  if(hit&&Math.random()<a.chance+(hasUpg('bow')?0.15:0)){
+    const qty=a.yield[0]+Math.floor(Math.random()*(a.yield[1]-a.yield[0]+1));
+    addIngredient(a.ing,qty);S.totalHunted++;gainXP(3);
+    const ing=INGREDIENTS[a.ing];
+    document.getElementById('hm-result').textContent=`🎯 Got ${qty}× ${ing.icon} ${ing.name}!`;
+    addLog(`🏹 Hunted ${qty}× ${ing.name} from ${a.name}.`,'green');
+  } else if(hit){
+    document.getElementById('hm-result').textContent=`💨 The ${a.name} dodged!`;
     addLog(`🏹 ${a.name} dodged.`);
   } else {
-    document.getElementById('hm-result').textContent = `💨 The ${a.name} escaped!`;
+    document.getElementById('hm-result').textContent=`💨 The ${a.name} escaped!`;
     addLog(`🏹 ${a.name} escaped.`);
   }
-  document.getElementById('hm-again-btn').disabled = S.stamina < huntMG.zone.staminaCost;
+  document.getElementById('hm-again-btn').disabled=S.stamina<huntMG.zone.staminaCost;
   render();
 }
 
-function closeHuntGame() {
-  clearTimeout(huntMG.timerH); clearInterval(huntMG.moveH);
-  huntMG.active = false;
-  document.getElementById('hunt-minigame').classList.remove('open');
-  renderHunting();
-}
+function closeHuntGame(){clearTimeout(huntMG.timerH);clearInterval(huntMG.moveH);huntMG.active=false;document.getElementById('hunt-minigame').classList.remove('open');renderHunting();}
 
 // TRAPS
-function buyTrap(trapId) {
-  const trap = TRAP_TYPES.find(t=>t.id===trapId);
-  if(!trap) return;
-  if(S.level<trap.lvlReq){ toast(`Need Level ${trap.lvlReq}.`); return; }
-  if(S.gold<trap.cost){ toast(`Need ${trap.cost}🪙.`); return; }
-  if(S.traps.filter(t=>t.trapId===trapId).length>=2){ toast('Max 2 of each trap!'); return; }
-  S.gold -= trap.cost;
-  const days = hasUpg('lodge') ? 0 : 1;
-  S.traps.push({trapId, daysLeft:days});
-  addLog(`🪤 Set ${trap.name}${days===0?' — ready tomorrow!':' — check tomorrow!'}.`, 'green');
-  render();
+function buyTrap(trapId){
+  const trap=TRAP_TYPES.find(t=>t.id===trapId);
+  if(!trap)return;
+  if(S.level<trap.lvlReq){toast(`Need Level ${trap.lvlReq}.`);return;}
+  if(S.gold<trap.cost){toast(`Need ${trap.cost}🪙.`);return;}
+  if(S.traps.filter(t=>t.trapId===trapId).length>=2){toast('Max 2 of each trap!');return;}
+  S.gold-=trap.cost;
+  S.traps.push({trapId,daysLeft:hasUpg('lodge')?0:1});
+  addLog(`🪤 Set ${trap.name}.`,'green');render();
 }
 
-function collectTrap(idx) {
-  const entry = S.traps[idx];
-  if(!entry||entry.daysLeft>0) return;
-  const trap = TRAP_TYPES.find(t=>t.id===entry.trapId);
-  if(!trap) return;
-  if(Math.random()<0.7) {
-    const ing = trap.ings[Math.floor(Math.random()*trap.ings.length)];
-    const qty = trap.yield[0]+Math.floor(Math.random()*(trap.yield[1]-trap.yield[0]+1));
-    // Make sure ing is a valid key (boar,venison,goat are all valid ingredient keys)
-    const ingKey = ing === 'venison' ? 'venison' : ing;
-    addIngredient(ingKey, qty);
-    addLog(`🪤 Trap caught ${qty}× ${INGREDIENTS[ingKey]?.name||ingKey}!`, 'green');
-    S.totalHunted++;
-  } else {
-    addLog('🪤 The trap was empty this time.');
-  }
-  S.traps.splice(idx,1);
-  render();
+function collectTrap(idx){
+  const entry=S.traps[idx];if(!entry||entry.daysLeft>0)return;
+  const trap=TRAP_TYPES.find(t=>t.id===entry.trapId);if(!trap)return;
+  if(Math.random()<0.7){
+    const ing=trap.ings[Math.floor(Math.random()*trap.ings.length)];
+    const qty=trap.yield[0]+Math.floor(Math.random()*(trap.yield[1]-trap.yield[0]+1));
+    addIngredient(ing,qty);
+    addLog(`🪤 Trap caught ${qty}× ${INGREDIENTS[ing]?.name||ing}!`,'green');S.totalHunted++;
+  } else { addLog('🪤 The trap was empty.'); }
+  S.traps.splice(idx,1);render();
 }
 
-function tickTraps() {
-  S.traps.forEach(t=>{ if(t.daysLeft>0) t.daysLeft--; });
-}
+function tickTraps(){S.traps.forEach(t=>{if(t.daysLeft>0)t.daysLeft--;});}
 
 // ================================================================
-// TICK — game clock (every 1.8s for table/cook events)
+// GAME TICK (table/cook events)
 // ================================================================
-function gameTick() {
-  let changed = false;
+function gameTick(){
+  let changed=false;
   // cook queue
-  for(const [id, ticks] of Object.entries(CQ)) {
-    CQ[id] = ticks-1;
-    if(CQ[id]<=0){ delete CQ[id]; collectDish(id); changed=true; }
-    else changed=true;
+  for(const[id,ticks]of Object.entries(CQ)){
+    CQ[id]=ticks-1;
+    if(CQ[id]<=0){delete CQ[id];collectDish(id);changed=true;}else changed=true;
   }
-  // table timers
-  S.slots.forEach((ts,i)=>{
-    if(ts.status==='waiting') {
-      ts.timer--;
-      if(ts.timer<=0) {
-        const loss = hasStaff('guard')?1:2;
-        addLog(`${ts.guest.icon} ${ts.guest.name} left angry! (-${loss}rep)`, 'bad');
-        S.rep = Math.max(0, S.rep-loss);
-        if(hasUpg('repfloor')) S.rep=Math.max(20,S.rep);
-        S.slots[i]=mkSlot(); changed=true;
-      }
-    } else if(ts.status==='served') {
-      ts.timer--;
-      if(ts.timer<=0){ ts.status='ready'; changed=true; }
-    }
-  });
-  // guest arrival
-  if(Math.random()<guestChance()){ spawnGuest(); changed=true; }
-  // hunger drift
-  S.hungerLevel = Math.min(100, S.hungerLevel+0.4);
-  if(changed) render();
+  // tables — only tick during night
+  if(isNight()){
+    S.slots.forEach((ts,i)=>{
+      if(ts.status==='waiting'){
+        ts.timer--;
+        if(ts.timer<=0){
+          const loss=hasStaff('guard')?1:2;
+          addLog(`${ts.guest.icon} ${ts.guest.name} left angry! (-${loss}rep)`,'bad');
+          loseRep(loss);S.slots[i]=mkSlot();changed=true;
+        }
+      } else if(ts.status==='served'){ts.timer--;if(ts.timer<=0){ts.status='ready';changed=true;}}
+    });
+    // guest arrivals only at night
+    if(Math.random()<guestChance()){spawnGuest();changed=true;}
+    S.hungerLevel=Math.min(100,S.hungerLevel+0.4);
+    // run night automation
+    if(hasUpg('auto_serve')||hasUpg('auto_collect')) runNightAutomation();
+  }
+  if(changed)render();
 }
 
-function spawnGuest() {
-  const ei = S.slots.findIndex(ts=>ts.status==='empty');
-  if(ei===-1) return;
-  const pool = guestPool();
-  const g = {...pool[Math.floor(Math.random()*pool.length)]};
-  let pat = g.patience + (S.level>=3?2:0) + (hasStaff('barmaid')?4:0);
-  S.slots[ei] = {...mkSlot(), status:'waiting', guest:g, timer:pat};
+function spawnGuest(){
+  const ei=S.slots.findIndex(ts=>ts.status==='empty');if(ei===-1)return;
+  const pool=guestPool();
+  const g={...pool[Math.floor(Math.random()*pool.length)]};
+  let pat=g.patience+(S.level>=3?2:0)+(hasStaff('barmaid')?4:0);
+  S.slots[ei]={...mkSlot(),status:'waiting',guest:g,timer:pat};
   addLog(`${g.icon} A ${g.name} sat at table ${ei+1}.`);
 }
 
 // ================================================================
-// DAY TIMER
+// PHASE SYSTEM
 // ================================================================
-function startDayTimer() {
-  clearInterval(dayTimerInt);
-  dayTimerInt = setInterval(()=>{
-    if(dayEndLock) return;
-    S.daySecondsLeft--;
-    updateDayTimerUI();
-    if(S.daySecondsLeft<=0) endDay();
-  }, 1000);
+function startPhaseTimer(){
+  clearInterval(phaseTimerInt);
+  phaseTimerInt=setInterval(()=>{
+    if(dayEndLock)return;
+    S.phaseSecondsLeft--;
+    updatePhaseUI();
+    if(S.phaseSecondsLeft<=0) advancePhase();
+  },1000);
 }
 
-function updateDayTimerUI() {
-  const pct = Math.max(0, S.daySecondsLeft/DAY_DURATION_SEC*100);
-  document.getElementById('day-timer-fill').style.width = pct+'%';
-  document.getElementById('day-timer-text').textContent = S.daySecondsLeft+'s';
+function advancePhase(){
+  if(S.phase==='day'){
+    // transition to night
+    S.phase='night';S.phaseSecondsLeft=NIGHT_SEC;
+    showPhaseOverlay('night');
+    addLog('🌙 Night falls — the tavern opens! Guests are arriving.','purple');
+    document.getElementById('floor').classList.add('night-floor');
+    document.getElementById('phase-notice').classList.add('show');
+    document.getElementById('phase-notice').textContent='🌙 Night is here — guests are arriving! Serve them before they leave.';
+  } else {
+    // night ended — end day
+    endDay();return;
+  }
+  updatePhaseUI();
 }
 
-function startTick() { clearInterval(tickInt); tickInt = setInterval(gameTick, 1800); }
+function skipPhase(){advancePhase();}
+
+function showPhaseOverlay(phase){
+  const ov=document.getElementById('phase-overlay');
+  const tx=document.getElementById('phase-overlay-text');
+  ov.className='phase-overlay '+(phase==='night'?'night-trans':'day-trans')+' show';
+  tx.textContent=phase==='night'?'🌙 Night Falls':'☀️ Dawn Breaks';
+  setTimeout(()=>ov.classList.remove('show'),1800);
+}
+
+function updatePhaseUI(){
+  const isDayPhase=S.phase==='day';
+  const total=isDayPhase?DAY_SEC:NIGHT_SEC;
+  const pct=Math.max(0,S.phaseSecondsLeft/total*100);
+  const pill=document.getElementById('phase-pill');
+  const fill=document.getElementById('phase-timer-fill');
+  pill.className='phase-pill '+(isDayPhase?'day':'night');
+  pill.innerHTML=(isDayPhase?'☀️ Day':'🌙 Night')+' — <span>'+S.phaseSecondsLeft+'s</span>';
+  fill.className='phase-timer-fill '+(isDayPhase?'day':'night');
+  fill.style.width=pct+'%';
+}
+
+function startTick(){clearInterval(tickInt);tickInt=setInterval(gameTick,1800);}
 
 // ================================================================
-// END DAY
+// END DAY (called after night phase ends)
 // ================================================================
-function endDay() {
-  if(dayEndLock) return;
-  dayEndLock = true;
-  clearInterval(tickInt);
-  clearInterval(dayTimerInt);
+function endDay(){
+  if(dayEndLock)return;
+  dayEndLock=true;
+  clearInterval(tickInt);clearInterval(phaseTimerInt);
 
   // wages
-  const wages = S.staff.reduce((a,s)=>{ let w=s.wage; if(S.level>=6)w=Math.max(1,w-1); return a+w; }, 0);
-  if(wages>0){ S.gold-=wages; addLog(`Paid ${wages}🪙 wages.`, 'bad'); }
+  const wages=S.staff.reduce((a,s)=>{let w=s.wage;if(S.level>=6)w=Math.max(1,w-1);return a+w;},0);
+  if(wages>0){S.gold-=wages;addLog(`Paid ${wages}🪙 wages.`,'bad');}
 
   // vault
-  if(hasUpg('vault')){ S.gold+=10; addLog('💰 Vault rent +10🪙.', 'gold'); }
+  if(hasUpg('vault')){S.gold+=10;addLog('💰 Vault rent +10🪙.','gold');}
 
   // traps tick
   tickTraps();
 
-  // hunter delivers ingredients
-  if(hasStaff('hunter')) {
-    const zones = HUNT_ZONES.filter(z=>z.lvlReq<=S.level);
-    if(zones.length) {
-      const zone = zones[Math.floor(Math.random()*zones.length)];
-      const a = zone.animals[Math.floor(Math.random()*zone.animals.length)];
-      const qty = a.yield[0]+Math.floor(Math.random()*(a.yield[1]-a.yield[0]+1));
-      addIngredient(a.ing, qty);
-      addLog(`🏹 Hunter returned with ${qty}× ${INGREDIENTS[a.ing].name}!`, 'green');
-      S.totalHunted++;
+  // hunter delivers
+  if(hasStaff('hunter')){
+    const zones=HUNT_ZONES.filter(z=>z.lvlReq<=S.level);
+    if(zones.length){
+      const zone=zones[Math.floor(Math.random()*zones.length)];
+      const a=zone.animals[Math.floor(Math.random()*zone.animals.length)];
+      const qty=a.yield[0]+Math.floor(Math.random()*(a.yield[1]-a.yield[0]+1));
+      addIngredient(a.ing,qty);S.totalHunted++;
+      addLog(`🏹 Hunter returned with ${qty}× ${INGREDIENTS[a.ing].name}!`,'green');
     }
   }
 
-  // clear tables and cook queue
-  S.slots = S.slots.map(mkSlot);
-  CQ = {};
+  // clear tables
+  S.slots=S.slots.map(mkSlot);
 
-  // refill stamina
-  S.stamina = maxStamina();
-
-  S.daysComplete++;
-  S.day++;
-  S.daySecondsLeft = DAY_DURATION_SEC;
+  // reset to daytime
+  S.phase='day';S.phaseSecondsLeft=DAY_SEC;
+  S.stamina=maxStamina();
+  S.daysComplete++;S.day++;
 
   // check game over
-  if(S.gold<0){ showGameOver(false,'bankruptcy'); return; }
-  if(S.day>TOTAL_DAYS){ showGameOver(true,''); return; }
+  if(S.gold<0){showGameOver(false,'bankruptcy');return;}
+  if(S.day>TOTAL_DAYS){showGameOver(true,'');return;}
 
-  // clear event
-  EVT = null;
-  document.getElementById('event-banner').classList.remove('active');
+  // transition to day
+  document.getElementById('floor').classList.remove('night-floor');
+  document.getElementById('phase-notice').classList.remove('show');
+  showPhaseOverlay('day');
 
-  // roll new event
-  if(Math.random()<0.3) {
-    EVT = SPECIAL_EVENTS[Math.floor(Math.random()*SPECIAL_EVENTS.length)];
-    document.getElementById('eb-icon').textContent = EVT.icon;
-    document.getElementById('eb-text').textContent = EVT.name;
-    document.getElementById('eb-sub').textContent = EVT.sub;
+  // roll event
+  EVT=null;document.getElementById('event-banner').classList.remove('active');
+  if(Math.random()<0.3){
+    EVT=SPECIAL_EVENTS[Math.floor(Math.random()*SPECIAL_EVENTS.length)];
+    document.getElementById('eb-icon').textContent=EVT.icon;
+    document.getElementById('eb-text').textContent=EVT.name;
+    document.getElementById('eb-sub').textContent=EVT.sub;
     document.getElementById('event-banner').classList.add('active');
-    addLog(`📣 ${EVT.name}: ${EVT.sub}`, 'blue');
+    addLog(`📣 Tonight: ${EVT.name} — ${EVT.sub}`,'blue');
   }
 
-  addLog(`🌙 Day ${S.day-1} done. Dawn on day ${S.day}.`, 'gold');
-  dayEndLock = false;
-  render();
-  startTick();
-  startDayTimer();
+  addLog(`☀️ Day ${S.day-1} done! Dawn on day ${S.day}. Use the day to prep.`,'gold');
+
+  // run dawn automation
+  runDawnAutomation();
+
+  dayEndLock=false;
+  render();startTick();startPhaseTimer();
 }
 
 // ================================================================
 // GAME OVER
 // ================================================================
-function grade() {
-  const sc = S.rep + Math.floor(S.guestsServed/5) + Math.floor(S.totalEarned/20) + S.level*8 + Math.floor(S.daysComplete/10)*5;
+function grade(){
+  const sc=S.repTitleIdx*30+Math.floor(S.guestsServed/5)+Math.floor(S.totalEarned/20)+S.level*8+Math.floor(S.daysComplete/10)*5;
   return sc>=300?'S':sc>=200?'A':sc>=120?'B':sc>=60?'C':'D';
 }
 
-function showGameOver(won, reason) {
-  clearInterval(tickInt); clearInterval(dayTimerInt);
-  document.getElementById('go-title').textContent = won ? '🏆 Year Complete!' : '💀 The Tavern Closes';
-  document.getElementById('go-sub').textContent = won ? 'You survived all 365 days!' : reason==='bankruptcy' ? 'Your coffer ran dry.' : 'The tavern could not go on.';
-  document.getElementById('go-grade').textContent = grade();
-  document.getElementById('go-stats').innerHTML = `
-    <p>📅 Days survived: <b>${S.daysComplete}</b> / ${TOTAL_DAYS}</p>
+function showGameOver(won,reason){
+  clearInterval(tickInt);clearInterval(phaseTimerInt);
+  document.getElementById('go-title').textContent=won?'🏆 Year Complete!':'💀 The Tavern Closes';
+  document.getElementById('go-sub').textContent=won?'You survived all 365 days!':reason==='bankruptcy'?'Your coffer ran dry.':'The tavern could not go on.';
+  document.getElementById('go-grade').textContent=grade();
+  document.getElementById('go-stats').innerHTML=`
+    <p>📅 Days: <b>${S.daysComplete}</b> / ${TOTAL_DAYS}</p>
     <p>🪙 Total earned: <b>${S.totalEarned}🪙</b></p>
     <p>🍻 Guests served: <b>${S.guestsServed}</b></p>
     <p>🍽️ Dishes sold: <b>${S.dishesSold}</b></p>
     <p>🏹 Animals hunted: <b>${S.totalHunted}</b></p>
-    <p>⭐ Level reached: <b>${S.level} — ${getLv().name}</b></p>
-    <p>🏅 Reputation: <b>${S.rep} — ${repLabel(S.rep)}</b></p>
+    <p>⭐ Level: <b>${S.level} — ${getLv().name}</b></p>
+    <p>🏅 Title: <b>${repTitle()}</b> (${S.repTotal} total rep)</p>
   `;
   document.getElementById('go-modal').classList.add('open');
 }
 
-function restartGame() {
+function restartGame(){
   document.getElementById('go-modal').classList.remove('open');
-  document.getElementById('event-log').innerHTML = '';
-  clearInterval(tickInt); clearInterval(dayTimerInt);
+  document.getElementById('event-log').innerHTML='';
+  clearInterval(tickInt);clearInterval(phaseTimerInt);
+  document.getElementById('floor').classList.remove('night-floor');
   initState();
-  addLog('🍺 The Gilded Flagon reopens! 365 days, one year to build a legend.', 'gold');
-  addLog('Days end automatically — click "End Day Early" to advance sooner.');
-  render(); startTick(); startDayTimer();
+  S.stamina = maxStamina();
+  addLog('🍺 The Gilded Flagon reopens! 365 days to build a legend.','gold');
+  addLog('☀️ Daytime: prepare, hunt, cook. 🌙 Nighttime: serve your guests!');
+  render();startTick();startPhaseTimer();
 }
 
 // ================================================================
 // SHOP
 // ================================================================
-function openShop() {
-  document.getElementById('shop-gold').textContent = S.gold;
-  document.getElementById('shop-level').textContent = S.level;
+function openShop(){
+  document.getElementById('shop-gold').textContent=S.gold;
+  document.getElementById('shop-level').textContent=S.level;
   renderShopSection(curShopTab);
   document.getElementById('shop-modal').classList.add('open');
 }
-function closeShop() { document.getElementById('shop-modal').classList.remove('open'); }
+function closeShop(){document.getElementById('shop-modal').classList.remove('open');}
 
-function shopTab(tab) {
-  curShopTab = tab;
-  const tabs = ['drinks','food','staff','upgrades','tables'];
+function shopTab(tab){
+  curShopTab=tab;
+  const tabs=['drinks','food','staff','upgrades','tables'];
   document.querySelectorAll('.shop-tab').forEach((el,i)=>el.classList.toggle('active',tabs[i]===tab));
   tabs.forEach(t=>document.getElementById('shop-'+t).classList.toggle('active',t===tab));
   renderShopSection(tab);
 }
 
-function renderShopSection(tab) {
-  const fns = {drinks:renderShopDrinks,food:renderShopFood,staff:renderShopStaff,upgrades:renderShopUpgrades,tables:renderShopTables};
-  if(fns[tab]) fns[tab]();
+function renderShopSection(tab){
+  ({drinks:renderShopDrinks,food:renderShopFood,staff:renderShopStaff,upgrades:renderShopUpgrades,tables:renderShopTables}[tab]||(() =>{}))();
 }
 
-function shopItem(icon, name, desc, cost, lvlReq, owned, canAfford, fn) {
-  const locked = lvlReq > S.level;
-  const label = owned?'✓ Owned':locked?`🔒 Lv${lvlReq}`:canAfford?'Buy':'Poor';
-  const disabled = owned||locked||!canAfford;
-  return `<div class="shop-item">
-    <div class="shop-item-info">
-      <strong>${icon} ${name}</strong>
-      <div class="si-desc">${desc}</div>
-      <div class="si-price">${owned?'Owned':locked?`Level ${lvlReq} required`:`${cost}🪙`}</div>
-    </div>
-    <button class="shop-buy" ${disabled?'disabled':''} onclick="${fn}">${label}</button>
-  </div>`;
+function shopItem(icon,name,desc,cost,lvlReq,owned,canAfford,fn){
+  const locked=lvlReq>S.level;
+  const disabled=owned||locked||!canAfford;
+  const label=owned?'✓ Owned':locked?`🔒 Lv${lvlReq}`:canAfford?'Buy':'Poor';
+  return `<div class="shop-item"><div class="shop-item-info"><strong>${icon} ${name}</strong><div class="si-desc">${desc}</div><div class="si-price">${owned?'Owned':locked?`Level ${lvlReq} req`:cost+'🪙'}</div></div><button class="shop-buy"${disabled?' disabled':''} onclick="${fn}">${label}</button></div>`;
 }
 
-function renderShopDrinks() {
-  document.getElementById('shop-drinks').innerHTML =
-    shopItem('🍺','Ale ('+aleYield()+'u)','Always popular.',aleCost(),1,false,S.gold>=aleCost(),'brewAle();closeShop()') +
-    shopItem('🍯','Mead (4u)','Sweet, higher price.',8,2,false,S.gold>=8,'buyMead();closeShop()') +
-    shopItem('🍷','Wine (3u)','Distinguished palate.',12,2,false,S.gold>=12,'buyWine();closeShop()') +
+function renderShopDrinks(){
+  document.getElementById('shop-drinks').innerHTML=
+    shopItem('🍺',`Ale (${aleYield()}u)`,'Always popular.',aleCost(),1,false,S.gold>=aleCost(),'brewAle();closeShop()')+
+    shopItem('🍯','Mead (4u)','Sweet, higher price.',8,2,false,S.gold>=8,'buyMead();closeShop()')+
+    shopItem('🍷','Wine (3u)','Distinguished palate.',12,2,false,S.gold>=12,'buyWine();closeShop()')+
     shopItem('🥃','Spirits (3u)','Premium, big tips.',18,3,false,S.gold>=18,'buySpirits();closeShop()');
 }
 
-function renderShopFood() {
-  const el = document.getElementById('shop-food');
-  if(!hasKitchen()){ el.innerHTML='<div style="padding:14px;font-size:12px;color:var(--muted);text-align:center;">Buy Kitchen Setup or hire a Cook first.</div>'; return; }
-  el.innerHTML = FOOD_MENU.map(f=>{
-    const locked = f.unlockLvl>S.level;
-    const cooking = !!CQ[f.id];
-    return shopItem(f.icon, f.name, `${f.desc} — sells ${f.salePrice}🪙, +${f.tipBonus}🪙 tip`, f.cost, f.unlockLvl, cooking, S.gold>=f.cost&&!locked, `cookFood('${f.id}');closeShop()`);
-  }).join('');
+function renderShopFood(){
+  const el=document.getElementById('shop-food');
+  if(!hasKitchen()){el.innerHTML='<div style="padding:14px;font-size:12px;color:var(--muted);text-align:center;">Buy Kitchen Setup or hire a Cook first.</div>';return;}
+  el.innerHTML=FOOD_MENU.map(f=>{const cooking=!!CQ[f.id];return shopItem(f.icon,f.name,`${f.desc} — ${f.salePrice}🪙 sale, +${f.tipBonus}🪙 tip`,f.cost,f.unlockLvl,cooking,S.gold>=f.cost,`cookFood('${f.id}');closeShop()`);}).join('');
 }
 
-function renderShopStaff() {
-  document.getElementById('shop-staff').innerHTML = STAFF_CATALOG.map(s=>
-    shopItem(s.icon, s.name, `${s.desc} Wage: ${s.wage}🪙/day.`, s.cost, s.lvlReq, hasStaff(s.id), S.gold>=s.cost, `buyStaff('${s.id}')`)
-  ).join('');
+function renderShopStaff(){
+  document.getElementById('shop-staff').innerHTML=STAFF_CATALOG.map(s=>shopItem(s.icon,s.name,`${s.desc} Wage:${s.wage}🪙/day`,s.cost,s.lvlReq,hasStaff(s.id),S.gold>=s.cost,`buyStaff('${s.id}')`)).join('');
 }
 
-function buyStaff(id) {
-  const s = STAFF_CATALOG.find(x=>x.id===id);
-  if(!s||S.gold<s.cost||hasStaff(id)) return;
-  S.gold-=s.cost; S.staff.push({...s});
-  addLog(`${s.icon} ${s.name} hired! (${s.wage}🪙/day)`, 'gold');
-  closeShop(); render();
+function buyStaff(id){
+  const s=STAFF_CATALOG.find(x=>x.id===id);if(!s||S.gold<s.cost||hasStaff(id))return;
+  S.gold-=s.cost;S.staff.push({...s});
+  addLog(`${s.icon} ${s.name} hired! (${s.wage}🪙/day)`,'gold');
+  closeShop();render();
 }
 
-function renderShopUpgrades() {
-  document.getElementById('shop-upgrades').innerHTML = UPGRADES_CATALOG.map(u=>
-    shopItem(u.icon, u.name, u.desc, u.cost, u.lvlReq, hasUpg(u.id), S.gold>=u.cost, `buyUpgrade('${u.id}')`)
-  ).join('');
+function renderShopUpgrades(){
+  document.getElementById('shop-upgrades').innerHTML=UPGRADES_CATALOG.map(u=>shopItem(u.icon,u.name,u.desc,u.cost,u.lvlReq,hasUpg(u.id),S.gold>=u.cost,`buyUpgrade('${u.id}')`)).join('');
 }
 
-function buyUpgrade(id) {
-  const u = UPGRADES_CATALOG.find(x=>x.id===id);
-  if(!u||S.gold<u.cost||hasUpg(id)) return;
-  S.gold-=u.cost; UPG[id]=true;
-  addLog(`${u.icon} Upgrade: ${u.name}`, 'gold');
-  closeShop(); render();
+function buyUpgrade(id){
+  const u=UPGRADES_CATALOG.find(x=>x.id===id);if(!u||S.gold<u.cost||hasUpg(id))return;
+  S.gold-=u.cost;UPG[id]=true;
+  // if lodge was bought, update stamina immediately
+  if(id==='lodge'||id==='boots'){S.stamina=maxStamina();}
+  addLog(`${u.icon} Upgrade: ${u.name}`,'gold');closeShop();render();
 }
 
-function renderShopTables() {
-  document.getElementById('shop-tables').innerHTML = TABLE_SHOP.map(t=>
-    shopItem(t.icon, t.name, t.desc, t.cost, t.lvlReq, S.tables>=t.count, S.gold>=t.cost, `buyTable('${t.id}')`)
-  ).join('');
+function renderShopTables(){
+  document.getElementById('shop-tables').innerHTML=TABLE_SHOP.map(t=>shopItem(t.icon,t.name,t.desc,t.cost,t.lvlReq,S.tables>=t.count,S.gold>=t.cost,`buyTable('${t.id}')`)).join('');
 }
 
-function buyTable(id) {
-  const t = TABLE_SHOP.find(x=>x.id===id);
-  if(!t||S.gold<t.cost||S.tables>=t.count) return;
-  S.gold-=t.cost;
-  while(S.tables<t.count){ S.tables++; S.slots.push(mkSlot()); }
-  addLog(`🪑 New table! (${S.tables} total)`, 'gold');
-  closeShop(); render();
+function buyTable(id){
+  const t=TABLE_SHOP.find(x=>x.id===id);if(!t||S.gold<t.cost||S.tables>=t.count)return;
+  S.gold-=t.cost;while(S.tables<t.count){S.tables++;S.slots.push(mkSlot());}
+  addLog(`🪑 New table! (${S.tables} total)`,'gold');closeShop();render();
 }
 
 // ================================================================
 // RENDER
 // ================================================================
-function switchTab(tab) {
+function switchTab(tab){
   ['tables','kitchen','hunting','staff'].forEach(t=>{
-    const el=document.getElementById('tab-'+t);
-    if(el) el.style.display=t===tab?'block':'none';
+    const el=document.getElementById('tab-'+t);if(el)el.style.display=t===tab?'block':'none';
   });
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>
-    b.classList.toggle('active',['tables','kitchen','hunting','staff'][i]===tab));
-  if(tab==='hunting') renderHunting();
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['tables','kitchen','hunting','staff'][i]===tab));
+  if(tab==='hunting')renderHunting();
 }
 
-function render() {
+function render(){
   // header
-  document.getElementById('gold-display').textContent = S.gold;
-  document.getElementById('gold-sb').textContent = S.gold;
-  document.getElementById('day-num').textContent = S.day;
-  document.getElementById('lv-num').textContent = S.level;
-  document.getElementById('lv-name').textContent = getLv().name;
-  const next = getNextLv();
-  const xpMax = next ? next.xpNeeded : LEVELS[LEVELS.length-2].xpNeeded;
-  const xpPct = next ? Math.min(100, Math.round(S.xp/xpMax*100)) : 100;
-  document.getElementById('xp-text').textContent = next ? `${S.xp}/${xpMax}` : 'MAX';
-  document.getElementById('xp-fill').style.width = xpPct+'%';
+  document.getElementById('gold-display').textContent=S.gold;
+  document.getElementById('gold-sb').textContent=S.gold;
+  document.getElementById('day-num').textContent=S.day;
+  document.getElementById('lv-num').textContent=S.level;
+  document.getElementById('lv-name').textContent=getLv().name;
+  const next=getNextLv();
+  const xpMax=next?next.xpNeeded:LEVELS[LEVELS.length-2].xpNeeded;
+  document.getElementById('xp-text').textContent=next?`${S.xp}/${xpMax}`:'MAX';
+  document.getElementById('xp-fill').style.width=(next?Math.min(100,Math.round(S.xp/xpMax*100)):100)+'%';
+  updatePhaseUI();
 
   // sidebar
-  document.getElementById('rep-val').textContent = S.rep;
-  document.getElementById('rep-bar').style.width = Math.min(S.rep,100)+'%';
-  document.getElementById('rep-lbl').textContent = repLabel(S.rep);
-  document.getElementById('hunger-bar').style.width = Math.min(S.hungerLevel,100)+'%';
-  document.getElementById('st-served').textContent = S.guestsServed;
-  document.getElementById('st-earned').textContent = S.totalEarned;
-  document.getElementById('st-food').textContent = S.dishesSold;
-  document.getElementById('st-hunted').textContent = S.totalHunted;
-  document.getElementById('ale-cost-lbl').textContent = aleCost();
-  document.getElementById('stock-lines').innerHTML =
+  document.getElementById('rep-val').textContent=repDisplay();
+  document.getElementById('rep-bar').style.width=S.rep+'%';
+  document.getElementById('rep-lbl').textContent=repTitle();
+  document.getElementById('title-earned').textContent=S.repTitleIdx>0?REP_TITLES[S.repTitleIdx].title:'None yet';
+  document.getElementById('hunger-bar').style.width=Math.min(S.hungerLevel,100)+'%';
+  document.getElementById('st-served').textContent=S.guestsServed;
+  document.getElementById('st-earned').textContent=S.totalEarned;
+  document.getElementById('st-food').textContent=S.dishesSold;
+  document.getElementById('st-hunted').textContent=S.totalHunted;
+  document.getElementById('ale-cost-lbl').textContent=aleCost();
+  document.getElementById('btn-mead').disabled    = S.level < 2;
+  document.getElementById('btn-wine').disabled    = S.level < 2;
+  document.getElementById('btn-spirits').disabled = S.level < 3;
+  document.getElementById('stock-lines').innerHTML=
     ['ale','mead','wine','spirits'].map(d=>`<div>${DRINKS[d].icon} ${DRINKS[d].name}: ${S[d]}</div>`).join('');
-  updateDayTimerUI();
-  renderTables();
-  renderKitchen();
-  renderStaffTab();
+
+  // auto badges
+  document.getElementById('auto-brew-badge').style.display=hasUpg('auto_brew')?'inline-flex':'none';
+  document.getElementById('auto-cook-badge').style.display=hasUpg('auto_cook')?'inline-flex':'none';
+
+  renderTables();renderKitchen();renderStaffTab();
 }
 
-function renderTables() {
-  const grid = document.getElementById('tables-grid');
-  grid.innerHTML = '';
-  for(let i=0; i<Math.max(S.tables, S.slots.length); i++) {
-    const div = document.createElement('div');
-    const ts = S.slots[i];
-    if(!ts) {
-      div.className='table-slot locked-slot';
-      div.innerHTML='<span class="t-icon">🔒</span>';
-    } else if(ts.status==='empty') {
-      div.className='table-slot empty';
-      div.innerHTML='<span class="t-icon">🍽️</span><span class="t-label">Empty</span>';
-    } else if(ts.status==='waiting') {
+function renderTables(){
+  const grid=document.getElementById('tables-grid');grid.innerHTML='';
+  for(let i=0;i<Math.max(S.tables,S.slots.length);i++){
+    const div=document.createElement('div');const ts=S.slots[i];
+    if(!ts){div.className='table-slot locked-slot';div.innerHTML='<span class="t-icon">🔒</span>';}
+    else if(ts.status==='empty'){div.className='table-slot empty';div.innerHTML='<span class="t-icon">🍽️</span><span class="t-label">Empty</span>';}
+    else if(ts.status==='waiting'){
       div.className='table-slot waiting clickable';
-      const icons = ts.guest.orders.map(d=>DRINKS[d]?.icon||'?').join('');
+      const icons=ts.guest.orders.map(d=>DRINKS[d]?.icon||'?').join('');
       div.innerHTML=`<span class="t-icon">${ts.guest.icon}</span><span class="t-label">${ts.guest.name}<br>${icons}</span><div class="t-timer">${ts.timer}</div>`;
       div.onclick=()=>serveTable(i);
-    } else if(ts.status==='served') {
-      const needFood = ts.hasFoodOrder&&!ts.foodReady;
-      const hasFood = S.readyDishes.length>0;
+    } else if(ts.status==='served'){
+      const needFood=ts.hasFoodOrder&&!ts.foodReady,hasFood=S.readyDishes.length>0;
       div.className='table-slot served'+(needFood&&hasFood?' clickable':'');
-      let lbl = ts.guest.name+'<br>🍻 drinking';
-      if(ts.hasFoodOrder&&!ts.foodReady) lbl+=`<br><span style="font-size:8px;color:#a05020;">${hasFood?'🍽️ Serve food':'🍳 waiting...'}</span>`;
-      else if(ts.foodReady) lbl+=`<br><span style="font-size:8px;color:var(--food-green);">🍽️ eating!</span>`;
+      let lbl=ts.guest.name+'<br>🍻 drinking';
+      if(ts.hasFoodOrder&&!ts.foodReady)lbl+=`<br><span style="font-size:8px;color:#a05020;">${hasFood?'🍽️ Serve food':'🍳 waiting...'}</span>`;
+      else if(ts.foodReady)lbl+=`<br><span style="font-size:8px;color:var(--food-green);">🍽️ eating!</span>`;
       div.innerHTML=`<span class="t-icon">${ts.guest.icon}</span><span class="t-label">${lbl}</span><div class="t-timer">${ts.timer}</div>`;
-      if(needFood&&hasFood) div.onclick=()=>serveFoodToTable(i);
-    } else if(ts.status==='ready') {
+      if(needFood&&hasFood)div.onclick=()=>serveFoodToTable(i);
+    } else if(ts.status==='ready'){
       div.className='table-slot ready clickable';
       div.innerHTML=`<span class="t-icon">${ts.guest.icon}</span><span class="t-label">Collect<br>payment!</span>`;
       div.onclick=()=>collectPayment(i);
@@ -1216,162 +1307,94 @@ function renderTables() {
   }
 }
 
-function renderKitchen() {
-  const locked = document.getElementById('kitchen-locked-msg');
-  const panel  = document.getElementById('kitchen-panel');
-  if(!hasKitchen()){ locked.style.display='block'; panel.style.display='none'; return; }
-  locked.style.display='none'; panel.style.display='block';
-
-  document.getElementById('food-grid').innerHTML = FOOD_MENU
-    .filter(f=>f.unlockLvl<=S.level && !(f.premium&&S.level<5))
-    .map(food=>{
-      const cooking = CQ[food.id];
-      return `<div class="food-card">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:20px;">${food.icon}</span>
-          <div><div class="food-name">${food.name}</div><div class="food-desc">${food.desc}</div></div>
-        </div>
-        <div class="food-row">
-          <div class="food-meta">💰${food.salePrice} | +${food.tipBonus}🪙</div>
-          ${cooking
-            ? `<div style="font-size:10px;color:var(--muted);">🕐${cooking}t</div>`
-            : `<button class="cook-btn" ${S.gold<food.cost?'disabled':''} onclick="cookFood('${food.id}')">Cook (${food.cost}🪙)</button>`}
-        </div>
-      </div>`;
-    }).join('');
-
-  const nrf = document.getElementById('no-ready-food');
-  const rf  = document.getElementById('ready-food');
-  if(!S.readyDishes.length){ nrf.style.display='block'; rf.innerHTML=''; return; }
+function renderKitchen(){
+  const locked=document.getElementById('kitchen-locked-msg'),panel=document.getElementById('kitchen-panel');
+  if(!hasKitchen()){locked.style.display='block';panel.style.display='none';return;}
+  locked.style.display='none';panel.style.display='block';
+  document.getElementById('food-grid').innerHTML=FOOD_MENU.filter(f=>f.unlockLvl<=S.level&&!(f.premium&&S.level<5)).map(food=>{
+    const cooking=CQ[food.id];
+    return `<div class="food-card"><div style="display:flex;align-items:center;gap:6px;"><span style="font-size:20px;">${food.icon}</span><div><div class="food-name">${food.name}</div><div class="food-desc">${food.desc}</div></div></div><div class="food-row"><div class="food-meta">💰${food.salePrice}|+${food.tipBonus}🪙</div>${cooking?`<div style="font-size:10px;color:var(--muted);">🕐${cooking}t</div>`:`<button class="cook-btn"${S.gold<food.cost?' disabled':''} onclick="cookFood('${food.id}')">Cook(${food.cost}🪙)</button>`}</div></div>`;
+  }).join('');
+  const rf=document.getElementById('ready-food'),nrf=document.getElementById('no-ready-food');
+  if(!S.readyDishes.length){nrf.style.display='block';rf.innerHTML='';return;}
   nrf.style.display='none';
-  rf.innerHTML = S.readyDishes.map((d,idx)=>`
-    <div class="ready-dish" onclick="assignFood(${idx})">
-      <span style="font-size:20px;">${d.food.icon}</span>
-      <div><div style="font-size:12px;font-weight:700;color:var(--food-green);">${d.food.name} ×${d.qty}</div>
-      <div style="font-size:10px;color:var(--muted);">Click to serve next guest</div></div>
-    </div>`).join('');
+  rf.innerHTML=S.readyDishes.map((d,idx)=>`<div class="ready-dish" onclick="assignFood()"><span style="font-size:20px;">${d.food.icon}</span><div><div style="font-size:12px;font-weight:700;color:var(--food-green);">${d.food.name} ×${d.qty}</div><div style="font-size:10px;color:var(--muted);">Click to serve next guest</div></div></div>`).join('');
 }
 
-function assignFood(idx) {
-  const si = S.slots.findIndex(ts=>ts.status==='served'&&ts.hasFoodOrder&&!ts.foodReady);
-  if(si===-1){ toast('No guest waiting for food.'); return; }
+function assignFood(){
+  const si=S.slots.findIndex(ts=>ts.status==='served'&&ts.hasFoodOrder&&!ts.foodReady);
+  if(si===-1){toast('No guest waiting for food right now.');return;}
   serveFoodToTable(si);
 }
 
-function renderStaffTab() {
-  const sl = document.getElementById('staff-list-big');
-  sl.innerHTML = S.staff.length ? S.staff.map(s=>`
-    <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.4);border:1px solid rgba(139,100,50,.2);border-radius:8px;padding:9px 12px;">
-      <span style="font-size:24px;">${s.icon}</span>
-      <div>
-        <div style="font-family:'Cinzel',serif;font-size:13px;font-weight:600;">${s.name}</div>
-        <div style="font-size:11px;color:var(--muted);">${s.stat}</div>
-        <div style="font-size:10px;color:var(--danger);">Wage: ${s.wage}🪙/day</div>
-      </div>
-    </div>`).join('')
-    : '<div style="font-size:12px;color:var(--muted);font-style:italic;">No staff hired yet.</div>';
-  document.getElementById('staff-summary').textContent = S.staff.length
-    ? `Total wages: ${S.staff.reduce((a,s)=>a+s.wage,0)}🪙/day | ${S.staff.length} staff`
-    : 'Hire staff from the Shop!';
+function renderStaffTab(){
+  const sl=document.getElementById('staff-list-big');
+  sl.innerHTML=S.staff.length?S.staff.map(s=>`<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.4);border:1px solid rgba(139,100,50,.2);border-radius:8px;padding:9px 12px;"><span style="font-size:24px;">${s.icon}</span><div><div style="font-family:'Cinzel',serif;font-size:13px;font-weight:600;">${s.name}</div><div style="font-size:11px;color:var(--muted);">${s.stat}</div><div style="font-size:10px;color:var(--danger);">Wage:${s.wage}🪙/day</div></div></div>`).join(''):'<div style="font-size:12px;color:var(--muted);font-style:italic;">No staff hired yet.</div>';
+  const autoActive=[];
+  if(hasUpg('auto_brew'))autoActive.push('⚙️ Auto-Brewery: brews ale at dawn');
+  if(hasUpg('auto_cook'))autoActive.push('⚙️ Auto-Kitchen: cooks from larder at dawn');
+  if(hasUpg('auto_restock'))autoActive.push('⚙️ Auto-Cellar: restocks mead/wine at dawn');
+  if(hasUpg('auto_serve'))autoActive.push('🤖 Auto-Barmaid: serves guests at night');
+  if(hasUpg('auto_collect'))autoActive.push('🏧 Auto-Till: collects payments at night');
+  document.getElementById('auto-list').innerHTML=autoActive.length?autoActive.map(a=>`<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,.08);">${a}</div>`).join(''):'<div style="font-size:12px;color:var(--muted);font-style:italic;">No automation yet. Buy upgrades!</div>';
+  document.getElementById('staff-summary').textContent=S.staff.length?`Wages: ${S.staff.reduce((a,s)=>a+s.wage,0)}🪙/day | ${S.staff.length} staff`:'Hire staff from the Shop!';
 }
 
-function renderHunting() {
-  const ms = maxStamina();
-  if(!S.stamina) S.stamina = ms;
-  document.getElementById('hunt-stam-txt').textContent = `${S.stamina}/${ms}`;
-  document.getElementById('hunt-stam-bar').style.width = Math.round(S.stamina/ms*100)+'%';
-
-  // zones
-  document.getElementById('hunt-zones').innerHTML = HUNT_ZONES.map(z=>{
-    const locked = S.level<z.lvlReq;
-    const noStam = S.stamina<z.staminaCost;
-    return `<div class="hunt-zone${locked?' locked-zone':''}" onclick="${locked?'toast(\'Need Level '+z.lvlReq+'!\')':noStam?'toast(\'Not enough stamina!\')':("openHuntGame('"+z.id+"')")}">
-      <div class="hunt-zone-icon">${z.icon}</div>
-      <div class="hunt-zone-name">${z.name}</div>
-      <div class="hunt-zone-desc">${z.desc}</div>
-      <div class="hunt-zone-loot">🎯 ${z.animals.map(a=>a.name).join(', ')}</div>
-      <div class="hunt-zone-cost">${locked?`🔒 Level ${z.lvlReq}`:noStam?`😓 Need ${z.staminaCost}🥾`:`🥾 ${z.staminaCost} stamina`}</div>
-    </div>`;
+function renderHunting(){
+  const ms=maxStamina();
+  document.getElementById('hunt-stam-txt').textContent=`${S.stamina}/${ms}`;
+  document.getElementById('hunt-stam-bar').style.width=Math.round(S.stamina/ms*100)+'%';
+  const dayOnlyMsg=document.getElementById('hunt-day-only');
+  dayOnlyMsg.style.display=isNight()?'block':'none';
+  document.getElementById('hunt-zones').innerHTML=HUNT_ZONES.map(z=>{
+    const locked=S.level<z.lvlReq,noStam=S.stamina<z.staminaCost,nightBlocked=isNight();
+    let clickFn=`openHuntGame('${z.id}')`;
+    if(nightBlocked)clickFn=`toast('Too dark to hunt at night!')`;
+    else if(locked)clickFn=`toast('Need Level ${z.lvlReq}!')`;
+    else if(noStam)clickFn=`toast('Not enough stamina!')`;
+    return `<div class="hunt-zone${locked||nightBlocked?' locked-zone':''}" onclick="${clickFn}"><div class="hunt-zone-icon">${z.icon}</div><div class="hunt-zone-name">${z.name}</div><div class="hunt-zone-desc">${z.desc}</div><div class="hunt-zone-loot">🎯 ${z.animals.map(a=>a.name).join(', ')}</div><div class="hunt-zone-cost">${locked?`🔒 Level ${z.lvlReq}`:nightBlocked?'🌙 Day only':noStam?`😓 Need ${z.staminaCost}🥾`:`🥾 ${z.staminaCost} stamina`}</div></div>`;
   }).join('');
-
-  // traps
-  let trapsHtml = TRAP_TYPES.map(trap=>{
-    const locked = S.level<trap.lvlReq;
-    const count = S.traps.filter(t=>t.trapId===trap.id).length;
-    return `<div class="trap-card">
-      <div style="flex:1;">
-        <strong style="font-family:'Cinzel',serif;font-size:12px;">${trap.icon} ${trap.name}</strong>
-        <div style="font-size:10px;color:var(--muted);">${trap.desc}</div>
-        <div style="font-size:10px;color:${count?'var(--food-green)':'var(--muted)'};">${locked?`🔒 Level ${trap.lvlReq}`:count?`${count} active`:'Not set'}</div>
-      </div>
-      <button class="trap-btn" ${locked||count>=2?'disabled':''} onclick="buyTrap('${trap.id}')">${count>=2?'Max':'Set ('+trap.cost+'🪙)'}</button>
-    </div>`;
+  let trapsHtml=TRAP_TYPES.map(trap=>{
+    const locked=S.level<trap.lvlReq,count=S.traps.filter(t=>t.trapId===trap.id).length;
+    return `<div class="trap-card"><div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">${trap.icon} ${trap.name}</strong><div style="font-size:10px;color:var(--muted);">${trap.desc}</div><div style="font-size:10px;color:${count?'var(--food-green)':'var(--muted)'};">${locked?`🔒 Level ${trap.lvlReq}`:count?`${count} set`:'Not set'}</div></div><button class="trap-btn"${locked||count>=2?' disabled':''} onclick="buyTrap('${trap.id}')">${count>=2?'Max':`Set(${trap.cost}🪙)`}</button></div>`;
   }).join('');
-  // ready traps
   S.traps.forEach((t,i)=>{
-    if(t.daysLeft>0) return;
-    const trap = TRAP_TYPES.find(tr=>tr.id===t.trapId);
-    trapsHtml += `<div class="trap-card" style="border-color:var(--food-green);background:rgba(60,120,30,.15);">
-      <div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">✅ ${trap.icon} ${trap.name} — Ready!</strong></div>
-      <button class="trap-btn" style="background:var(--food-green);" onclick="collectTrap(${i})">Collect</button>
-    </div>`;
+    if(t.daysLeft>0)return;
+    const trap=TRAP_TYPES.find(tr=>tr.id===t.trapId);
+    trapsHtml+=`<div class="trap-card" style="border-color:var(--food-green);background:rgba(60,120,30,.15);"><div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">✅ ${trap.icon} ${trap.name} — Ready!</strong></div><button class="trap-btn" style="background:var(--food-green);" onclick="collectTrap(${i})">Collect</button></div>`;
   });
-  document.getElementById('hunt-traps').innerHTML = trapsHtml;
-
-  // larder
-  const entries = Object.entries(S.larder).filter(([,q])=>q>0);
-  document.getElementById('hunt-larder').innerHTML = entries.length
-    ? entries.map(([id,qty])=>{
-        const ing = INGREDIENTS[id];
-        if(!ing) return '';
-        const cookable = ing.cookable.filter(fid=>{
-          const f=FOOD_MENU.find(x=>x.id===fid);
-          return f && f.unlockLvl<=S.level;
-        });
-        const btns = cookable.map(fid=>{
-          const f=FOOD_MENU.find(x=>x.id===fid);
-          const disc=Math.ceil(f.cost*0.4);
-          return `<button onclick="cookWithIngredient('${fid}','${id}')" style="padding:2px 6px;font-size:9px;background:var(--food-green);color:#fff;border:none;border-radius:3px;cursor:pointer;margin:1px;">${f.icon}${f.name}(${disc}🪙)</button>`;
-        }).join('');
-        return `<div class="larder-badge">
-          <div style="display:flex;align-items:center;gap:5px;">${ing.icon} <b>${ing.name}</b> <span style="color:var(--muted);font-weight:400;">×${qty}</span></div>
-          <div>${btns||'<span style="font-size:9px;color:var(--muted);">Level up to cook</span>'}</div>
-        </div>`;
-      }).join('')
-    : '<div style="font-size:12px;color:var(--muted);font-style:italic;">Empty — go hunting!</div>';
+  document.getElementById('hunt-traps').innerHTML=trapsHtml;
+  const entries=Object.entries(S.larder).filter(([,q])=>q>0);
+  document.getElementById('hunt-larder').innerHTML=entries.length?entries.map(([id,qty])=>{
+    const ing=INGREDIENTS[id];if(!ing)return'';
+    const cookable=ing.cookable.filter(fid=>{const f=FOOD_MENU.find(x=>x.id===fid);return f&&f.unlockLvl<=S.level;});
+    const btns=cookable.map(fid=>{const f=FOOD_MENU.find(x=>x.id===fid);const disc=Math.ceil(f.cost*0.4);return `<button onclick="cookWithIngredient('${fid}','${id}')" style="padding:2px 6px;font-size:9px;background:var(--food-green);color:#fff;border:none;border-radius:3px;cursor:pointer;margin:1px;">${f.icon}${f.name}(${disc}🪙)</button>`;}).join('');
+    return `<div class="larder-badge"><div style="display:flex;align-items:center;gap:5px;">${ing.icon} <b>${ing.name}</b> <span style="color:var(--muted);font-weight:400;">×${qty}</span></div><div>${btns||'<span style="font-size:9px;color:var(--muted);">Level up to cook</span>'}</div></div>`;
+  }).join(''):'<div style="font-size:12px;color:var(--muted);font-style:italic;">Empty — go hunting during the day!</div>';
 }
 
 // ================================================================
 // LOG / TOAST
 // ================================================================
-function addLog(msg, type) {
-  const log = document.getElementById('event-log');
-  const el = document.createElement('div');
-  el.className = 'log-entry'+(type?' '+type:'');
-  el.textContent = msg;
-  log.prepend(el);
-  while(log.children.length>30) log.removeChild(log.lastChild);
+function addLog(msg,type){
+  const log=document.getElementById('event-log');
+  const el=document.createElement('div');el.className='log-entry'+(type?' '+type:'');el.textContent=msg;
+  log.prepend(el);while(log.children.length>30)log.removeChild(log.lastChild);
 }
-
 let toastTimer;
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
 }
 
 // ================================================================
 // START
 // ================================================================
-// Initialise stamina
+initState();
 S.stamina = maxStamina();
-
-addLog('🍺 Welcome to The Gilded Flagon! You have 365 days to build a legend.', 'gold');
-addLog('Days run automatically (90 sec each). End early anytime.');
-render();
-startTick();
-startDayTimer();
+addLog('🍺 Welcome to The Gilded Flagon! 365 days to build a legend.','gold');
+addLog('☀️ Daytime (30s): Prep, brew, hunt & cook. 🌙 Night (60s): Serve your guests!');
+render();startTick();startPhaseTimer();
 </script>
 </body>
 </html>
