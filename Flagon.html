@@ -488,15 +488,14 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 // CONSTANTS
 // ================================================================
 const TOTAL_DAYS   = 365;
-const DAY_SEC      = 30;   // daytime: prep, hunt, cook
-const NIGHT_SEC    = 60;   // nighttime: customers arrive
-const GAME_TICK_MS = 1800; // table/cook tick interval (ms)
+const DAY_SEC      = 30;
+const NIGHT_SEC    = 60;
+const GAME_TICK_MS = 1800;
 
-// Reputation: title unlocked every 50 rep. Rep resets to 0 at 100, title kept.
 const REP_TITLES = [
   {threshold:0,   title:'Unknown Tavern'},
   {threshold:50,  title:'Local Haunt'},
-  {threshold:100, title:'Respected Inn'},   // earned at 2nd milestone (rep reset once)
+  {threshold:100, title:'Respected Inn'},
   {threshold:150, title:'Famous Tavern'},
   {threshold:200, title:'Legendary Alehouse'},
   {threshold:300, title:"The Realm's Finest"},
@@ -533,43 +532,30 @@ const GUEST_TYPES = [
   {name:'Dwarf',     icon:'⛏️', patience:13, orders:['ale','spirits'], tipBase:2, rep:2, xp:3},
 ];
 
-// ── FOOD MENU ── Each meat has distinct dishes, some crossovers via cheese/honey
 const FOOD_MENU = [
-  // Always available (no meat needed)
   {id:'bread',       name:'Fresh Bread',       icon:'🍞', time:5,  cost:3,  salePrice:6,  tipBonus:1, unlockLvl:1, premium:false, desc:'Simple staple'},
   {id:'honey_cake',  name:'Honey Cake',         icon:'🍯', time:8,  cost:5,  salePrice:11, tipBonus:2, unlockLvl:1, premium:false, desc:'Sweet & fragrant'},
   {id:'cheese_plate',name:'Cheese Board',       icon:'🧀', time:5,  cost:4,  salePrice:9,  tipBonus:2, unlockLvl:1, premium:false, desc:'Aged selection'},
   {id:'soup',        name:'Mushroom Soup',      icon:'🍄', time:6,  cost:5,  salePrice:10, tipBonus:2, unlockLvl:2, premium:false, desc:'Earthy broth'},
-  // Rabbit — delicate, gamey, works with herbs
   {id:'rabbit_stew', name:'Rabbit Stew',        icon:'🍲', time:9,  cost:0,  salePrice:14, tipBonus:2, unlockLvl:1, premium:false, desc:'Slow-cooked & rich', meatReq:'rabbit'},
   {id:'rabbit_pie',  name:'Rabbit & Herb Pie',  icon:'🥧', time:12, cost:2,  salePrice:18, tipBonus:3, unlockLvl:2, premium:false, desc:'Flaky pastry', meatReq:'rabbit'},
-  // Pheasant — refined, pairs with honey
   {id:'pheasant_roast',name:'Roast Pheasant',   icon:'🍗', time:13, cost:2,  salePrice:20, tipBonus:3, unlockLvl:2, premium:false, desc:'Golden & crispy', meatReq:'pheasant'},
   {id:'pheasant_honey',name:'Honey-Glazed Bird',icon:'🍖', time:11, cost:3,  salePrice:22, tipBonus:4, unlockLvl:3, premium:false, desc:'Sweet & smoky', meatReq:'pheasant'},
-  // Venison — rich, noble dish
   {id:'venison_steak',name:'Venison Steak',     icon:'🥩', time:10, cost:2,  salePrice:22, tipBonus:4, unlockLvl:2, premium:false, desc:'Pan-seared, rare', meatReq:'venison'},
   {id:'venison_feast',name:'Venison Banquet',   icon:'🍖', time:20, cost:5,  salePrice:35, tipBonus:7, unlockLvl:4, premium:true,  desc:'Impresses nobles', meatReq:'venison'},
-  // Boar — robust, hearty
   {id:'boar_sausage', name:'Wild Boar Sausage', icon:'🌭', time:8,  cost:2,  salePrice:16, tipBonus:2, unlockLvl:2, premium:false, desc:'Spiced & smoky', meatReq:'boar'},
   {id:'boar_feast',   name:'Roast Boar',        icon:'🐗', time:18, cost:4,  salePrice:30, tipBonus:5, unlockLvl:4, premium:true,  desc:'Centrepiece dish', meatReq:'boar'},
-  // Salmon — fresh, elegant
   {id:'salmon_fillet',name:'Pan Salmon',        icon:'🐟', time:7,  cost:2,  salePrice:15, tipBonus:2, unlockLvl:2, premium:false, desc:'Crispy skin', meatReq:'salmon'},
   {id:'salmon_chowder',name:'Salmon Chowder',   icon:'🥘', time:9,  cost:3,  salePrice:18, tipBonus:3, unlockLvl:3, premium:false, desc:'Creamy & warming', meatReq:'salmon'},
-  // Duck — fatty, goes with orange/honey
   {id:'duck_breast',  name:'Duck Breast',       icon:'🦆', time:11, cost:2,  salePrice:19, tipBonus:3, unlockLvl:3, premium:false, desc:'Rendered fat, tender', meatReq:'duck'},
   {id:'duck_honey',   name:'Honey Duck Confit', icon:'🍯', time:15, cost:4,  salePrice:26, tipBonus:5, unlockLvl:4, premium:false, desc:'Slow & glazed', meatReq:'duck'},
-  // Elk — rare, very valuable
   {id:'elk_roast',    name:'Elk Roast',         icon:'🦌', time:16, cost:3,  salePrice:28, tipBonus:5, unlockLvl:4, premium:false, desc:'Lean & majestic', meatReq:'elk'},
-  // Goat — rustic, pairs with cheese
   {id:'goat_stew',    name:'Goat & Cheese Stew',icon:'🍲', time:10, cost:3,  salePrice:17, tipBonus:3, unlockLvl:3, premium:false, desc:'Tangy & filling', meatReq:'goat'},
-  // Bear — exotic, rare
   {id:'bear_haunch',  name:'Bear Haunch',       icon:'🐻', time:20, cost:5,  salePrice:32, tipBonus:6, unlockLvl:5, premium:true,  desc:'Legendary dish', meatReq:'bear'},
-  // Premium/magical
   {id:'golden_terrine',name:'Golden Hare Terrine',icon:'✨',time:14, cost:6,  salePrice:30, tipBonus:6, unlockLvl:5, premium:true,  desc:'Ethereal flavour', meatReq:'golden_hare'},
   {id:'spirit_broth', name:'Spirit Venison Broth',icon:'🌟',time:18, cost:8,  salePrice:40, tipBonus:8, unlockLvl:6, premium:true,  desc:'Magical, unforgettable', meatReq:'spirit_venison'},
 ];
 
-// ── EXPEDITION ZONES ──
 const EXP_ZONES = [
   {id:'meadow',   name:'The Meadows',      icon:'🌾', lvlReq:1, days:[1,2,3], staminaCost:3,
    desc:'Rolling fields, easy prey.', loot:['rabbit','pheasant','honey','cheese_soft'],
@@ -588,7 +574,6 @@ const EXP_ZONES = [
    enemies:['fey_deer','spirit_wolf','ancient_boar']},
 ];
 
-// ── ENEMY TEMPLATES ──
 const ENEMIES = {
   rabbit:       {name:'Rabbit',         icon:'🐇', baseHp:8,  baseDmg:2,  baseDef:0, drop:'rabbit',        xp:5},
   pheasant:     {name:'Pheasant',       icon:'🦚', baseHp:10, baseDmg:3,  baseDef:0, drop:'pheasant',      xp:6},
@@ -608,8 +593,6 @@ const ENEMIES = {
   ancient_boar: {name:'Ancient Boar',   icon:'🐗', baseHp:65, baseDmg:15, baseDef:5, drop:'spirit_venison', xp:35},
 };
 
-// ── BATTLE CARDS ──
-// Player starts with a basic deck; more can be found on expeditions
 const BASE_CARDS = [
   {id:'strike',    name:'Strike',      icon:'⚔️',  cost:1, desc:'Deal 6 damage.',         effect:{dmg:6}},
   {id:'strike',    name:'Strike',      icon:'⚔️',  cost:1, desc:'Deal 6 damage.',         effect:{dmg:6}},
@@ -634,7 +617,6 @@ const LOOT_CARDS = [
   {id:'foragers_eye',name:"Forager's Eye",icon:'👁️',cost:0,desc:'Look at top 2 cards.',      effect:{scry:2}},
 ];
 
-// ── INGREDIENTS & COLLECTIBLES ──
 const INGREDIENTS = {
   rabbit:        {name:'Rabbit',        icon:'🐇', cookable:['rabbit_stew','rabbit_pie']},
   pheasant:      {name:'Pheasant',      icon:'🦚', cookable:['pheasant_roast','pheasant_honey']},
@@ -647,7 +629,6 @@ const INGREDIENTS = {
   bear:          {name:'Bear',          icon:'🐻', cookable:['bear_haunch']},
   golden_hare:   {name:'Golden Hare',   icon:'✨', cookable:['golden_terrine']},
   spirit_venison:{name:'Spirit Venison',icon:'🌟', cookable:['spirit_broth']},
-  // Non-meat
   honey:         {name:'Honey',         icon:'🍯', cookable:['honey_cake','pheasant_honey','duck_honey']},
   honey_wild:    {name:'Wild Honey',    icon:'🍯', cookable:['honey_cake','pheasant_honey','duck_honey']},
   honey_magical: {name:'Magical Honey', icon:'✨', cookable:['golden_terrine','honey_cake']},
@@ -656,19 +637,16 @@ const INGREDIENTS = {
   cheese_mountain:{name:'Mountain Cheese',icon:'🧀',cookable:['cheese_plate','goat_stew','elk_roast']},
 };
 
-// ── TRAP TYPES (still used passively) ──
 const TRAP_TYPES = [
   {id:'snare',  name:'Rope Snare', icon:'🪤', cost:15, lvlReq:1, ings:['rabbit','pheasant'], yield:[1,2], desc:'Catches small game.'},
   {id:'net',    name:'River Net',  icon:'🎣', cost:20, lvlReq:2, ings:['salmon','duck'],      yield:[1,2], desc:'Set in the river.'},
   {id:'pitfall',name:'Pit Trap',   icon:'⛏️', cost:30, lvlReq:3, ings:['boar','venison'],     yield:[1,1], desc:'For medium prey.'},
 ];
 
-
-
 const STAFF_CATALOG = [
-  // Stackable staff — buy multiple, cost increases each time
+  // Stackable staff — buy multiple, baseCost scales via stackableCost()
   {id:'server',   name:'Server',      icon:'🫱', desc:'Serves one waiting guest per tick automatically. Buy multiple for more coverage.', baseCost:35, wage:3, lvlReq:1, stat:'Auto-Serves: 1/tick', stackable:true},
-  {id:'cook',     name:'Cook',        icon:'👨‍🍳', desc:'First cook unlocks kitchen & speeds cooking. Each extra cook auto-queues one dish per tick.', baseCost:55, wage:5, lvlReq:1, stat:'Kitchen + Auto-Cook', stackable:true},
+  {id:'cook',     name:'Cook',        icon:'👨‍🍳', desc:'First cook unlocks kitchen & speeds cooking. Each extra cook adds a queue slot.', baseCost:55, wage:5, lvlReq:1, stat:'Kitchen + Auto-Cook', stackable:true},
   // Unique staff
   {id:'barmaid',  name:'Barmaid',     icon:'🙋', desc:'Guests wait 4 ticks longer before leaving.',              cost:30, wage:3, lvlReq:1, stat:'Patience: +4'},
   {id:'guard',    name:'Guard',       icon:'🛡️', desc:'Reduces rep loss from angry guests.',                     cost:40, wage:4, lvlReq:1, stat:'Rep Guard: Active'},
@@ -692,7 +670,6 @@ const UPGRADES_CATALOG = [
   {id:'boots',     name:'Hunting Boots',    icon:'🥾', desc:'+4 max stamina.',                                  cost:35,  lvlReq:1},
   {id:'bow',       name:'Reinforced Bow',   icon:'🏹', desc:'+15% hunt hit chance.',                            cost:50,  lvlReq:2},
   {id:'lodge',     name:'Hunter\'s Lodge',  icon:'🏕️', desc:'+6 stamina. Traps resolve instantly.',             cost:80,  lvlReq:3},
-  // AUTOMATION upgrades
   {id:'auto_brew', name:'Auto-Brewery',     icon:'⚙️', desc:'Automatically brews ale at dawn if stock < 5.',   cost:120, lvlReq:3},
   {id:'auto_serve',name:'Auto-Barmaid',     icon:'🤖', desc:'Automatically serves waiting guests every tick.',  cost:150, lvlReq:4},
   {id:'auto_collect',name:'Auto-Till',      icon:'🏧', desc:'Automatically collects payment from finished guests.',cost:130,lvlReq:4},
@@ -720,14 +697,12 @@ const SPECIAL_EVENTS = [
 // ================================================================
 // STATE
 // ================================================================
-let S, UPG, CQ, EVT, tickInt, phaseTimerInt, dayEndLock, curShopTab, huntMG;
+let S, UPG, CQ, EVT, tickInt, phaseTimerInt, dayEndLock, curShopTab;
 
 function initState() {
   S = {
     gold:80, day:1, level:1, xp:0,
-    rep:0,           // rep within current 0-100 bracket
-    repTotal:0,      // lifetime rep accumulated (for title milestones)
-    repTitleIdx:0,   // index into REP_TITLES of highest earned title
+    rep:0, repTotal:0, repTitleIdx:0,
     ale:10, mead:0, wine:0, spirits:0,
     tables:3, slots:[], staff:[],
     totalEarned:0, guestsServed:0, dishesSold:0, totalHunted:0, daysComplete:0,
@@ -736,7 +711,6 @@ function initState() {
     larder:{},
     traps:[],
     stamina:10,
-    // Expedition
     playerDeck:[...BASE_CARDS.map(c=>({...c}))],
     playerHp:30, playerMaxHp:30,
     expRunning:false, expZone:null, expDay:0, expMaxDays:0,
@@ -762,12 +736,10 @@ const getLv    = ()  => LEVELS[S.level-1];
 const getNextLv= ()  => LEVELS[S.level] || null;
 const isNight  = ()  => S.phase === 'night';
 
-// Max simultaneous cook queue slots:
-// 1 from kitchen setup/first cook, +1 per additional cook
 function maxCookSlots() {
   let slots = 0;
-  if(hasKitchen()) slots = 1;         // kitchen alone = 1 slot (manual)
-  if(hasCook()) slots = Math.max(slots, staffCount('cook')); // each cook = 1 slot
+  if(hasKitchen()) slots = 1;
+  if(hasCook()) slots = Math.max(slots, staffCount('cook'));
   return slots;
 }
 
@@ -778,7 +750,7 @@ function stackableCost(id) {
   return Math.round(base * Math.pow(1.4, owned));
 }
 
-// Wage of stackable staff (flat per person)
+// Flat wage per stackable hire
 function stackableWage(id) {
   return STAFF_CATALOG.find(s=>s.id===id)?.wage || 3;
 }
@@ -792,14 +764,12 @@ function maxStamina() {
 function aleCost()  { return hasStaff('brewer') ? 4 : hasUpg('cellar') ? 3 : 5; }
 function aleYield() { return hasStaff('brewer') ? 8 : 5; }
 
-// Reputation: cumulative, titles unlock at 50-rep milestones, rep resets to 0 on each 100
 function addRep(amount) {
   if(EVT && EVT.repMult) amount = Math.round(amount * EVT.repMult);
   if(hasStaff('musician')) amount++;
   if(amount<=0) return;
   S.rep += amount;
   S.repTotal += amount;
-  // Check for new title milestone (every 50 total rep)
   const milestonesReached = Math.floor(S.repTotal / 50);
   const newTitleIdx = Math.min(milestonesReached, REP_TITLES.length-1);
   if(newTitleIdx > S.repTitleIdx) {
@@ -808,7 +778,6 @@ function addRep(amount) {
     addLog(`🏅 New title earned: "${t.title}"!`, 'purple');
     toast(`New title: ${t.title}!`);
   }
-  // Rep resets every 100
   while(S.rep >= 100) {
     S.rep -= 100;
     addLog('⭐ Reputation prestige! Reset to 0 — your legend grows.', 'gold');
@@ -820,13 +789,8 @@ function loseRep(amount) {
   S.rep = Math.max(hasUpg('repfloor')?5:0, S.rep - amount);
 }
 
-function repDisplay() {
-  return `${S.rep}/100`;
-}
-
-function repTitle() {
-  return REP_TITLES[S.repTitleIdx].title;
-}
+function repDisplay() { return `${S.rep}/100`; }
+function repTitle() { return REP_TITLES[S.repTitleIdx].title; }
 
 function drinkPrice(id) {
   let p = DRINKS[id].price;
@@ -860,7 +824,6 @@ function guestPool() {
 }
 
 function guestChance() {
-  // Base chance of at least one guest arriving per tick at night
   let b = 0.55 + (S.repTotal/300)*0.35;
   if(hasStaff('barmaid')) b += 0.08;
   if(S.level>=5) b += 0.05;
@@ -868,7 +831,6 @@ function guestChance() {
   return Math.min(b, 0.97);
 }
 
-// How many guests can arrive in one tick (1–3 depending on rep/level)
 function maxGuestsPerTick() {
   let max = 1;
   if(S.repTotal >= 50)  max = 2;
@@ -906,15 +868,33 @@ function addIngredient(id, qty){ S.larder[id]=(S.larder[id]||0)+qty; }
 // AUTOMATION
 // ================================================================
 function runDawnAutomation() {
-  // auto-brew if stock < 5
   if(hasUpg('auto_brew') && S.ale < 5) {
     const c = aleCost();
     if(S.gold >= c){ S.gold-=c; S.ale+=aleYield(); addLog(`⚙️ Auto-Brewery brewed ${aleYield()} ale.`); }
   }
-  // auto-restock mead/wine
   if(hasUpg('auto_restock')) {
     if(S.mead===0 && S.gold>=8){ S.gold-=8; S.mead+=4; addLog('⚙️ Auto-Cellar bought mead.'); }
     if(S.wine===0 && S.gold>=12){ S.gold-=12; S.wine+=3; addLog('⚙️ Auto-Cellar bought wine.'); }
+  }
+}
+
+function runNightAutomation() {
+  // Auto-serve: servers automatically serve waiting guests
+  if(hasUpg('auto_serve') || staffCount('server') > 0) {
+    const numServers = staffCount('server');
+    let served = 0;
+    S.slots.forEach((ts,i) => {
+      if(ts.status === 'waiting' && served < Math.max(numServers, hasUpg('auto_serve') ? 1 : 0)) {
+        serveTable(i);
+        served++;
+      }
+    });
+  }
+  // Auto-collect payments
+  if(hasUpg('auto_collect')) {
+    S.slots.forEach((ts,i) => {
+      if(ts.status === 'ready') collectPayment(i);
+    });
   }
 }
 
@@ -994,7 +974,6 @@ function cookWithIngredient(foodId,ingId){
   if(CQ.length>=maxCookSlots()){toast(`Kitchen full! (${maxCookSlots()} slots)`);return;}
   if(CQ.find(q=>q.foodId===foodId)){toast('Already cooking that!');return;}
   if(!(S.larder[ingId]>0)){toast('No ingredient!');return;}
-  // meatReq dishes cost only the "extra" cost (since meat is the main ingredient)
   const baseCost=food.meatReq?food.cost:Math.ceil(food.cost*0.4);
   if(S.gold<baseCost){toast(`Need ${baseCost}🪙.`);return;}
   S.gold-=baseCost;S.larder[ingId]--;if(S.larder[ingId]<=0)delete S.larder[ingId];
@@ -1010,11 +989,8 @@ function collectDish(foodId){
 }
 
 // ================================================================
+// EXPEDITION SYSTEM
 // ================================================================
-// EXPEDITION SYSTEM (Slay the Spire style)
-// ================================================================
-
-// ── Deck helpers ──
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr; }
 
 function expDraw(n=1){
@@ -1035,7 +1011,6 @@ function expInitBattle(){
   expDraw(5);
 }
 
-// ── Open zone picker ──
 function openExpeditionPicker(){
   if(isNight()){toast('Expeditions depart at dawn — come back during the day!');return;}
   const list=document.getElementById('exp-zone-list');
@@ -1079,7 +1054,6 @@ function openExpeditionModal(){
 
 function closeExpedition(){
   clearTimeout(expAI);
-  // Give any loot gathered so far even if fleeing mid-expedition
   if(S.expLoot.length){
     S.expLoot.forEach(ing=>addIngredient(ing,1));
     addLog(`🎒 Returned with: ${S.expLoot.map(l=>INGREDIENTS[l]?.name||l).join(', ')}`, 'green');
@@ -1091,30 +1065,26 @@ function closeExpedition(){
   renderHunting();render();
 }
 
-// ── Spawn next encounter ──
 let expAI=null;
 function expNextDay(){
   S.expDay++;
   if(S.expDay>S.expMaxDays){expVictory();return;}
   const zone=S.expZone;
-  // Enemy level scales: base 1 + (tavern day * 0.3) + (expDay * 5)
   const enemyLvl=Math.floor(1+(S.day*0.3)+(S.expDay-1)*5);
   const mult=1+enemyLvl*0.12;
-  // Pick enemy from zone
   const enemyId=zone.enemies[Math.floor(Math.random()*zone.enemies.length)];
   const tmpl=ENEMIES[enemyId];
   S.expEnemy={...tmpl, level:enemyLvl};
   S.expEnemyHp=Math.round(tmpl.baseHp*mult);
   S.expEnemyMaxHp=S.expEnemyHp;
   S.expEnemyBlock=0;S.expStunned=0;
-  // Give player loot/collectibles each day (non-meat)
+  // Occasional bonus loot from zone
   const nonMeatLoot=zone.loot.filter(l=>!ENEMIES[enemyId]?.drop||l!==ENEMIES[enemyId].drop);
   if(nonMeatLoot.length&&Math.random()<0.6){
     const bonus=nonMeatLoot[Math.floor(Math.random()*nonMeatLoot.length)];
     S.expLoot.push(bonus);
     expLog(`📦 Found ${INGREDIENTS[bonus]?.icon||bonus} ${INGREDIENTS[bonus]?.name||bonus} along the way!`);
   }
-  // Init battle
   expInitBattle();
   expUpdateUI();
   document.getElementById('exp-result-overlay').style.display='none';
@@ -1127,7 +1097,6 @@ function expLog(msg){
   el.prepend(d);while(el.children.length>8)el.removeChild(el.lastChild);
 }
 
-// ── UI update ──
 function expUpdateUI(){
   const zone=S.expZone;const enemy=S.expEnemy;
   document.getElementById('exp-zone-name').textContent=zone.name;
@@ -1177,7 +1146,6 @@ function cardEffectText(card){
   return parts.join(' ');
 }
 
-// ── Play a card ──
 function playCard(idx){
   const card=S.playerHand[idx];
   if(!card||S.playerEnergy<card.cost)return;
@@ -1185,10 +1153,9 @@ function playCard(idx){
   S.playerHand.splice(idx,1);
   S.playerDiscard.push(card);
   const e=card.effect;
-  // Damage
   if(e.dmg!==undefined){
     let hits=e.hits||1;
-    if(e.xEnergy) hits=S.playerEnergy+1; // uses energy remaining
+    if(e.xEnergy) hits=S.playerEnergy+1;
     let totalDmg=0;
     for(let h=0;h<hits;h++){
       let d=Math.max(0,e.dmg-S.expEnemyBlock);
@@ -1204,16 +1171,13 @@ function playCard(idx){
   if(e.draw) expDraw(e.draw);
   if(e.energy) S.playerEnergy+=e.energy;
   if(e.scry){
-    // Show top cards as a toast
     const top=S.playerCards.slice(0,e.scry).map(c=>c.name).join(', ');
     expLog(`👁️ Top cards: ${top||'deck empty'}`);
   }
-  // Check enemy death
   if(S.expEnemyHp<=0){expEnemyDead();return;}
   expUpdateUI();
 }
 
-// ── Enemy AI attack ──
 function expEnemyAttack(){
   if(S.expStunned>0){
     S.expStunned--;
@@ -1238,7 +1202,6 @@ function expStartPlayerTurn(){
 }
 
 function expEndTurn(){
-  // Discard hand, enemy attacks
   S.playerDiscard.push(...S.playerHand);
   S.playerHand=[];
   expLog(`⏩ You end your turn.`);
@@ -1246,7 +1209,6 @@ function expEndTurn(){
   expAI=setTimeout(expEnemyAttack,900);
 }
 
-// ── Enemy dies — victory for this encounter ──
 function expEnemyDead(){
   clearTimeout(expAI);
   const drop=S.expEnemy.drop;
@@ -1255,18 +1217,15 @@ function expEnemyDead(){
   S.totalHunted++;
   let lootText='';
   if(drop){S.expLoot.push(drop);lootText=` + 1× ${INGREDIENTS[drop]?.icon||''} ${INGREDIENTS[drop]?.name||drop}`;}
-  // Offer a random card as loot
   const bonusCard=LOOT_CARDS[Math.floor(Math.random()*LOOT_CARDS.length)];
   S.expNewCards.push(bonusCard);
   expLog(`🎉 Victory! +${xpGain}XP${lootText}`);
-  // Show result overlay
   const ov=document.getElementById('exp-result-overlay');
   ov.style.display='flex';
   document.getElementById('exp-result-icon').textContent='🏆';
   document.getElementById('exp-result-title').textContent=`Defeated the ${S.expEnemy.name}!`;
   const more=S.expDay<S.expMaxDays;
   document.getElementById('exp-result-sub').textContent=more?`Continue to day ${S.expDay+1}?`:`Expedition complete! All ${S.expMaxDays} days done.`;
-  // Loot display
   const ld=document.getElementById('exp-loot-display');
   const all=[...S.expLoot.map(l=>({icon:INGREDIENTS[l]?.icon||'?',name:INGREDIENTS[l]?.name||l})),
              {icon:bonusCard.icon,name:`Card: ${bonusCard.name}`}];
@@ -1279,9 +1238,7 @@ function expContinue(){
   expNextDay();
 }
 
-// ── Expedition victory (all days cleared) ──
 function expVictory(){
-  // Commit all loot
   const lootNames=S.expLoot.map(l=>INGREDIENTS[l]?.name||l);
   S.expLoot.forEach(ing=>addIngredient(ing,1));
   S.expNewCards.forEach(c=>S.playerDeck.push({...c}));
@@ -1293,16 +1250,14 @@ function expVictory(){
   render();renderHunting();
 }
 
-// ── Player death ──
 function expDefeat(){
   clearTimeout(expAI);
   expLog('💀 You have been defeated!');
-  // Lose half loot on defeat
   const kept=S.expLoot.filter((_,i)=>i%2===0);
   kept.forEach(ing=>addIngredient(ing,1));
   S.expNewCards.forEach(c=>S.playerDeck.push({...c}));
   addLog(`💀 Defeated on expedition — lost half the loot. Kept: ${kept.map(l=>INGREDIENTS[l]?.name||l).join(', ')||'nothing'}`, 'bad');
-  S.playerHp=Math.max(1,Math.floor(S.playerMaxHp*0.3)); // penalty: return with 30% HP (for flavour)
+  S.playerHp=Math.max(1,Math.floor(S.playerMaxHp*0.3));
   S.expRunning=false;S.expLoot=[];S.expNewCards=[];
   document.getElementById('expedition-modal').classList.remove('open');
   document.getElementById('exp-result-overlay').style.display='none';
@@ -1332,13 +1287,11 @@ function collectTrap(idx){
 }
 function tickTraps(){S.traps.forEach(t=>{if(t.daysLeft>0)t.daysLeft--;});}
 
-// ── Render hunting tab ──
 function renderHunting(){
   const ms=maxStamina();
   document.getElementById('hunt-stam-txt').textContent=`${S.stamina}/${ms}`;
   document.getElementById('hunt-stam-bar').style.width=Math.round(S.stamina/ms*100)+'%';
   document.getElementById('hunt-day-only').style.display=isNight()?'block':'none';
-  // Zone cards
   document.getElementById('hunt-zones').innerHTML=EXP_ZONES.map(z=>{
     const locked=S.level<z.lvlReq,nightBlock=isNight();
     const disabled=locked||nightBlock;
@@ -1350,7 +1303,6 @@ function renderHunting(){
       <div class="exp-zone-cost">${locked?`🔒 Level ${z.lvlReq}`:nightBlock?'🌙 Day only':`${z.staminaCost}🥾/day · Click to go`}</div>
     </div>`;
   }).join('');
-  // Traps
   let trapsHtml=TRAP_TYPES.map(trap=>{
     const locked=S.level<trap.lvlReq,count=S.traps.filter(t=>t.trapId===trap.id).length;
     return `<div class="trap-card"><div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">${trap.icon} ${trap.name}</strong><div style="font-size:10px;color:var(--muted);">${trap.desc}</div><div style="font-size:10px;color:${count?'var(--food-green)':'var(--muted)'};">${locked?`🔒 Lv${trap.lvlReq}`:count?`${count} set`:'Not set'}</div></div><button class="trap-btn"${locked||count>=2?' disabled':''} onclick="buyTrap('${trap.id}')">${count>=2?'Max':`Set(${trap.cost}🪙)`}</button></div>`;
@@ -1361,7 +1313,6 @@ function renderHunting(){
     trapsHtml+=`<div class="trap-card" style="border-color:var(--food-green);background:rgba(60,120,30,.15);"><div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">✅ ${trap.icon} ${trap.name} — Ready!</strong></div><button class="trap-btn" style="background:var(--food-green);" onclick="collectTrap(${i})">Collect</button></div>`;
   });
   document.getElementById('hunt-traps').innerHTML=trapsHtml;
-  // Larder
   const entries=Object.entries(S.larder).filter(([,q])=>q>0);
   document.getElementById('hunt-larder').innerHTML=entries.length?entries.map(([id,qty])=>{
     const ing=INGREDIENTS[id];if(!ing)return'';
@@ -1376,17 +1327,17 @@ function renderHunting(){
 }
 
 // ================================================================
-
+// GAME TICK
 // ================================================================
 function gameTick(){
   let changed=false;
-  // --- COOK QUEUE ---
+  // Cook queue tick
   for(let qi=0; qi<CQ.length; qi++){
     CQ[qi].ticks--;
     if(CQ[qi].ticks<=0){ collectDish(CQ[qi].foodId); CQ.splice(qi,1); qi--; changed=true; }
     else changed=true;
   }
-  // tables — only tick during night
+  // Table & guest logic (night only)
   if(isNight()){
     S.slots.forEach((ts,i)=>{
       if(ts.status==='waiting'){
@@ -1398,11 +1349,9 @@ function gameTick(){
         }
       } else if(ts.status==='served'){ts.timer--;if(ts.timer<=0){ts.status='ready';changed=true;}}
     });
-    // guest arrivals only at night
     if(Math.random()<guestChance()){spawnGuest();changed=true;}
     S.hungerLevel=Math.min(100,S.hungerLevel+0.4);
-    // run night automation
-    if(hasUpg('auto_serve')||hasUpg('auto_collect')) runNightAutomation();
+    if(hasUpg('auto_serve')||hasUpg('auto_collect')||staffCount('server')>0) runNightAutomation();
   }
   if(changed)render();
 }
@@ -1416,6 +1365,7 @@ function spawnGuest(){
   addLog(`${g.icon} A ${g.name} sat at table ${ei+1}.`);
 }
 
+// ================================================================
 // PHASE SYSTEM
 // ================================================================
 function startPhaseTimer(){
@@ -1430,7 +1380,6 @@ function startPhaseTimer(){
 
 function advancePhase(){
   if(S.phase==='day'){
-    // transition to night
     S.phase='night';S.phaseSecondsLeft=NIGHT_SEC;
     showPhaseOverlay('night');
     addLog('🌙 Night falls — the tavern opens! Guests are arriving.','purple');
@@ -1438,7 +1387,6 @@ function advancePhase(){
     document.getElementById('phase-notice').classList.add('show');
     document.getElementById('phase-notice').textContent='🌙 Night is here — guests are arriving! Serve them before they leave.';
   } else {
-    // night ended — end day
     endDay();return;
   }
   updatePhaseUI();
@@ -1469,53 +1417,45 @@ function updatePhaseUI(){
 function startTick(){clearInterval(tickInt);tickInt=setInterval(gameTick,1800);}
 
 // ================================================================
-// END DAY (called after night phase ends)
+// END DAY
 // ================================================================
 function endDay(){
   if(dayEndLock)return;
   dayEndLock=true;
   clearInterval(tickInt);clearInterval(phaseTimerInt);
 
-  // wages
-  const wages=S.staff.reduce((a,s)=>{let w=s.wage;if(S.level>=6)w=Math.max(1,w-1);return a+w;},0);
+  const wages=S.staff.reduce((a,s)=>a+(s.wage||0),0);
   if(wages>0){S.gold-=wages;addLog(`Paid ${wages}🪙 wages.`,'bad');}
 
-  // vault
   if(hasUpg('vault')){S.gold+=10;addLog('💰 Vault rent +10🪙.','gold');}
 
-  // traps tick
   tickTraps();
 
-  // hunter delivers
+  // Hunter staff delivers random loot from available zones
   if(hasStaff('hunter')){
     const zones=EXP_ZONES.filter(z=>z.lvlReq<=S.level);
     if(zones.length){
       const zone=zones[Math.floor(Math.random()*zones.length)];
-      const a=zone.animals[Math.floor(Math.random()*zone.animals.length)];
-      const qty=a.yield[0]+Math.floor(Math.random()*(a.yield[1]-a.yield[0]+1));
-      addIngredient(a.ing,qty);S.totalHunted++;
-      addLog(`🏹 Hunter returned with ${qty}× ${INGREDIENTS[a.ing].name}!`,'green');
+      const lootId=zone.loot[Math.floor(Math.random()*zone.loot.length)];
+      if(lootId){
+        addIngredient(lootId,1);S.totalHunted++;
+        addLog(`🏹 Hunter returned with 1× ${INGREDIENTS[lootId]?.name||lootId}!`,'green');
+      }
     }
   }
 
-  // clear tables
   S.slots=S.slots.map(mkSlot);
-
-  // reset to daytime
   S.phase='day';S.phaseSecondsLeft=DAY_SEC;
   S.stamina=maxStamina();
   S.daysComplete++;S.day++;
 
-  // check game over
   if(S.gold<0){showGameOver(false,'bankruptcy');return;}
   if(S.day>TOTAL_DAYS){showGameOver(true,'');return;}
 
-  // transition to day
   document.getElementById('floor').classList.remove('night-floor');
   document.getElementById('phase-notice').classList.remove('show');
   showPhaseOverlay('day');
 
-  // roll event
   EVT=null;document.getElementById('event-banner').classList.remove('active');
   if(Math.random()<0.3){
     EVT=SPECIAL_EVENTS[Math.floor(Math.random()*SPECIAL_EVENTS.length)];
@@ -1527,8 +1467,6 @@ function endDay(){
   }
 
   addLog(`☀️ Day ${S.day-1} done! Dawn on day ${S.day}. Use the day to prep.`,'gold');
-
-  // run dawn automation
   runDawnAutomation();
 
   dayEndLock=false;
@@ -1613,17 +1551,36 @@ function renderShopDrinks(){
 function renderShopFood(){
   const el=document.getElementById('shop-food');
   if(!hasKitchen()){el.innerHTML='<div style="padding:14px;font-size:12px;color:var(--muted);text-align:center;">Buy Kitchen Setup or hire a Cook first.</div>';return;}
-  el.innerHTML=FOOD_MENU.map(f=>{const cooking=!!CQ[f.id];return shopItem(f.icon,f.name,`${f.desc} — ${f.salePrice}🪙 sale, +${f.tipBonus}🪙 tip`,f.cost,f.unlockLvl,cooking,S.gold>=f.cost,`cookFood('${f.id}');closeShop()`);}).join('');
+  // FIX: use CQ.some() — CQ is an array, not an object
+  el.innerHTML=FOOD_MENU.map(f=>{
+    const cooking=CQ.some(q=>q.foodId===f.id);
+    return shopItem(f.icon,f.name,`${f.desc} — ${f.salePrice}🪙 sale, +${f.tipBonus}🪙 tip`,f.cost,f.unlockLvl,cooking,S.gold>=f.cost,`cookFood('${f.id}');closeShop()`);
+  }).join('');
 }
 
 function renderShopStaff(){
-  document.getElementById('shop-staff').innerHTML=STAFF_CATALOG.map(s=>shopItem(s.icon,s.name,`${s.desc} Wage:${s.wage}🪙/day`,s.cost,s.lvlReq,hasStaff(s.id),S.gold>=s.cost,`buyStaff('${s.id}')`)).join('');
+  // FIX: stackable staff use baseCost (via stackableCost()), not cost
+  // FIX: stackable staff are never "owned" — you can always hire another
+  document.getElementById('shop-staff').innerHTML=STAFF_CATALOG.map(s=>{
+    const cost = s.stackable ? stackableCost(s.id) : s.cost;
+    const owned = s.stackable ? false : hasStaff(s.id);
+    const countLabel = s.stackable && staffCount(s.id) > 0 ? ` ×${staffCount(s.id)} hired` : '';
+    const wage = s.stackable ? stackableWage(s.id) : s.wage;
+    return shopItem(s.icon, s.name+countLabel, `${s.desc} Wage:${wage}🪙/day`, cost, s.lvlReq, owned, S.gold>=cost, `buyStaff('${s.id}')`);
+  }).join('');
 }
 
+// FIX: buyStaff — use stackableCost() for stackable staff, allow multiple hires
 function buyStaff(id){
-  const s=STAFF_CATALOG.find(x=>x.id===id);if(!s||S.gold<s.cost||hasStaff(id))return;
-  S.gold-=s.cost;S.staff.push({...s});
-  addLog(`${s.icon} ${s.name} hired! (${s.wage}🪙/day)`,'gold');
+  const s=STAFF_CATALOG.find(x=>x.id===id);
+  if(!s) return;
+  const cost = s.stackable ? stackableCost(id) : s.cost;
+  if(S.gold < cost){ toast(`Need ${cost}🪙.`); return; }
+  if(!s.stackable && hasStaff(id)){ toast('Already hired!'); return; }
+  S.gold -= cost;
+  const wage = s.stackable ? stackableWage(id) : s.wage;
+  S.staff.push({...s, wage});
+  addLog(`${s.icon} ${s.name} hired! (${wage}🪙/day)`,'gold');
   closeShop();render();
 }
 
@@ -1634,7 +1591,6 @@ function renderShopUpgrades(){
 function buyUpgrade(id){
   const u=UPGRADES_CATALOG.find(x=>x.id===id);if(!u||S.gold<u.cost||hasUpg(id))return;
   S.gold-=u.cost;UPG[id]=true;
-  // if lodge was bought, update stamina immediately
   if(id==='lodge'||id==='boots'){S.stamina=maxStamina();}
   addLog(`${u.icon} Upgrade: ${u.name}`,'gold');closeShop();render();
 }
@@ -1661,7 +1617,6 @@ function switchTab(tab){
 }
 
 function render(){
-  // header
   document.getElementById('gold-display').textContent=S.gold;
   document.getElementById('gold-sb').textContent=S.gold;
   document.getElementById('day-num').textContent=S.day;
@@ -1673,7 +1628,6 @@ function render(){
   document.getElementById('xp-fill').style.width=(next?Math.min(100,Math.round(S.xp/xpMax*100)):100)+'%';
   updatePhaseUI();
 
-  // sidebar
   document.getElementById('rep-val').textContent=repDisplay();
   document.getElementById('rep-bar').style.width=S.rep+'%';
   document.getElementById('rep-lbl').textContent=repTitle();
@@ -1690,7 +1644,6 @@ function render(){
   document.getElementById('stock-lines').innerHTML=
     ['ale','mead','wine','spirits'].map(d=>`<div>${DRINKS[d].icon} ${DRINKS[d].name}: ${S[d]}</div>`).join('');
 
-  // auto badges
   document.getElementById('auto-brew-badge').style.display=hasUpg('auto_brew')?'inline-flex':'none';
   document.getElementById('auto-cook-badge').style.display=hasUpg('auto_cook')?'inline-flex':'none';
 
@@ -1729,10 +1682,21 @@ function renderKitchen(){
   const locked=document.getElementById('kitchen-locked-msg'),panel=document.getElementById('kitchen-panel');
   if(!hasKitchen()){locked.style.display='block';panel.style.display='none';return;}
   locked.style.display='none';panel.style.display='block';
+
+  // Cook queue header
+  const queueHeader = document.getElementById('cook-queue-header');
+  if(CQ.length > 0) {
+    queueHeader.textContent = `(${CQ.length}/${maxCookSlots()} slots used)`;
+  } else {
+    queueHeader.textContent = `(${maxCookSlots()} slot${maxCookSlots()>1?'s':''} available)`;
+  }
+
   document.getElementById('food-grid').innerHTML=FOOD_MENU.filter(f=>f.unlockLvl<=S.level&&!(f.premium&&S.level<5)).map(food=>{
-    const cooking=CQ[food.id];
-    return `<div class="food-card"><div style="display:flex;align-items:center;gap:6px;"><span style="font-size:20px;">${food.icon}</span><div><div class="food-name">${food.name}</div><div class="food-desc">${food.desc}</div></div></div><div class="food-row"><div class="food-meta">💰${food.salePrice}|+${food.tipBonus}🪙</div>${cooking?`<div style="font-size:10px;color:var(--muted);">🕐${cooking}t</div>`:`<button class="cook-btn"${S.gold<food.cost?' disabled':''} onclick="cookFood('${food.id}')">Cook(${food.cost}🪙)</button>`}</div></div>`;
+    // FIX: CQ is an array — use .find(), not array index by string
+    const cooking=CQ.find(q=>q.foodId===food.id);
+    return `<div class="food-card"><div style="display:flex;align-items:center;gap:6px;"><span style="font-size:20px;">${food.icon}</span><div><div class="food-name">${food.name}</div><div class="food-desc">${food.desc}</div></div></div><div class="food-row"><div class="food-meta">💰${food.salePrice}|+${food.tipBonus}🪙</div>${cooking?`<div style="font-size:10px;color:var(--muted);">🕐${cooking.ticks}t</div>`:`<button class="cook-btn"${S.gold<food.cost?' disabled':''} onclick="cookFood('${food.id}')">Cook(${food.cost}🪙)</button>`}</div></div>`;
   }).join('');
+
   const rf=document.getElementById('ready-food'),nrf=document.getElementById('no-ready-food');
   if(!S.readyDishes.length){nrf.style.display='block';rf.innerHTML='';return;}
   nrf.style.display='none';
@@ -1754,11 +1718,13 @@ function renderStaffTab(){
   if(hasUpg('auto_restock'))autoActive.push('⚙️ Auto-Cellar: restocks mead/wine at dawn');
   if(hasUpg('auto_serve'))autoActive.push('🤖 Auto-Barmaid: serves guests at night');
   if(hasUpg('auto_collect'))autoActive.push('🏧 Auto-Till: collects payments at night');
+  if(staffCount('server')>0)autoActive.push(`🫱 ${staffCount('server')} Server${staffCount('server')>1?'s':''}: auto-serving guests`);
   document.getElementById('auto-list').innerHTML=autoActive.length?autoActive.map(a=>`<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,.08);">${a}</div>`).join(''):'<div style="font-size:12px;color:var(--muted);font-style:italic;">No automation yet. Buy upgrades!</div>';
-  document.getElementById('staff-summary').textContent=S.staff.length?`Wages: ${S.staff.reduce((a,s)=>a+s.wage,0)}🪙/day | ${S.staff.length} staff`:'Hire staff from the Shop!';
+  document.getElementById('staff-summary').textContent=S.staff.length?`Wages: ${S.staff.reduce((a,s)=>a+(s.wage||0),0)}🪙/day | ${S.staff.length} staff`:'Hire staff from the Shop!';
 }
 
-
+// ================================================================
+// LOG & TOAST
 // ================================================================
 function addLog(msg,type){
   const log=document.getElementById('event-log');
