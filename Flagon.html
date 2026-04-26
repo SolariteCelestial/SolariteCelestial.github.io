@@ -218,6 +218,29 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 /* DAY PHASE LOCKOUT NOTICE */
 .phase-notice{background:rgba(60,30,100,.3);border:1px solid rgba(120,80,200,.4);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#c0a0ff;font-family:'Cinzel',serif;display:none;}
 .phase-notice.show{display:block;}
+/* EXPEDITION */
+.exp-card{background:linear-gradient(160deg,#2a1a48,#1a1030);border:1.5px solid #5040a0;border-radius:10px;padding:8px;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;min-width:80px;max-width:100px;text-align:center;position:relative;flex-shrink:0;}
+.exp-card:hover{transform:translateY(-6px) scale(1.04);box-shadow:0 8px 20px rgba(80,40,180,.5);border-color:#9070e0;}
+.exp-card.disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.exp-card.selected{border-color:#c0a0ff;box-shadow:0 0 0 2px #c0a0ff44;}
+.exp-card-icon{font-size:26px;margin-bottom:3px;}
+.exp-card-name{font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:#c0a0ff;line-height:1.2;margin-bottom:3px;}
+.exp-card-desc{font-size:8px;color:#8060a0;line-height:1.3;}
+.exp-card-cost{position:absolute;top:-5px;right:-5px;background:#c0a0ff;color:#1a0a30;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.exp-card-effect{font-size:10px;color:#e0d0ff;margin-top:2px;font-weight:700;}
+.exp-zone-card{background:rgba(40,20,80,.4);border:1.5px solid #5040a0;border-radius:10px;padding:12px;cursor:pointer;transition:transform .15s,border-color .15s;}
+.exp-zone-card:hover:not(.locked-zone){transform:translateY(-2px);border-color:#9070e0;}
+.exp-zone-card.locked-zone{opacity:.4;cursor:not-allowed;}
+.exp-zone-icon{font-size:28px;margin-bottom:6px;}
+.exp-zone-name{font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:#c0a0ff;}
+.exp-zone-desc{font-size:11px;color:#8060a0;margin-top:3px;}
+.exp-zone-days{font-size:10px;color:#6040a0;margin-top:4px;}
+.exp-zone-loot{font-size:10px;color:#60a060;margin-top:2px;}
+.exp-zone-cost{font-size:11px;color:#e07070;font-weight:700;margin-top:4px;}
+.hunt-mg-btn{flex:1;padding:8px;font-family:'Cinzel',serif;font-size:12px;font-weight:600;border:1px solid #4a8a2a;border-radius:6px;background:rgba(74,138,42,.15);color:#8eda4a;cursor:pointer;}
+.hunt-mg-btn:hover{background:rgba(74,138,42,.3);}
+.hunt-mg-btn.primary{background:#5040a0;color:#fff;border-color:#7060c0;}
+.hunt-mg-btn.primary:hover{background:#6050b0;}
 </style>
 </head>
 <body>
@@ -289,7 +312,7 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
           🍖 Hire a Cook or buy the Kitchen upgrade to unlock food!
         </div>
         <div id="kitchen-panel" style="display:none;">
-          <div class="sec-title">Cook Food <span id="auto-cook-badge" class="auto-badge" style="display:none;">⚙️ AUTO</span></div>
+          <div class="sec-title">Cook Food <span id="auto-cook-badge" class="auto-badge" style="display:none;">⚙️ AUTO</span> <span id="cook-queue-header" style="font-size:9px;font-weight:400;color:var(--muted);margin-left:4px;"></span></div>
           <div class="food-grid" id="food-grid"></div>
           <div class="sec-title">Ready to Serve</div>
           <div id="ready-food"></div>
@@ -299,12 +322,13 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
 
       <!-- HUNTING TAB -->
       <div id="tab-hunting" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div class="sec-title" style="margin-bottom:0;">Hunting Grounds</div>
-          <div style="font-size:12px;font-family:'Cinzel',serif;color:var(--ale-gold);">🥾 <span id="hunt-stam-txt">10/10</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div class="sec-title" style="margin-bottom:0;">Expedition</div>
+          <div style="font-size:12px;font-family:'Cinzel',serif;color:var(--ale-gold);">🥾 <span id="hunt-stam-txt">10/10</span> stamina</div>
         </div>
-        <div style="height:6px;background:rgba(0,0,0,.3);border-radius:3px;margin-bottom:12px;"><div id="hunt-stam-bar" style="height:6px;background:linear-gradient(90deg,#3a7a3a,#6dc26d);border-radius:3px;transition:width .4s;width:100%;"></div></div>
-        <div id="hunt-day-only" class="phase-notice" style="display:none;">🌙 Hunting is a daytime activity. The forest is too dangerous at night!</div>
+        <div style="height:6px;background:rgba(0,0,0,.3);border-radius:3px;margin-bottom:10px;"><div id="hunt-stam-bar" style="height:6px;background:linear-gradient(90deg,#3a7a3a,#6dc26d);border-radius:3px;transition:width .4s;width:100%;"></div></div>
+        <div id="hunt-day-only" class="phase-notice" style="display:none;">🌙 Expeditions depart at dawn — return to this tab during the day.</div>
+        <div class="sec-title">Choose a Destination</div>
         <div id="hunt-zones" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
         <div class="sec-title">Traps <span style="font-size:10px;font-weight:400;color:var(--muted);">(passive overnight)</span></div>
         <div id="hunt-traps"></div>
@@ -361,21 +385,68 @@ body{font-family:'Lato',sans-serif;background:var(--dark-wood);color:var(--ink);
   <div class="log-wrap" id="event-log"></div>
 </div>
 
-<!-- HUNT MINIGAME -->
-<div class="hunt-minigame" id="hunt-minigame">
-  <div class="hunt-mg-panel">
-    <div class="hunt-mg-title" id="hm-title">🏹 The Hunt</div>
-    <div class="hunt-mg-sub" id="hm-sub">Click the animal before it escapes!</div>
-    <div class="hunt-timer-bar"><div class="hunt-timer-fill" id="hm-timer-fill"></div></div>
-    <div class="hunt-hits-row"><span id="hm-hits">Shots: 0/0</span><span id="hm-stamina">🥾 10 left</span></div>
-    <div class="hunt-mg-scene" id="hm-scene">
-      <div class="hunt-target" id="hm-target" onclick="hitTarget()">🦌</div>
+<!-- EXPEDITION MODAL -->
+<div class="modal-bg" id="expedition-modal" style="z-index:80;">
+  <div class="modal-panel" style="max-width:600px;padding:0;overflow:hidden;border-radius:14px;">
+    <!-- Header -->
+    <div id="exp-header" style="background:linear-gradient(135deg,#1a0a30,#2e1a50);padding:16px 20px;border-bottom:2px solid #6040b0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:#c0a0ff;" id="exp-zone-name">The Dark Forest</div>
+        <div style="font-size:12px;font-family:'Cinzel',serif;color:#8060c0;">Day <span id="exp-day">1</span> / <span id="exp-max-day">3</span></div>
+      </div>
+      <!-- Enemy -->
+      <div id="exp-enemy-row" style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="font-size:48px;" id="exp-enemy-icon">🐗</div>
+        <div style="flex:1;">
+          <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:#e0c0ff;" id="exp-enemy-name">Wild Boar</div>
+          <div style="font-size:10px;color:#8060c0;margin-bottom:4px;" id="exp-enemy-level">Level 5</div>
+          <div style="height:8px;background:rgba(0,0,0,.4);border-radius:4px;"><div id="exp-enemy-hp-bar" style="height:8px;background:linear-gradient(90deg,#c02020,#e05050);border-radius:4px;transition:width .4s;width:100%;"></div></div>
+          <div style="font-size:10px;color:#c08080;margin-top:2px;"><span id="exp-enemy-hp">30</span> / <span id="exp-enemy-maxhp">30</span> HP</div>
+        </div>
+      </div>
+      <!-- Player -->
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div style="font-size:10px;color:#8060c0;width:40px;">YOU</div>
+        <div style="flex:1;height:6px;background:rgba(0,0,0,.4);border-radius:3px;"><div id="exp-player-hp-bar" style="height:6px;background:linear-gradient(90deg,#208020,#40c040);border-radius:3px;transition:width .4s;width:100%;"></div></div>
+        <div style="font-size:10px;color:#80c080;white-space:nowrap;"><span id="exp-player-hp">30</span>/<span id="exp-player-maxhp">30</span> HP</div>
+      </div>
     </div>
-    <div class="hunt-mg-result" id="hm-result"></div>
-    <div class="hunt-mg-btns">
-      <button class="hunt-mg-btn" onclick="closeHuntGame()">← Retreat</button>
-      <button class="hunt-mg-btn primary" id="hm-again-btn" onclick="startHuntRound()" disabled>Hunt Again 🏹</button>
+    <!-- Battle log -->
+    <div id="exp-log" style="background:#120820;padding:8px 14px;height:60px;overflow-y:auto;font-size:11px;color:#c0a0e0;font-style:italic;"></div>
+    <!-- Hand of cards -->
+    <div style="background:#1a1030;padding:12px 14px 8px;">
+      <div style="font-size:10px;font-family:'Cinzel',serif;color:#6040b0;margin-bottom:8px;display:flex;justify-content:space-between;">
+        <span>⚡ Energy: <span id="exp-energy" style="color:#c0a0ff;font-weight:700;">3</span>/3</span>
+        <span style="color:#6040b0;" id="exp-deck-info">Draw: 5 | Discard: 0</span>
+      </div>
+      <div id="exp-hand" style="display:flex;gap:6px;flex-wrap:wrap;min-height:80px;"></div>
     </div>
+    <!-- Action buttons -->
+    <div id="exp-actions" style="background:#0d0818;padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="hunt-mg-btn primary" id="exp-end-turn-btn" onclick="expEndTurn()">End Turn →</button>
+      <button class="hunt-mg-btn" onclick="closeExpedition()">🏃 Flee (lose stamina)</button>
+    </div>
+    <!-- Victory/defeat overlay -->
+    <div id="exp-result-overlay" style="display:none;background:rgba(10,5,20,.95);position:absolute;inset:0;border-radius:14px;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;">
+      <div style="font-size:48px;" id="exp-result-icon">🎉</div>
+      <div style="font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:#c0a0ff;" id="exp-result-title">Victory!</div>
+      <div style="font-size:13px;color:#8060c0;text-align:center;" id="exp-result-sub"></div>
+      <div id="exp-loot-display" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0;"></div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="hunt-mg-btn primary" id="exp-continue-btn" onclick="expContinue()" style="display:none;">Next Day →</button>
+        <button class="hunt-mg-btn" onclick="closeExpedition()">Return to Tavern</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPEDITION ZONE PICKER -->
+<div class="modal-bg" id="exp-zone-modal" style="z-index:75;">
+  <div class="modal-panel" style="max-width:480px;">
+    <div class="modal-title">⚔️ Begin Expedition</div>
+    <div class="modal-sub">Choose your destination. Each day adds 5 enemy levels.</div>
+    <div id="exp-zone-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <button class="close-btn" onclick="document.getElementById('exp-zone-modal').classList.remove('open')">Cancel</button>
   </div>
 </div>
 
@@ -462,73 +533,151 @@ const GUEST_TYPES = [
   {name:'Dwarf',     icon:'⛏️', patience:13, orders:['ale','spirits'], tipBase:2, rep:2, xp:3},
 ];
 
+// ── FOOD MENU ── Each meat has distinct dishes, some crossovers via cheese/honey
 const FOOD_MENU = [
-  {id:'bread', name:'Fresh Bread',   icon:'🍞', time:5,  cost:3,  salePrice:6,  tipBonus:1, unlockLvl:1, premium:false, desc:'Simple, filling'},
-  {id:'stew',  name:'Hearty Stew',   icon:'🍲', time:9,  cost:6,  salePrice:12, tipBonus:2, unlockLvl:1, premium:false, desc:'Warms the bones'},
-  {id:'roast', name:'Roast Chicken', icon:'🍗', time:14, cost:9,  salePrice:18, tipBonus:3, unlockLvl:2, premium:false, desc:'Guests love it'},
-  {id:'pie',   name:'Meat Pie',      icon:'🥧', time:11, cost:8,  salePrice:15, tipBonus:3, unlockLvl:2, premium:false, desc:'Crispy crust'},
-  {id:'fish',  name:'Grilled Fish',  icon:'🐟', time:7,  cost:7,  salePrice:13, tipBonus:2, unlockLvl:2, premium:false, desc:'Fresh catch'},
-  {id:'soup',  name:'Mushroom Soup', icon:'🍄', time:6,  cost:5,  salePrice:10, tipBonus:2, unlockLvl:3, premium:false, desc:'Forest flavour'},
-  {id:'cake',  name:'Sweet Cake',    icon:'🎂', time:13, cost:10, salePrice:20, tipBonus:4, unlockLvl:4, premium:true,  desc:'Dessert special'},
-  {id:'feast', name:'Noble Feast',   icon:'🍖', time:18, cost:15, salePrice:30, tipBonus:6, unlockLvl:5, premium:true,  desc:'Impresses nobles'},
+  // Always available (no meat needed)
+  {id:'bread',       name:'Fresh Bread',       icon:'🍞', time:5,  cost:3,  salePrice:6,  tipBonus:1, unlockLvl:1, premium:false, desc:'Simple staple'},
+  {id:'honey_cake',  name:'Honey Cake',         icon:'🍯', time:8,  cost:5,  salePrice:11, tipBonus:2, unlockLvl:1, premium:false, desc:'Sweet & fragrant'},
+  {id:'cheese_plate',name:'Cheese Board',       icon:'🧀', time:5,  cost:4,  salePrice:9,  tipBonus:2, unlockLvl:1, premium:false, desc:'Aged selection'},
+  {id:'soup',        name:'Mushroom Soup',      icon:'🍄', time:6,  cost:5,  salePrice:10, tipBonus:2, unlockLvl:2, premium:false, desc:'Earthy broth'},
+  // Rabbit — delicate, gamey, works with herbs
+  {id:'rabbit_stew', name:'Rabbit Stew',        icon:'🍲', time:9,  cost:0,  salePrice:14, tipBonus:2, unlockLvl:1, premium:false, desc:'Slow-cooked & rich', meatReq:'rabbit'},
+  {id:'rabbit_pie',  name:'Rabbit & Herb Pie',  icon:'🥧', time:12, cost:2,  salePrice:18, tipBonus:3, unlockLvl:2, premium:false, desc:'Flaky pastry', meatReq:'rabbit'},
+  // Pheasant — refined, pairs with honey
+  {id:'pheasant_roast',name:'Roast Pheasant',   icon:'🍗', time:13, cost:2,  salePrice:20, tipBonus:3, unlockLvl:2, premium:false, desc:'Golden & crispy', meatReq:'pheasant'},
+  {id:'pheasant_honey',name:'Honey-Glazed Bird',icon:'🍖', time:11, cost:3,  salePrice:22, tipBonus:4, unlockLvl:3, premium:false, desc:'Sweet & smoky', meatReq:'pheasant'},
+  // Venison — rich, noble dish
+  {id:'venison_steak',name:'Venison Steak',     icon:'🥩', time:10, cost:2,  salePrice:22, tipBonus:4, unlockLvl:2, premium:false, desc:'Pan-seared, rare', meatReq:'venison'},
+  {id:'venison_feast',name:'Venison Banquet',   icon:'🍖', time:20, cost:5,  salePrice:35, tipBonus:7, unlockLvl:4, premium:true,  desc:'Impresses nobles', meatReq:'venison'},
+  // Boar — robust, hearty
+  {id:'boar_sausage', name:'Wild Boar Sausage', icon:'🌭', time:8,  cost:2,  salePrice:16, tipBonus:2, unlockLvl:2, premium:false, desc:'Spiced & smoky', meatReq:'boar'},
+  {id:'boar_feast',   name:'Roast Boar',        icon:'🐗', time:18, cost:4,  salePrice:30, tipBonus:5, unlockLvl:4, premium:true,  desc:'Centrepiece dish', meatReq:'boar'},
+  // Salmon — fresh, elegant
+  {id:'salmon_fillet',name:'Pan Salmon',        icon:'🐟', time:7,  cost:2,  salePrice:15, tipBonus:2, unlockLvl:2, premium:false, desc:'Crispy skin', meatReq:'salmon'},
+  {id:'salmon_chowder',name:'Salmon Chowder',   icon:'🥘', time:9,  cost:3,  salePrice:18, tipBonus:3, unlockLvl:3, premium:false, desc:'Creamy & warming', meatReq:'salmon'},
+  // Duck — fatty, goes with orange/honey
+  {id:'duck_breast',  name:'Duck Breast',       icon:'🦆', time:11, cost:2,  salePrice:19, tipBonus:3, unlockLvl:3, premium:false, desc:'Rendered fat, tender', meatReq:'duck'},
+  {id:'duck_honey',   name:'Honey Duck Confit', icon:'🍯', time:15, cost:4,  salePrice:26, tipBonus:5, unlockLvl:4, premium:false, desc:'Slow & glazed', meatReq:'duck'},
+  // Elk — rare, very valuable
+  {id:'elk_roast',    name:'Elk Roast',         icon:'🦌', time:16, cost:3,  salePrice:28, tipBonus:5, unlockLvl:4, premium:false, desc:'Lean & majestic', meatReq:'elk'},
+  // Goat — rustic, pairs with cheese
+  {id:'goat_stew',    name:'Goat & Cheese Stew',icon:'🍲', time:10, cost:3,  salePrice:17, tipBonus:3, unlockLvl:3, premium:false, desc:'Tangy & filling', meatReq:'goat'},
+  // Bear — exotic, rare
+  {id:'bear_haunch',  name:'Bear Haunch',       icon:'🐻', time:20, cost:5,  salePrice:32, tipBonus:6, unlockLvl:5, premium:true,  desc:'Legendary dish', meatReq:'bear'},
+  // Premium/magical
+  {id:'golden_terrine',name:'Golden Hare Terrine',icon:'✨',time:14, cost:6,  salePrice:30, tipBonus:6, unlockLvl:5, premium:true,  desc:'Ethereal flavour', meatReq:'golden_hare'},
+  {id:'spirit_broth', name:'Spirit Venison Broth',icon:'🌟',time:18, cost:8,  salePrice:40, tipBonus:8, unlockLvl:6, premium:true,  desc:'Magical, unforgettable', meatReq:'spirit_venison'},
 ];
 
-const HUNT_ZONES = [
-  {id:'meadow',   name:'Meadow',         icon:'🌾', lvlReq:1, staminaCost:2, animals:[
-    {name:'Rabbit',  icon:'🐇', ing:'rabbit',  yield:[1,2], chance:.75, diff:'easy'},
-    {name:'Pheasant',icon:'🦚', ing:'pheasant',yield:[1,1], chance:.55, diff:'easy'},
-  ]},
-  {id:'forest',   name:'Dark Forest',    icon:'🌲', lvlReq:2, staminaCost:3, animals:[
-    {name:'Deer',icon:'🦌', ing:'venison',yield:[2,4], chance:.55, diff:'medium'},
-    {name:'Boar',icon:'🐗', ing:'boar',   yield:[2,3], chance:.45, diff:'hard'},
-    {name:'Fox', icon:'🦊', ing:'fox',    yield:[1,2], chance:.65, diff:'medium'},
-  ]},
-  {id:'river',    name:'River Bank',     icon:'🏞️', lvlReq:2, staminaCost:2, animals:[
-    {name:'Salmon',icon:'🐟', ing:'salmon',yield:[2,4], chance:.7,  diff:'easy'},
-    {name:'Duck',  icon:'🦆', ing:'duck',  yield:[1,2], chance:.6,  diff:'easy'},
-  ]},
-  {id:'highland', name:'Highland Pass',  icon:'⛰️', lvlReq:4, staminaCost:4, animals:[
-    {name:'Elk',           icon:'🦌', ing:'elk',  yield:[3,6], chance:.45, diff:'hard'},
-    {name:'Mountain Goat', icon:'🐐', ing:'goat', yield:[2,4], chance:.5,  diff:'medium'},
-    {name:'Bear',          icon:'🐻', ing:'bear', yield:[3,5], chance:.3,  diff:'vhard'},
-  ]},
-  {id:'enchanted',name:'Enchanted Grove',icon:'🍄', lvlReq:6, staminaCost:3, animals:[
-    {name:'Golden Hare', icon:'🐇', ing:'golden_hare',   yield:[1,2], chance:.5,  diff:'medium'},
-    {name:'Spirit Deer', icon:'🦌', ing:'spirit_venison',yield:[2,3], chance:.35, diff:'vhard'},
-  ]},
+// ── EXPEDITION ZONES ──
+const EXP_ZONES = [
+  {id:'meadow',   name:'The Meadows',      icon:'🌾', lvlReq:1, days:[1,2,3], staminaCost:3,
+   desc:'Rolling fields, easy prey.', loot:['rabbit','pheasant','honey','cheese_soft'],
+   enemies:['rabbit','pheasant','fox']},
+  {id:'forest',   name:'Dark Forest',      icon:'🌲', lvlReq:2, days:[2,3,5], staminaCost:4,
+   desc:'Dense woods, dangerous game.', loot:['venison','boar','fox','cheese_aged'],
+   enemies:['boar','wolf','deer']},
+  {id:'river',    name:'River Delta',      icon:'🏞️', lvlReq:2, days:[1,2,3], staminaCost:3,
+   desc:'Waterways teeming with fish.', loot:['salmon','duck','honey'],
+   enemies:['salmon','duck','river_troll']},
+  {id:'highland', name:'Highland Pass',    icon:'⛰️', lvlReq:4, days:[3,5,7], staminaCost:5,
+   desc:'Treacherous peaks.', loot:['elk','goat','cheese_mountain','honey_wild'],
+   enemies:['elk','goat','bear','mountain_lion']},
+  {id:'enchanted',name:'Enchanted Grove',  icon:'🍄', lvlReq:6, days:[3,5,7], staminaCost:5,
+   desc:'Strange magic lingers.', loot:['golden_hare','spirit_venison','honey_magical'],
+   enemies:['fey_deer','spirit_wolf','ancient_boar']},
 ];
 
-const INGREDIENTS = {
-  rabbit:        {name:'Rabbit',        icon:'🐇', cookable:['stew','pie']},
-  pheasant:      {name:'Pheasant',      icon:'🦚', cookable:['roast','pie']},
-  venison:       {name:'Venison',       icon:'🍖', cookable:['roast','stew','feast']},
-  boar:          {name:'Wild Boar',     icon:'🐗', cookable:['roast','feast']},
-  fox:           {name:'Fox Meat',      icon:'🦊', cookable:['stew']},
-  salmon:        {name:'Salmon',        icon:'🐟', cookable:['fish','soup']},
-  duck:          {name:'Duck',          icon:'🦆', cookable:['roast','pie']},
-  elk:           {name:'Elk Venison',   icon:'🦌', cookable:['feast','roast']},
-  goat:          {name:'Goat',          icon:'🐐', cookable:['stew','pie']},
-  bear:          {name:'Bear Meat',     icon:'🐻', cookable:['feast']},
-  golden_hare:   {name:'Golden Hare',   icon:'✨', cookable:['cake','feast']},
-  spirit_venison:{name:'Spirit Venison',icon:'🌟', cookable:['feast']},
+// ── ENEMY TEMPLATES ──
+const ENEMIES = {
+  rabbit:       {name:'Rabbit',         icon:'🐇', baseHp:8,  baseDmg:2,  baseDef:0, drop:'rabbit',        xp:5},
+  pheasant:     {name:'Pheasant',       icon:'🦚', baseHp:10, baseDmg:3,  baseDef:0, drop:'pheasant',      xp:6},
+  fox:          {name:'Fox',            icon:'🦊', baseHp:14, baseDmg:5,  baseDef:1, drop:null,             xp:8},
+  deer:         {name:'Deer',           icon:'🦌', baseHp:20, baseDmg:4,  baseDef:1, drop:'venison',        xp:10},
+  boar:         {name:'Wild Boar',      icon:'🐗', baseHp:28, baseDmg:7,  baseDef:2, drop:'boar',           xp:14},
+  wolf:         {name:'Forest Wolf',    icon:'🐺', baseHp:22, baseDmg:8,  baseDef:1, drop:null,             xp:12},
+  salmon:       {name:'Giant Salmon',   icon:'🐟', baseHp:12, baseDmg:3,  baseDef:0, drop:'salmon',         xp:7},
+  duck:         {name:'Duck',           icon:'🦆', baseHp:10, baseDmg:3,  baseDef:0, drop:'duck',           xp:6},
+  river_troll:  {name:'River Troll',    icon:'👹', baseHp:35, baseDmg:10, baseDef:3, drop:null,             xp:20},
+  elk:          {name:'Elk',            icon:'🦌', baseHp:40, baseDmg:8,  baseDef:2, drop:'elk',            xp:18},
+  goat:         {name:'Mountain Goat',  icon:'🐐', baseHp:22, baseDmg:5,  baseDef:2, drop:'goat',           xp:12},
+  bear:         {name:'Bear',           icon:'🐻', baseHp:55, baseDmg:12, baseDef:4, drop:'bear',           xp:28},
+  mountain_lion:{name:'Mountain Lion',  icon:'🦁', baseHp:45, baseDmg:14, baseDef:3, drop:null,             xp:25},
+  fey_deer:     {name:'Fey Deer',       icon:'🦌', baseHp:30, baseDmg:8,  baseDef:3, drop:'golden_hare',    xp:22},
+  spirit_wolf:  {name:'Spirit Wolf',    icon:'🐺', baseHp:38, baseDmg:12, baseDef:4, drop:null,             xp:26},
+  ancient_boar: {name:'Ancient Boar',   icon:'🐗', baseHp:65, baseDmg:15, baseDef:5, drop:'spirit_venison', xp:35},
 };
 
-const TRAP_TYPES = [
-  {id:'snare',  name:'Rope Snare', icon:'🪤', cost:15, lvlReq:1, ings:['rabbit','pheasant','fox'], yield:[1,2], desc:'Catches small game.'},
-  {id:'net',    name:'River Net',  icon:'🎣', cost:20, lvlReq:2, ings:['salmon','duck'],            yield:[2,4], desc:'Set in the river.'},
-  {id:'pitfall',name:'Pit Trap',   icon:'⛏️', cost:30, lvlReq:3, ings:['boar','venison','goat'],    yield:[1,3], desc:'For medium prey.'},
+// ── BATTLE CARDS ──
+// Player starts with a basic deck; more can be found on expeditions
+const BASE_CARDS = [
+  {id:'strike',    name:'Strike',      icon:'⚔️',  cost:1, desc:'Deal 6 damage.',         effect:{dmg:6}},
+  {id:'strike',    name:'Strike',      icon:'⚔️',  cost:1, desc:'Deal 6 damage.',         effect:{dmg:6}},
+  {id:'strike',    name:'Strike',      icon:'⚔️',  cost:1, desc:'Deal 6 damage.',         effect:{dmg:6}},
+  {id:'defend',    name:'Defend',      icon:'🛡️',  cost:1, desc:'Gain 5 block.',          effect:{block:5}},
+  {id:'defend',    name:'Defend',      icon:'🛡️',  cost:1, desc:'Gain 5 block.',          effect:{block:5}},
+  {id:'quick_shot',name:'Quick Shot',  icon:'🏹',  cost:1, desc:'Deal 4 damage twice.',   effect:{dmg:4,hits:2}},
+  {id:'bash',      name:'Bash',        icon:'🔨',  cost:2, desc:'Deal 10 damage, stun 1.',effect:{dmg:10,stun:1}},
+  {id:'rest',      name:'Rest',        icon:'💤',  cost:0, desc:'Heal 4 HP.',             effect:{heal:4}},
+  {id:'shout',     name:'Battle Cry',  icon:'📣',  cost:0, desc:'Gain 2 energy next turn.',effect:{energy:2}},
+  {id:'trap_card', name:'Set Trap',    icon:'🪤',  cost:1, desc:'Deal 0 dmg; enemy skips next attack.',effect:{dmg:0,stun:1}},
 ];
 
+const LOOT_CARDS = [
+  {id:'heavy_strike',name:'Heavy Strike',icon:'⚔️', cost:2,desc:'Deal 16 damage.',          effect:{dmg:16}},
+  {id:'whirlwind',   name:'Whirlwind',   icon:'🌀', cost:3,desc:'Deal 5 dmg × energy left.',effect:{dmg:5,xEnergy:true}},
+  {id:'barricade',   name:'Barricade',   icon:'🏰', cost:2,desc:'Gain 10 block.',            effect:{block:10}},
+  {id:'pummel',      name:'Pummel',      icon:'👊', cost:1,desc:'Deal 4 dmg × 3 hits.',      effect:{dmg:4,hits:3}},
+  {id:'adrenaline',  name:'Adrenaline',  icon:'⚡', cost:0,desc:'Draw 2 cards, gain 1 energy.',effect:{draw:2,energy:1}},
+  {id:'cleave',      name:'Cleave',      icon:'🗡️', cost:1,desc:'Deal 8 damage, draw 1.',    effect:{dmg:8,draw:1}},
+  {id:'regroup',     name:'Regroup',     icon:'💪', cost:1,desc:'Heal 6 HP, draw 1.',        effect:{heal:6,draw:1}},
+  {id:'foragers_eye',name:"Forager's Eye",icon:'👁️',cost:0,desc:'Look at top 2 cards.',      effect:{scry:2}},
+];
+
+// ── INGREDIENTS & COLLECTIBLES ──
+const INGREDIENTS = {
+  rabbit:        {name:'Rabbit',        icon:'🐇', cookable:['rabbit_stew','rabbit_pie']},
+  pheasant:      {name:'Pheasant',      icon:'🦚', cookable:['pheasant_roast','pheasant_honey']},
+  venison:       {name:'Venison',       icon:'🍖', cookable:['venison_steak','venison_feast']},
+  boar:          {name:'Wild Boar',     icon:'🐗', cookable:['boar_sausage','boar_feast']},
+  salmon:        {name:'Salmon',        icon:'🐟', cookable:['salmon_fillet','salmon_chowder']},
+  duck:          {name:'Duck',          icon:'🦆', cookable:['duck_breast','duck_honey']},
+  elk:           {name:'Elk',           icon:'🦌', cookable:['elk_roast']},
+  goat:          {name:'Goat',          icon:'🐐', cookable:['goat_stew']},
+  bear:          {name:'Bear',          icon:'🐻', cookable:['bear_haunch']},
+  golden_hare:   {name:'Golden Hare',   icon:'✨', cookable:['golden_terrine']},
+  spirit_venison:{name:'Spirit Venison',icon:'🌟', cookable:['spirit_broth']},
+  // Non-meat
+  honey:         {name:'Honey',         icon:'🍯', cookable:['honey_cake','pheasant_honey','duck_honey']},
+  honey_wild:    {name:'Wild Honey',    icon:'🍯', cookable:['honey_cake','pheasant_honey','duck_honey']},
+  honey_magical: {name:'Magical Honey', icon:'✨', cookable:['golden_terrine','honey_cake']},
+  cheese_soft:   {name:'Soft Cheese',   icon:'🧀', cookable:['cheese_plate','goat_stew']},
+  cheese_aged:   {name:'Aged Cheese',   icon:'🧀', cookable:['cheese_plate','rabbit_pie']},
+  cheese_mountain:{name:'Mountain Cheese',icon:'🧀',cookable:['cheese_plate','goat_stew','elk_roast']},
+};
+
+// ── TRAP TYPES (still used passively) ──
+const TRAP_TYPES = [
+  {id:'snare',  name:'Rope Snare', icon:'🪤', cost:15, lvlReq:1, ings:['rabbit','pheasant'], yield:[1,2], desc:'Catches small game.'},
+  {id:'net',    name:'River Net',  icon:'🎣', cost:20, lvlReq:2, ings:['salmon','duck'],      yield:[1,2], desc:'Set in the river.'},
+  {id:'pitfall',name:'Pit Trap',   icon:'⛏️', cost:30, lvlReq:3, ings:['boar','venison'],     yield:[1,1], desc:'For medium prey.'},
+];
+
+
+
 const STAFF_CATALOG = [
-  {id:'barmaid',  name:'Barmaid',     icon:'🙋', desc:'Guests wait 4 ticks longer.',              cost:30, wage:3, lvlReq:1, stat:'Patience: +4'},
-  {id:'guard',    name:'Guard',       icon:'🛡️', desc:'Reduces rep loss from angry guests.',       cost:40, wage:4, lvlReq:1, stat:'Rep Guard: Active'},
-  {id:'cook',     name:'Cook',        icon:'👨‍🍳', desc:'Unlocks kitchen. Food 30% faster.',          cost:55, wage:5, lvlReq:1, stat:'Kitchen Speed: +30%'},
-  {id:'sommelier',name:'Sommelier',   icon:'🍾', desc:'Wine & spirits +3🪙. Nobles tip +3.',        cost:70, wage:6, lvlReq:3, stat:'Premium Drinks: Boosted'},
-  {id:'musician', name:'Musician',    icon:'🎶', desc:'Rep +1/guest. Bards tip +5.',               cost:65, wage:5, lvlReq:3, stat:'Ambiance: Excellent'},
-  {id:'cleaner',  name:'Cleaner',     icon:'🧹', desc:'Tables instant-reset on guest leave.',      cost:50, wage:4, lvlReq:2, stat:'Turnover: Instant'},
-  {id:'greeter',  name:'Greeter',     icon:'🎩', desc:'Noble & Duchess visits doubled.',            cost:80, wage:7, lvlReq:4, stat:'Elite Guests: +100%'},
-  {id:'brewer',   name:'Brewer',      icon:'🧪', desc:'Ale yields 8 per brew, costs 4🪙.',         cost:60, wage:5, lvlReq:2, stat:'Brew Output: +60%'},
-  {id:'hunter',   name:'Hunter',      icon:'🏹', desc:'+5 stamina. Brings ingredients at dawn.',   cost:60, wage:5, lvlReq:2, stat:'Daily Hunt: Active'},
+  // Stackable staff — buy multiple, cost increases each time
+  {id:'server',   name:'Server',      icon:'🫱', desc:'Serves one waiting guest per tick automatically. Buy multiple for more coverage.', baseCost:35, wage:3, lvlReq:1, stat:'Auto-Serves: 1/tick', stackable:true},
+  {id:'cook',     name:'Cook',        icon:'👨‍🍳', desc:'First cook unlocks kitchen & speeds cooking. Each extra cook auto-queues one dish per tick.', baseCost:55, wage:5, lvlReq:1, stat:'Kitchen + Auto-Cook', stackable:true},
+  // Unique staff
+  {id:'barmaid',  name:'Barmaid',     icon:'🙋', desc:'Guests wait 4 ticks longer before leaving.',              cost:30, wage:3, lvlReq:1, stat:'Patience: +4'},
+  {id:'guard',    name:'Guard',       icon:'🛡️', desc:'Reduces rep loss from angry guests.',                     cost:40, wage:4, lvlReq:1, stat:'Rep Guard: Active'},
+  {id:'sommelier',name:'Sommelier',   icon:'🍾', desc:'Wine & spirits +3🪙. Nobles tip +3.',                     cost:70, wage:6, lvlReq:3, stat:'Premium Drinks: Boosted'},
+  {id:'musician', name:'Musician',    icon:'🎶', desc:'Rep +1/guest. Bards tip +5.',                            cost:65, wage:5, lvlReq:3, stat:'Ambiance: Excellent'},
+  {id:'cleaner',  name:'Cleaner',     icon:'🧹', desc:'Tables reset instantly on guest leave.',                  cost:50, wage:4, lvlReq:2, stat:'Turnover: Instant'},
+  {id:'greeter',  name:'Greeter',     icon:'🎩', desc:'Noble & Duchess visits doubled.',                         cost:80, wage:7, lvlReq:4, stat:'Elite Guests: +100%'},
+  {id:'brewer',   name:'Brewer',      icon:'🧪', desc:'Ale yields 8 per brew, costs 4🪙.',                      cost:60, wage:5, lvlReq:2, stat:'Brew Output: +60%'},
+  {id:'hunter',   name:'Hunter',      icon:'🏹', desc:'+5 stamina. Brings ingredients at dawn.',                cost:60, wage:5, lvlReq:2, stat:'Daily Hunt: Active'},
 ];
 
 const UPGRADES_CATALOG = [
@@ -586,13 +735,18 @@ function initState() {
     readyDishes:[],
     larder:{},
     traps:[],
-    phase:'day',     // 'day' | 'night'
+    stamina:10,
+    // Expedition
+    playerDeck:[...BASE_CARDS.map(c=>({...c}))],
+    playerHp:30, playerMaxHp:30,
+    expRunning:false, expZone:null, expDay:0, expMaxDays:0,
+    expLoot:[], expNewCards:[],
+    phase:'day',
     phaseSecondsLeft: DAY_SEC,
   };
-  UPG={};CQ={};EVT=null;dayEndLock=false;curShopTab='drinks';
-  huntMG={zone:null,animal:null,active:false,hits:0,misses:0,timerH:null,moveH:null};
+  UPG={};CQ=[];EVT=null;dayEndLock=false;curShopTab='drinks';
   S.slots = Array.from({length:3}, mkSlot);
-  S.stamina = 10; // will be properly set after helpers are defined
+  S.stamina = 10;
 }
 function mkSlot(){return{status:'empty',guest:null,timer:0,hasFoodOrder:false,foodItem:null,foodReady:false};}
 
@@ -600,12 +754,34 @@ function mkSlot(){return{status:'empty',guest:null,timer:0,hasFoodOrder:false,fo
 // HELPERS
 // ================================================================
 const hasStaff = id => !!S.staff.find(s=>s.id===id);
+const staffCount = id => S.staff.filter(s=>s.id===id).length;
 const hasUpg   = id => !!UPG[id];
-const hasCook  = ()  => hasStaff('cook');
+const hasCook  = ()  => staffCount('cook') > 0;
 const hasKitchen = () => hasCook() || hasUpg('kitchen');
 const getLv    = ()  => LEVELS[S.level-1];
 const getNextLv= ()  => LEVELS[S.level] || null;
 const isNight  = ()  => S.phase === 'night';
+
+// Max simultaneous cook queue slots:
+// 1 from kitchen setup/first cook, +1 per additional cook
+function maxCookSlots() {
+  let slots = 0;
+  if(hasKitchen()) slots = 1;         // kitchen alone = 1 slot (manual)
+  if(hasCook()) slots = Math.max(slots, staffCount('cook')); // each cook = 1 slot
+  return slots;
+}
+
+// Cost of next stackable hire (scales up 40% per hire)
+function stackableCost(id) {
+  const base = STAFF_CATALOG.find(s=>s.id===id)?.baseCost || 50;
+  const owned = staffCount(id);
+  return Math.round(base * Math.pow(1.4, owned));
+}
+
+// Wage of stackable staff (flat per person)
+function stackableWage(id) {
+  return STAFF_CATALOG.find(s=>s.id===id)?.wage || 3;
+}
 
 function maxStamina() {
   return 10
@@ -684,11 +860,21 @@ function guestPool() {
 }
 
 function guestChance() {
-  let b = 0.28 + (S.repTotal/300)*0.42;
-  if(hasStaff('barmaid')) b += 0.1;
+  // Base chance of at least one guest arriving per tick at night
+  let b = 0.55 + (S.repTotal/300)*0.35;
+  if(hasStaff('barmaid')) b += 0.08;
   if(S.level>=5) b += 0.05;
   if(EVT&&EVT.guestMult) b *= EVT.guestMult;
-  return Math.min(b, 0.88);
+  return Math.min(b, 0.97);
+}
+
+// How many guests can arrive in one tick (1–3 depending on rep/level)
+function maxGuestsPerTick() {
+  let max = 1;
+  if(S.repTotal >= 50)  max = 2;
+  if(S.repTotal >= 150) max = 3;
+  if(EVT&&EVT.guestMult&&EVT.guestMult>1.3) max = Math.min(max+1, 4);
+  return max;
 }
 
 function pickDrink(preferred) {
@@ -729,40 +915,6 @@ function runDawnAutomation() {
   if(hasUpg('auto_restock')) {
     if(S.mead===0 && S.gold>=8){ S.gold-=8; S.mead+=4; addLog('⚙️ Auto-Cellar bought mead.'); }
     if(S.wine===0 && S.gold>=12){ S.gold-=12; S.wine+=3; addLog('⚙️ Auto-Cellar bought wine.'); }
-  }
-  // auto-cook: start cooking the cheapest available dish if larder has ingredients
-  if(hasUpg('auto_cook') && hasKitchen()) {
-    const allIngs = Object.keys(S.larder).filter(id=>S.larder[id]>0);
-    for(const ingId of allIngs) {
-      const ing = INGREDIENTS[ingId];
-      if(!ing) continue;
-      const cookable = ing.cookable.map(fid=>FOOD_MENU.find(f=>f.id===fid)).filter(f=>f&&f.unlockLvl<=S.level&&!CQ[f.id]);
-      if(cookable.length) {
-        cookable.sort((a,b)=>a.cost-b.cost);
-        const food = cookable[0];
-        const disc = Math.ceil(food.cost*0.4);
-        if(S.gold>=disc){ S.gold-=disc; S.larder[ingId]--; if(S.larder[ingId]<=0)delete S.larder[ingId]; CQ[food.id]=Math.ceil(food.time*(hasCook()?0.7:1)); addLog(`⚙️ Auto-Kitchen started cooking ${food.icon} ${food.name}.`); break; }
-      }
-    }
-  }
-}
-
-function runNightAutomation() {
-  // auto-serve waiting tables
-  if(hasUpg('auto_serve')) {
-    S.slots.forEach((ts,i)=>{
-      if(ts.status==='waiting'){
-        let drinkId=null;
-        for(const d of ts.guest.orders){drinkId=pickDrink(d);if(drinkId)break;}
-        if(drinkId){S[drinkId]--;ts.status='served';const extra=hasUpg('hearth')?2:0;ts.timer=(hasCook()?6:4)+extra+(S.level>=3?1:0);if(hasKitchen()&&S.hungerLevel>35&&Math.random()<0.5)ts.hasFoodOrder=true;addLog(`⚙️ Auto-Barmaid served ${DRINKS[drinkId].icon} to the ${ts.guest.name}.`,'gold');}
-      }
-    });
-  }
-  // auto-collect payment
-  if(hasUpg('auto_collect')) {
-    S.slots.forEach((ts,i)=>{
-      if(ts.status==='ready') collectPayment(i);
-    });
   }
 }
 
@@ -828,22 +980,26 @@ function collectPayment(i){
 function cookFood(foodId){
   const food=FOOD_MENU.find(f=>f.id===foodId);
   if(!food||!hasKitchen())return;
+  if(CQ.length>=maxCookSlots()){toast(`Kitchen full! Max ${maxCookSlots()} dish${maxCookSlots()>1?'es':''} at once.`);return;}
+  if(CQ.find(q=>q.foodId===foodId)){toast('Already cooking that dish!');return;}
   if(S.gold<food.cost){toast(`Need ${food.cost}🪙.`);return;}
-  if(CQ[foodId]){toast('Already cooking that!');return;}
-  S.gold-=food.cost;CQ[foodId]=Math.ceil(food.time*(hasCook()?0.7:1));
-  addLog(`🍳 Cooking ${food.icon} ${food.name}...`);render();
+  S.gold-=food.cost;
+  CQ.push({foodId, ticks:Math.ceil(food.time*(hasCook()?0.7:1))});
+  addLog(`🍳 Cooking ${food.icon} ${food.name}... (${CQ.length}/${maxCookSlots()} slots used)`);render();
 }
 
 function cookWithIngredient(foodId,ingId){
   const food=FOOD_MENU.find(f=>f.id===foodId);
   if(!food||!hasKitchen())return;
+  if(CQ.length>=maxCookSlots()){toast(`Kitchen full! (${maxCookSlots()} slots)`);return;}
+  if(CQ.find(q=>q.foodId===foodId)){toast('Already cooking that!');return;}
   if(!(S.larder[ingId]>0)){toast('No ingredient!');return;}
-  if(CQ[foodId]){toast('Already cooking that!');return;}
-  const disc=Math.ceil(food.cost*0.4);
-  if(S.gold<disc){toast(`Need ${disc}🪙.`);return;}
-  S.gold-=disc;S.larder[ingId]--;if(S.larder[ingId]<=0)delete S.larder[ingId];
-  CQ[foodId]=Math.ceil(food.time*(hasCook()?0.7:1));
-  addLog(`🍳 Cooking ${food.icon} with ${INGREDIENTS[ingId]?.name||ingId} (${disc}🪙).`);render();
+  // meatReq dishes cost only the "extra" cost (since meat is the main ingredient)
+  const baseCost=food.meatReq?food.cost:Math.ceil(food.cost*0.4);
+  if(S.gold<baseCost){toast(`Need ${baseCost}🪙.`);return;}
+  S.gold-=baseCost;S.larder[ingId]--;if(S.larder[ingId]<=0)delete S.larder[ingId];
+  CQ.push({foodId, ticks:Math.ceil(food.time*(hasCook()?0.7:1))});
+  addLog(`🍳 Cooking ${food.icon} ${food.name} with ${INGREDIENTS[ingId]?.name||ingId} (${baseCost}🪙).`);render();
 }
 
 function collectDish(foodId){
@@ -854,84 +1010,306 @@ function collectDish(foodId){
 }
 
 // ================================================================
-// HUNTING
 // ================================================================
-function openHuntGame(zoneId){
-  if(isNight()){toast('Too dark to hunt! Come back during the day.');return;}
-  const zone=HUNT_ZONES.find(z=>z.id===zoneId);
-  if(!zone)return;
-  if(S.level<zone.lvlReq){toast(`Need Level ${zone.lvlReq}!`);return;}
-  if(S.stamina<zone.staminaCost){toast(`Not enough stamina! Need ${zone.staminaCost}.`);return;}
-  const animal=zone.animals[Math.floor(Math.random()*zone.animals.length)];
-  huntMG={zone,animal,active:false,hits:0,misses:0,timerH:null,moveH:null};
-  document.getElementById('hm-title').textContent=`🏹 Hunting in ${zone.name}`;
-  document.getElementById('hm-sub').textContent=`A ${animal.name} ${animal.icon} appeared! Click it.`;
-  document.getElementById('hm-result').textContent='';
-  document.getElementById('hm-target').textContent=animal.icon;
-  document.getElementById('hm-target').style.display='block';
-  document.getElementById('hm-again-btn').disabled=true;
-  document.getElementById('hunt-minigame').classList.add('open');
-  updateHuntHUD();setTimeout(startHuntRound,400);
-}
+// EXPEDITION SYSTEM (Slay the Spire style)
+// ================================================================
 
-function updateHuntHUD(){
-  document.getElementById('hm-hits').textContent=`Shots: ${huntMG.hits}hit/${huntMG.misses}miss`;
-  document.getElementById('hm-stamina').textContent=`🥾${S.stamina}left`;
-}
+// ── Deck helpers ──
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr; }
 
-function startHuntRound(){
-  if(!huntMG.zone)return;
-  if(S.stamina<huntMG.zone.staminaCost){document.getElementById('hm-result').textContent='😓 Out of stamina!';document.getElementById('hm-again-btn').disabled=true;return;}
-  huntMG.active=true;S.stamina-=huntMG.zone.staminaCost;
-  document.getElementById('hm-result').textContent='';document.getElementById('hm-again-btn').disabled=true;
-  document.getElementById('hm-target').style.display='block';
-  updateHuntHUD();positionTarget(true);
-  const diff=huntMG.animal.diff;
-  const dur=diff==='easy'?6000:diff==='medium'?4500:diff==='hard'?3500:2500;
-  const move=diff==='easy'?1200:diff==='medium'?850:diff==='hard'?600:400;
-  const fill=document.getElementById('hm-timer-fill');
-  fill.style.transition='none';fill.style.width='100%';
-  setTimeout(()=>{fill.style.transition=`width ${dur}ms linear`;fill.style.width='0%';},50);
-  clearInterval(huntMG.moveH);huntMG.moveH=setInterval(()=>positionTarget(false),move);
-  clearTimeout(huntMG.timerH);huntMG.timerH=setTimeout(()=>endHuntRound(false),dur);
-}
-
-function positionTarget(instant){
-  const sc=document.getElementById('hm-scene'),tg=document.getElementById('hm-target');
-  const sw=Math.max(10,sc.clientWidth-60),sh=Math.max(10,sc.clientHeight-60);
-  tg.style.transition=instant?'none':'left .22s ease, top .22s ease';
-  tg.style.left=Math.floor(Math.random()*sw)+'px';tg.style.top=Math.floor(Math.random()*sh)+'px';
-}
-
-function hitTarget(){if(!huntMG.active)return;clearTimeout(huntMG.timerH);clearInterval(huntMG.moveH);endHuntRound(true);}
-
-function endHuntRound(hit){
-  huntMG.active=false;clearTimeout(huntMG.timerH);clearInterval(huntMG.moveH);
-  document.getElementById('hm-target').style.display='none';
-  document.getElementById('hm-timer-fill').style.width='0%';
-  const a=huntMG.animal;
-  if(hit)huntMG.hits++;else huntMG.misses++;
-  updateHuntHUD();
-  if(hit&&Math.random()<a.chance+(hasUpg('bow')?0.15:0)){
-    const qty=a.yield[0]+Math.floor(Math.random()*(a.yield[1]-a.yield[0]+1));
-    addIngredient(a.ing,qty);S.totalHunted++;gainXP(3);
-    const ing=INGREDIENTS[a.ing];
-    document.getElementById('hm-result').textContent=`🎯 Got ${qty}× ${ing.icon} ${ing.name}!`;
-    addLog(`🏹 Hunted ${qty}× ${ing.name} from ${a.name}.`,'green');
-  } else if(hit){
-    document.getElementById('hm-result').textContent=`💨 The ${a.name} dodged!`;
-    addLog(`🏹 ${a.name} dodged.`);
-  } else {
-    document.getElementById('hm-result').textContent=`💨 The ${a.name} escaped!`;
-    addLog(`🏹 ${a.name} escaped.`);
+function expDraw(n=1){
+  for(let i=0;i<n;i++){
+    if(S.playerCards.length===0){
+      if(S.playerDiscard.length===0) break;
+      S.playerCards=shuffle([...S.playerDiscard]);
+      S.playerDiscard=[];
+    }
+    S.playerHand.push(S.playerCards.shift());
   }
-  document.getElementById('hm-again-btn').disabled=S.stamina<huntMG.zone.staminaCost;
-  render();
 }
 
-function closeHuntGame(){clearTimeout(huntMG.timerH);clearInterval(huntMG.moveH);huntMG.active=false;document.getElementById('hunt-minigame').classList.remove('open');renderHunting();}
+function expInitBattle(){
+  S.playerCards=shuffle([...S.playerDeck]);
+  S.playerHand=[];S.playerDiscard=[];
+  S.playerBlock=0;S.playerEnergy=3;S.expEnemyBlock=0;S.expStunned=0;
+  expDraw(5);
+}
 
-// TRAPS
+// ── Open zone picker ──
+function openExpeditionPicker(){
+  if(isNight()){toast('Expeditions depart at dawn — come back during the day!');return;}
+  const list=document.getElementById('exp-zone-list');
+  list.innerHTML=EXP_ZONES.map(z=>{
+    const locked=S.level<z.lvlReq;
+    const dayOpts=z.days.map(d=>`<button onclick="startExpedition('${z.id}',${d})" style="padding:4px 10px;font-family:'Cinzel',serif;font-size:11px;background:rgba(90,60,180,.3);border:1px solid #7060c0;color:#c0a0ff;border-radius:5px;cursor:pointer;margin:2px;">${d} day${d>1?'s':''} (${d*z.staminaCost}🥾)</button>`).join('');
+    return `<div class="exp-zone-card${locked?' locked-zone':''}">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:32px;">${z.icon}</div>
+        <div style="flex:1;">
+          <div class="exp-zone-name">${z.name}</div>
+          <div class="exp-zone-desc">${z.desc}</div>
+          <div class="exp-zone-loot">🎁 ${z.loot.map(l=>INGREDIENTS[l]?.icon||l).join(' ')}</div>
+          ${locked?`<div class="exp-zone-cost">🔒 Level ${z.lvlReq} required</div>`:
+            `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;"><span style="font-size:10px;color:#6040a0;margin-right:4px;">Duration:</span>${dayOpts}</div>`}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('exp-zone-modal').classList.add('open');
+}
+
+function startExpedition(zoneId, numDays){
+  const zone=EXP_ZONES.find(z=>z.id===zoneId);
+  if(!zone)return;
+  const cost=zone.staminaCost*numDays;
+  if(S.stamina<cost){toast(`Need ${cost}🥾 stamina (you have ${S.stamina}).`);return;}
+  S.stamina-=cost;
+  document.getElementById('exp-zone-modal').classList.remove('open');
+  S.expZone=zone;S.expDay=0;S.expMaxDays=numDays;
+  S.expLoot=[];S.expNewCards=[];
+  S.expRunning=true;
+  addLog(`🗺️ Expedition to ${zone.name} begins! (${numDays} day${numDays>1?'s':''})`, 'purple');
+  openExpeditionModal();
+  expNextDay();
+}
+
+function openExpeditionModal(){
+  document.getElementById('expedition-modal').classList.add('open');
+}
+
+function closeExpedition(){
+  clearTimeout(expAI);
+  // Give any loot gathered so far even if fleeing mid-expedition
+  if(S.expLoot.length){
+    S.expLoot.forEach(ing=>addIngredient(ing,1));
+    addLog(`🎒 Returned with: ${S.expLoot.map(l=>INGREDIENTS[l]?.name||l).join(', ')}`, 'green');
+  }
+  S.expNewCards.forEach(c=>S.playerDeck.push({...c}));
+  S.expRunning=false;S.expLoot=[];S.expNewCards=[];
+  document.getElementById('expedition-modal').classList.remove('open');
+  document.getElementById('exp-result-overlay').style.display='none';
+  renderHunting();render();
+}
+
+// ── Spawn next encounter ──
+let expAI=null;
+function expNextDay(){
+  S.expDay++;
+  if(S.expDay>S.expMaxDays){expVictory();return;}
+  const zone=S.expZone;
+  // Enemy level scales: base 1 + (tavern day * 0.3) + (expDay * 5)
+  const enemyLvl=Math.floor(1+(S.day*0.3)+(S.expDay-1)*5);
+  const mult=1+enemyLvl*0.12;
+  // Pick enemy from zone
+  const enemyId=zone.enemies[Math.floor(Math.random()*zone.enemies.length)];
+  const tmpl=ENEMIES[enemyId];
+  S.expEnemy={...tmpl, level:enemyLvl};
+  S.expEnemyHp=Math.round(tmpl.baseHp*mult);
+  S.expEnemyMaxHp=S.expEnemyHp;
+  S.expEnemyBlock=0;S.expStunned=0;
+  // Give player loot/collectibles each day (non-meat)
+  const nonMeatLoot=zone.loot.filter(l=>!ENEMIES[enemyId]?.drop||l!==ENEMIES[enemyId].drop);
+  if(nonMeatLoot.length&&Math.random()<0.6){
+    const bonus=nonMeatLoot[Math.floor(Math.random()*nonMeatLoot.length)];
+    S.expLoot.push(bonus);
+    expLog(`📦 Found ${INGREDIENTS[bonus]?.icon||bonus} ${INGREDIENTS[bonus]?.name||bonus} along the way!`);
+  }
+  // Init battle
+  expInitBattle();
+  expUpdateUI();
+  document.getElementById('exp-result-overlay').style.display='none';
+  expLog(`⚔️ Day ${S.expDay}: A ${tmpl.name} (Lv.${enemyLvl}) appears!`);
+}
+
+function expLog(msg){
+  const el=document.getElementById('exp-log');
+  const d=document.createElement('div');d.textContent=msg;
+  el.prepend(d);while(el.children.length>8)el.removeChild(el.lastChild);
+}
+
+// ── UI update ──
+function expUpdateUI(){
+  const zone=S.expZone;const enemy=S.expEnemy;
+  document.getElementById('exp-zone-name').textContent=zone.name;
+  document.getElementById('exp-day').textContent=S.expDay;
+  document.getElementById('exp-max-day').textContent=S.expMaxDays;
+  document.getElementById('exp-enemy-icon').textContent=enemy.icon;
+  document.getElementById('exp-enemy-name').textContent=enemy.name+(S.expStunned?' [STUNNED]':'');
+  document.getElementById('exp-enemy-level').textContent=`Level ${enemy.level} | ATK ${enemy.baseDmg+Math.floor(enemy.level*0.5)} | DEF ${enemy.baseDef}`;
+  document.getElementById('exp-enemy-hp').textContent=S.expEnemyHp;
+  document.getElementById('exp-enemy-maxhp').textContent=S.expEnemyMaxHp;
+  document.getElementById('exp-enemy-hp-bar').style.width=Math.max(0,Math.round(S.expEnemyHp/S.expEnemyMaxHp*100))+'%';
+  document.getElementById('exp-player-hp').textContent=S.playerHp;
+  document.getElementById('exp-player-maxhp').textContent=S.playerMaxHp;
+  document.getElementById('exp-player-hp-bar').style.width=Math.max(0,Math.round(S.playerHp/S.playerMaxHp*100))+'%';
+  document.getElementById('exp-energy').textContent=S.playerEnergy;
+  document.getElementById('exp-deck-info').textContent=`Draw:${S.playerCards.length} | Discard:${S.playerDiscard.length}`;
+  renderHand();
+}
+
+function renderHand(){
+  const hand=document.getElementById('exp-hand');
+  hand.innerHTML=S.playerHand.map((card,i)=>{
+    const canPlay=S.playerEnergy>=card.cost;
+    return `<div class="exp-card${canPlay?'':' disabled'}" onclick="${canPlay?`playCard(${i})`:''}">
+      <div class="exp-card-cost">${card.cost}</div>
+      <div class="exp-card-icon">${card.icon}</div>
+      <div class="exp-card-name">${card.name}</div>
+      <div class="exp-card-effect">${cardEffectText(card)}</div>
+      <div class="exp-card-desc">${card.desc}</div>
+    </div>`;
+  }).join('');
+}
+
+function cardEffectText(card){
+  const e=card.effect;
+  const parts=[];
+  if(e.dmg>0){
+    if(e.hits&&e.hits>1) parts.push(`${e.dmg}×${e.hits}`);
+    else if(e.xEnergy) parts.push(`${e.dmg}×E`);
+    else parts.push(`⚔️${e.dmg}`);
+  }
+  if(e.block) parts.push(`🛡️${e.block}`);
+  if(e.heal) parts.push(`💚${e.heal}`);
+  if(e.stun) parts.push('💫Stun');
+  if(e.draw) parts.push(`📤+${e.draw}`);
+  if(e.energy) parts.push(`⚡+${e.energy}`);
+  return parts.join(' ');
+}
+
+// ── Play a card ──
+function playCard(idx){
+  const card=S.playerHand[idx];
+  if(!card||S.playerEnergy<card.cost)return;
+  S.playerEnergy-=card.cost;
+  S.playerHand.splice(idx,1);
+  S.playerDiscard.push(card);
+  const e=card.effect;
+  // Damage
+  if(e.dmg!==undefined){
+    let hits=e.hits||1;
+    if(e.xEnergy) hits=S.playerEnergy+1; // uses energy remaining
+    let totalDmg=0;
+    for(let h=0;h<hits;h++){
+      let d=Math.max(0,e.dmg-S.expEnemyBlock);
+      S.expEnemyBlock=Math.max(0,S.expEnemyBlock-e.dmg);
+      S.expEnemyHp-=d;totalDmg+=d;
+    }
+    if(totalDmg>0) expLog(`⚔️ You deal ${totalDmg} damage!`);
+    else expLog('🛡️ Enemy blocked all damage!');
+  }
+  if(e.block){S.playerBlock+=e.block;expLog(`🛡️ You gain ${e.block} block.`);}
+  if(e.heal){S.playerHp=Math.min(S.playerMaxHp,S.playerHp+e.heal);expLog(`💚 You heal ${e.heal} HP.`);}
+  if(e.stun){S.expStunned=(S.expStunned||0)+e.stun;expLog('💫 Enemy is stunned!');}
+  if(e.draw) expDraw(e.draw);
+  if(e.energy) S.playerEnergy+=e.energy;
+  if(e.scry){
+    // Show top cards as a toast
+    const top=S.playerCards.slice(0,e.scry).map(c=>c.name).join(', ');
+    expLog(`👁️ Top cards: ${top||'deck empty'}`);
+  }
+  // Check enemy death
+  if(S.expEnemyHp<=0){expEnemyDead();return;}
+  expUpdateUI();
+}
+
+// ── Enemy AI attack ──
+function expEnemyAttack(){
+  if(S.expStunned>0){
+    S.expStunned--;
+    expLog(`💫 Enemy is stunned — skips attack!`);
+    expUpdateUI();
+    expStartPlayerTurn();
+    return;
+  }
+  const dmg=Math.max(0,(S.expEnemy.baseDmg+Math.floor(S.expEnemy.level*0.5))-S.playerBlock);
+  S.playerBlock=Math.max(0,S.playerBlock-(S.expEnemy.baseDmg+Math.floor(S.expEnemy.level*0.5)));
+  S.playerHp=Math.max(0,S.playerHp-dmg);
+  expLog(`🔥 ${S.expEnemy.name} attacks for ${dmg} damage! (You: ${S.playerHp}HP)`);
+  expUpdateUI();
+  if(S.playerHp<=0){expDefeat();return;}
+  expStartPlayerTurn();
+}
+
+function expStartPlayerTurn(){
+  S.playerEnergy=3;S.playerBlock=0;
+  expDraw(5);
+  expUpdateUI();
+}
+
+function expEndTurn(){
+  // Discard hand, enemy attacks
+  S.playerDiscard.push(...S.playerHand);
+  S.playerHand=[];
+  expLog(`⏩ You end your turn.`);
+  expUpdateUI();
+  expAI=setTimeout(expEnemyAttack,900);
+}
+
+// ── Enemy dies — victory for this encounter ──
+function expEnemyDead(){
+  clearTimeout(expAI);
+  const drop=S.expEnemy.drop;
+  const xpGain=S.expEnemy.xp||10;
+  gainXP(xpGain);
+  S.totalHunted++;
+  let lootText='';
+  if(drop){S.expLoot.push(drop);lootText=` + 1× ${INGREDIENTS[drop]?.icon||''} ${INGREDIENTS[drop]?.name||drop}`;}
+  // Offer a random card as loot
+  const bonusCard=LOOT_CARDS[Math.floor(Math.random()*LOOT_CARDS.length)];
+  S.expNewCards.push(bonusCard);
+  expLog(`🎉 Victory! +${xpGain}XP${lootText}`);
+  // Show result overlay
+  const ov=document.getElementById('exp-result-overlay');
+  ov.style.display='flex';
+  document.getElementById('exp-result-icon').textContent='🏆';
+  document.getElementById('exp-result-title').textContent=`Defeated the ${S.expEnemy.name}!`;
+  const more=S.expDay<S.expMaxDays;
+  document.getElementById('exp-result-sub').textContent=more?`Continue to day ${S.expDay+1}?`:`Expedition complete! All ${S.expMaxDays} days done.`;
+  // Loot display
+  const ld=document.getElementById('exp-loot-display');
+  const all=[...S.expLoot.map(l=>({icon:INGREDIENTS[l]?.icon||'?',name:INGREDIENTS[l]?.name||l})),
+             {icon:bonusCard.icon,name:`Card: ${bonusCard.name}`}];
+  ld.innerHTML=all.map(l=>`<div style="background:rgba(80,40,180,.3);border:1px solid #7060c0;border-radius:6px;padding:4px 10px;font-size:11px;color:#c0a0ff;">${l.icon} ${l.name}</div>`).join('');
+  document.getElementById('exp-continue-btn').style.display=more?'inline-block':'none';
+}
+
+function expContinue(){
+  document.getElementById('exp-result-overlay').style.display='none';
+  expNextDay();
+}
+
+// ── Expedition victory (all days cleared) ──
+function expVictory(){
+  // Commit all loot
+  const lootNames=S.expLoot.map(l=>INGREDIENTS[l]?.name||l);
+  S.expLoot.forEach(ing=>addIngredient(ing,1));
+  S.expNewCards.forEach(c=>S.playerDeck.push({...c}));
+  addLog(`🗺️ Expedition to ${S.expZone.name} complete! Gained: ${lootNames.join(', ')||'nothing'}`, 'green');
+  addLog(`🃏 ${S.expNewCards.length} new card${S.expNewCards.length!==1?'s':''} added to your deck.`, 'purple');
+  S.expRunning=false;S.expLoot=[];S.expNewCards=[];
+  document.getElementById('expedition-modal').classList.remove('open');
+  document.getElementById('exp-result-overlay').style.display='none';
+  render();renderHunting();
+}
+
+// ── Player death ──
+function expDefeat(){
+  clearTimeout(expAI);
+  expLog('💀 You have been defeated!');
+  // Lose half loot on defeat
+  const kept=S.expLoot.filter((_,i)=>i%2===0);
+  kept.forEach(ing=>addIngredient(ing,1));
+  S.expNewCards.forEach(c=>S.playerDeck.push({...c}));
+  addLog(`💀 Defeated on expedition — lost half the loot. Kept: ${kept.map(l=>INGREDIENTS[l]?.name||l).join(', ')||'nothing'}`, 'bad');
+  S.playerHp=Math.max(1,Math.floor(S.playerMaxHp*0.3)); // penalty: return with 30% HP (for flavour)
+  S.expRunning=false;S.expLoot=[];S.expNewCards=[];
+  document.getElementById('expedition-modal').classList.remove('open');
+  document.getElementById('exp-result-overlay').style.display='none';
+  render();renderHunting();
+}
+
+// ── Traps ──
 function buyTrap(trapId){
   const trap=TRAP_TYPES.find(t=>t.id===trapId);
   if(!trap)return;
@@ -942,30 +1320,71 @@ function buyTrap(trapId){
   S.traps.push({trapId,daysLeft:hasUpg('lodge')?0:1});
   addLog(`🪤 Set ${trap.name}.`,'green');render();
 }
-
 function collectTrap(idx){
   const entry=S.traps[idx];if(!entry||entry.daysLeft>0)return;
   const trap=TRAP_TYPES.find(t=>t.id===entry.trapId);if(!trap)return;
   if(Math.random()<0.7){
     const ing=trap.ings[Math.floor(Math.random()*trap.ings.length)];
-    const qty=trap.yield[0]+Math.floor(Math.random()*(trap.yield[1]-trap.yield[0]+1));
-    addIngredient(ing,qty);
-    addLog(`🪤 Trap caught ${qty}× ${INGREDIENTS[ing]?.name||ing}!`,'green');S.totalHunted++;
+    addIngredient(ing,1);
+    addLog(`🪤 Trap caught 1× ${INGREDIENTS[ing]?.name||ing}!`,'green');S.totalHunted++;
   } else { addLog('🪤 The trap was empty.'); }
   S.traps.splice(idx,1);render();
 }
-
 function tickTraps(){S.traps.forEach(t=>{if(t.daysLeft>0)t.daysLeft--;});}
 
+// ── Render hunting tab ──
+function renderHunting(){
+  const ms=maxStamina();
+  document.getElementById('hunt-stam-txt').textContent=`${S.stamina}/${ms}`;
+  document.getElementById('hunt-stam-bar').style.width=Math.round(S.stamina/ms*100)+'%';
+  document.getElementById('hunt-day-only').style.display=isNight()?'block':'none';
+  // Zone cards
+  document.getElementById('hunt-zones').innerHTML=EXP_ZONES.map(z=>{
+    const locked=S.level<z.lvlReq,nightBlock=isNight();
+    const disabled=locked||nightBlock;
+    return `<div class="exp-zone-card${disabled?' locked-zone':''}" onclick="${disabled?'':'openExpeditionPicker()'}">
+      <div class="exp-zone-icon">${z.icon}</div>
+      <div class="exp-zone-name">${z.name}</div>
+      <div class="exp-zone-desc">${z.desc}</div>
+      <div class="exp-zone-loot">🎁 ${z.loot.map(l=>INGREDIENTS[l]?.icon||'?').join(' ')}</div>
+      <div class="exp-zone-cost">${locked?`🔒 Level ${z.lvlReq}`:nightBlock?'🌙 Day only':`${z.staminaCost}🥾/day · Click to go`}</div>
+    </div>`;
+  }).join('');
+  // Traps
+  let trapsHtml=TRAP_TYPES.map(trap=>{
+    const locked=S.level<trap.lvlReq,count=S.traps.filter(t=>t.trapId===trap.id).length;
+    return `<div class="trap-card"><div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">${trap.icon} ${trap.name}</strong><div style="font-size:10px;color:var(--muted);">${trap.desc}</div><div style="font-size:10px;color:${count?'var(--food-green)':'var(--muted)'};">${locked?`🔒 Lv${trap.lvlReq}`:count?`${count} set`:'Not set'}</div></div><button class="trap-btn"${locked||count>=2?' disabled':''} onclick="buyTrap('${trap.id}')">${count>=2?'Max':`Set(${trap.cost}🪙)`}</button></div>`;
+  }).join('');
+  S.traps.forEach((t,i)=>{
+    if(t.daysLeft>0)return;
+    const trap=TRAP_TYPES.find(tr=>tr.id===t.trapId);
+    trapsHtml+=`<div class="trap-card" style="border-color:var(--food-green);background:rgba(60,120,30,.15);"><div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">✅ ${trap.icon} ${trap.name} — Ready!</strong></div><button class="trap-btn" style="background:var(--food-green);" onclick="collectTrap(${i})">Collect</button></div>`;
+  });
+  document.getElementById('hunt-traps').innerHTML=trapsHtml;
+  // Larder
+  const entries=Object.entries(S.larder).filter(([,q])=>q>0);
+  document.getElementById('hunt-larder').innerHTML=entries.length?entries.map(([id,qty])=>{
+    const ing=INGREDIENTS[id];if(!ing)return'';
+    const cookable=ing.cookable.filter(fid=>FOOD_MENU.find(x=>x.id===fid&&x.unlockLvl<=S.level));
+    const btns=cookable.map(fid=>{
+      const f=FOOD_MENU.find(x=>x.id===fid);
+      const disc=f.meatReq?f.cost:Math.ceil(f.cost*0.7);
+      return `<button onclick="cookWithIngredient('${fid}','${id}')" style="padding:2px 6px;font-size:9px;background:var(--food-green);color:#fff;border:none;border-radius:3px;cursor:pointer;margin:1px;">${f.icon}${f.name}(${disc}🪙)</button>`;
+    }).join('');
+    return `<div class="larder-badge"><div style="display:flex;align-items:center;gap:5px;">${ing.icon} <b>${ing.name}</b> <span style="color:var(--muted);font-weight:400;">×${qty}</span></div><div>${btns||'<span style="font-size:9px;color:var(--muted);">Level up to unlock recipes</span>'}</div></div>`;
+  }).join(''):'<div style="font-size:12px;color:var(--muted);font-style:italic;">Nothing in the larder. Go on an expedition!</div>';
+}
+
 // ================================================================
-// GAME TICK (table/cook events)
+
 // ================================================================
 function gameTick(){
   let changed=false;
-  // cook queue
-  for(const[id,ticks]of Object.entries(CQ)){
-    CQ[id]=ticks-1;
-    if(CQ[id]<=0){delete CQ[id];collectDish(id);changed=true;}else changed=true;
+  // --- COOK QUEUE ---
+  for(let qi=0; qi<CQ.length; qi++){
+    CQ[qi].ticks--;
+    if(CQ[qi].ticks<=0){ collectDish(CQ[qi].foodId); CQ.splice(qi,1); qi--; changed=true; }
+    else changed=true;
   }
   // tables — only tick during night
   if(isNight()){
@@ -997,7 +1416,6 @@ function spawnGuest(){
   addLog(`${g.icon} A ${g.name} sat at table ${ei+1}.`);
 }
 
-// ================================================================
 // PHASE SYSTEM
 // ================================================================
 function startPhaseTimer(){
@@ -1070,7 +1488,7 @@ function endDay(){
 
   // hunter delivers
   if(hasStaff('hunter')){
-    const zones=HUNT_ZONES.filter(z=>z.lvlReq<=S.level);
+    const zones=EXP_ZONES.filter(z=>z.lvlReq<=S.level);
     if(zones.length){
       const zone=zones[Math.floor(Math.random()*zones.length)];
       const a=zone.animals[Math.floor(Math.random()*zone.animals.length)];
@@ -1340,41 +1758,7 @@ function renderStaffTab(){
   document.getElementById('staff-summary').textContent=S.staff.length?`Wages: ${S.staff.reduce((a,s)=>a+s.wage,0)}🪙/day | ${S.staff.length} staff`:'Hire staff from the Shop!';
 }
 
-function renderHunting(){
-  const ms=maxStamina();
-  document.getElementById('hunt-stam-txt').textContent=`${S.stamina}/${ms}`;
-  document.getElementById('hunt-stam-bar').style.width=Math.round(S.stamina/ms*100)+'%';
-  const dayOnlyMsg=document.getElementById('hunt-day-only');
-  dayOnlyMsg.style.display=isNight()?'block':'none';
-  document.getElementById('hunt-zones').innerHTML=HUNT_ZONES.map(z=>{
-    const locked=S.level<z.lvlReq,noStam=S.stamina<z.staminaCost,nightBlocked=isNight();
-    let clickFn=`openHuntGame('${z.id}')`;
-    if(nightBlocked)clickFn=`toast('Too dark to hunt at night!')`;
-    else if(locked)clickFn=`toast('Need Level ${z.lvlReq}!')`;
-    else if(noStam)clickFn=`toast('Not enough stamina!')`;
-    return `<div class="hunt-zone${locked||nightBlocked?' locked-zone':''}" onclick="${clickFn}"><div class="hunt-zone-icon">${z.icon}</div><div class="hunt-zone-name">${z.name}</div><div class="hunt-zone-desc">${z.desc}</div><div class="hunt-zone-loot">🎯 ${z.animals.map(a=>a.name).join(', ')}</div><div class="hunt-zone-cost">${locked?`🔒 Level ${z.lvlReq}`:nightBlocked?'🌙 Day only':noStam?`😓 Need ${z.staminaCost}🥾`:`🥾 ${z.staminaCost} stamina`}</div></div>`;
-  }).join('');
-  let trapsHtml=TRAP_TYPES.map(trap=>{
-    const locked=S.level<trap.lvlReq,count=S.traps.filter(t=>t.trapId===trap.id).length;
-    return `<div class="trap-card"><div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">${trap.icon} ${trap.name}</strong><div style="font-size:10px;color:var(--muted);">${trap.desc}</div><div style="font-size:10px;color:${count?'var(--food-green)':'var(--muted)'};">${locked?`🔒 Level ${trap.lvlReq}`:count?`${count} set`:'Not set'}</div></div><button class="trap-btn"${locked||count>=2?' disabled':''} onclick="buyTrap('${trap.id}')">${count>=2?'Max':`Set(${trap.cost}🪙)`}</button></div>`;
-  }).join('');
-  S.traps.forEach((t,i)=>{
-    if(t.daysLeft>0)return;
-    const trap=TRAP_TYPES.find(tr=>tr.id===t.trapId);
-    trapsHtml+=`<div class="trap-card" style="border-color:var(--food-green);background:rgba(60,120,30,.15);"><div style="flex:1;"><strong style="font-family:'Cinzel',serif;font-size:12px;">✅ ${trap.icon} ${trap.name} — Ready!</strong></div><button class="trap-btn" style="background:var(--food-green);" onclick="collectTrap(${i})">Collect</button></div>`;
-  });
-  document.getElementById('hunt-traps').innerHTML=trapsHtml;
-  const entries=Object.entries(S.larder).filter(([,q])=>q>0);
-  document.getElementById('hunt-larder').innerHTML=entries.length?entries.map(([id,qty])=>{
-    const ing=INGREDIENTS[id];if(!ing)return'';
-    const cookable=ing.cookable.filter(fid=>{const f=FOOD_MENU.find(x=>x.id===fid);return f&&f.unlockLvl<=S.level;});
-    const btns=cookable.map(fid=>{const f=FOOD_MENU.find(x=>x.id===fid);const disc=Math.ceil(f.cost*0.4);return `<button onclick="cookWithIngredient('${fid}','${id}')" style="padding:2px 6px;font-size:9px;background:var(--food-green);color:#fff;border:none;border-radius:3px;cursor:pointer;margin:1px;">${f.icon}${f.name}(${disc}🪙)</button>`;}).join('');
-    return `<div class="larder-badge"><div style="display:flex;align-items:center;gap:5px;">${ing.icon} <b>${ing.name}</b> <span style="color:var(--muted);font-weight:400;">×${qty}</span></div><div>${btns||'<span style="font-size:9px;color:var(--muted);">Level up to cook</span>'}</div></div>`;
-  }).join(''):'<div style="font-size:12px;color:var(--muted);font-style:italic;">Empty — go hunting during the day!</div>';
-}
 
-// ================================================================
-// LOG / TOAST
 // ================================================================
 function addLog(msg,type){
   const log=document.getElementById('event-log');
