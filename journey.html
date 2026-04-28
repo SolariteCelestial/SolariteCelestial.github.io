@@ -747,6 +747,8 @@ const REGIONS = {
         desc:"Low beams, lower company. The barkeep's name is Marta, and she's heard every story twice. A bard plays a dirge in the corner.",
         actions:[
           {label:'Rest and recover (20 Gold)',fn:'tavernRest',type:'heal-act'},
+          {label:'Speak with Marta (quest)',fn:'talkToMartaQuest',type:''},
+          {label:'Return: Troll Defeated! (quest)',fn:'returnQuestMarta',type:''},
           {label:'Buy a drink — hear a tale',fn:'tavernTale',type:''},
           {label:'Check the quest board',fn:'questBoard',type:''},
           {label:'Back to Market Square',fn:'()=>travel("market_square")',type:''},
@@ -756,7 +758,15 @@ const REGIONS = {
         actions:[
           {label:'→ Enter Darkwood Forest',fn:'()=>travelRegion("forest")',type:'danger'},
           {label:'→ Head to Frostpeak Mountains',fn:'()=>travelRegion("mountains")',type:'danger'},
+          {label:'Town Hall (quest turn-ins)',fn:'()=>travel("town_hall")',type:''},
           {label:'← Return to Market Square',fn:'()=>travel("market_square")',type:''},
+        ]},
+      town_hall:{name:'Village Town Hall',region:'village',
+        desc:"Once the seat of the local lord. Now a gathering place for frightened commoners and weeping families. A crier reads names of the missing.",
+        actions:[
+          {label:'Report on the Cursed Tomb (quest)',fn:'townHallReturn',type:''},
+          {label:'Donate gold to survivors (15g)',fn:'townHallDonate',type:'gold-act'},
+          {label:'← Back to Town Gate',fn:'()=>travel("town_gate")',type:''},
         ]},
     }},
   forest:{name:'Darkwood Forest',color:'#3a7a3a',tag:'forest',icon:'🌲',
@@ -779,10 +789,11 @@ const REGIONS = {
           {label:'← Forest Path',fn:'()=>travel("forest_path")',type:''},
         ]},
       woodcutters_camp:{name:"Woodcutter's Camp",region:'forest',
-        desc:"Abandoned axes, an unfinished meal, a child's boot. Someone left in a hurry. The fire still smolders.",
+        desc:"Abandoned axes, an unfinished meal, a child's boot. Someone left in a hurry. The fire still smolders. Heavy claw marks scar the trees — something large was here.",
         actions:[
           {label:'Search the camp',fn:'searchCamp',type:'gold-act'},
           {label:'Rest by the fire (heal 15 HP)',fn:'campRest',type:'heal-act'},
+          {label:'⚔ Fight the Forest Troll (quest)',fn:'()=>startCombat("forest_troll")',type:'danger'},
           {label:'Patrol the treeline (Encounter)',fn:'()=>randomEncounter("forest")',type:'danger'},
           {label:'→ Hidden Shrine',fn:'()=>travel("hidden_shrine")',type:''},
         ]},
@@ -1431,15 +1442,23 @@ function checkLevelUp(){
 function questCheck(enemyId){
   if(enemyId==='forest_troll'){
     const q=G.quests['missing_smith'];
-    if(q&&q.active&&q.stage===2){q.stage=3;addLog('Quest updated: Missing Blacksmith — return to Marta!','loot')}
+    if(q&&q.active&&q.stage===2){q.stage=3;addLog('Quest updated: Missing Blacksmith — return to Marta at the Broken Flagon!','loot')}
   }
   if(enemyId==='death_knight'){
     const q=G.quests['cursed_tomb'];
-    if(q&&q.active&&q.stage===1){q.stage=2;addLog('Quest updated: Cursed Tomb — return to the Town Hall!','loot')}
+    if(q&&q.active&&q.stage===1){q.stage=2;addLog('Quest updated: Cursed Tomb — return to the Village Town Hall!','loot')}
+    checkQuestComplete('cursed_tomb');
   }
-  if(enemyId==='swamp_witch'||enemyId==='death_knight'){
+  // Dragons bane: defeat any swamp enemy = stage 2
+  const swampEnemies=['swamp_witch','death_knight','dungeon_rat'];
+  const e=ENEMIES[enemyId];
+  if(e&&e.region==='swamp'||swampEnemies.includes(enemyId)){
     const q=G.quests['dragons_bane'];
-    if(q&&q.active&&q.stage===1){q.stage=2;addLog('Quest updated: Dragon\'s Bane — seek the Heart of Darkness!','loot')}
+    if(q&&q.active&&q.stage===1){q.stage=2;addLog("Quest updated: Dragon's Bane — you have survived the swamp. Find the Heart of Darkness!",'loot')}
+  }
+  if(enemyId==='shadow_dragon'){
+    const q=G.quests['dragons_bane'];
+    if(q&&q.active&&q.stage===2){q.stage=3;checkQuestComplete('dragons_bane')}
   }
 }
 
@@ -1604,8 +1623,9 @@ function dungeonSearch(){
     const items=['chainmail','ring_warding','health_potion','throwing_bomb','shield_potion'];
     const i=pick(items);G.player.inventory.push(i);G.player.gold+=rand(10,25);
     addLog(`Scavenged the dungeon: ${ITEMS[i].name} + gold!`,'loot');
-    if(!G.quests['cursed_tomb'].active){G.quests['cursed_tomb'].active=true;G.quests['cursed_tomb'].stage=0;}
-    if(G.quests['cursed_tomb'].stage===0){G.quests['cursed_tomb'].stage=1;addLog('Quest: Cursed Tomb — you found the dungeon. Now defeat the Death Knight!','loot')}
+    const qt=G.quests['cursed_tomb'];
+    if(!qt.active){qt.active=true;qt.stage=1;addLog("Quest: The Cursed Tomb — you found Grimshold. Now defeat the Death Knight in the Throne Room!",'loot')}
+    else if(qt.stage===0){qt.stage=1;addLog('Quest updated: Cursed Tomb — defeat the Death Knight!','loot')}
   }else addLog('Already searched here.','sys');
   renderMain();updateSidebar();
 }
@@ -1658,9 +1678,16 @@ function summitRest(){healPlayer(Math.floor(getMaxHp()*0.5));addLog('The mountai
 
 function witchTalk(){
   const q=G.quests['dragons_bane'];
-  if(!q.active){q.active=true;q.stage=1;addLog('New Quest: The Dragon\'s Bane! The witch tells you Malachar can only be weakened by one who has survived the swamp.','loot')}
-  else if(q.stage===0){q.stage=1;addLog('The witch sneers: "You have seen things now. You might survive the Heart of Darkness."','event')}
-  else addLog("The witch stirs her cauldron. 'Malachar waits at the Heart of Darkness. It always does.'", 'event');
+  if(!q.active){
+    q.active=true;q.stage=1;
+    addLog("The witch cackles: 'So you seek Malachar? The Dragon that predates your kingdom? You'll need to survive the swamp first — prove your worth against its horrors. Then seek the Heart of Darkness.' New Quest: The Dragon's Bane!",'loot');
+  }else if(q.active&&q.stage===1){
+    addLog("The witch sneers: 'Prove yourself first. Survive the swamp's creatures. Then the Heart of Darkness will reveal itself.'",'event');
+  }else if(q.active&&q.stage===2){
+    addLog("The witch nods, almost respectfully: 'You've bled in this swamp. Now go — the Heart of Darkness is through the Sunken Ruins. Malachar waits.'",'event');
+  }else if(q.complete){
+    addLog("The witch sits quietly. 'You did it. The swamp is... quieter now. Strange feeling.'",'event');
+  }else addLog("The witch stirs her cauldron. 'The Dragon's patience is infinite. Yours is not.'",'event');
   renderMain();
 }
 
@@ -1712,7 +1739,13 @@ function useItem(itemId,invIdx){
     addLog(`Used ${item.name}. Learned: ${CARDS[item.giveCard].name}!`,'loot');
   }else if(item.slot==='consumable'){
     if(item.heal){healPlayer(item.heal)}
-    if(item.escape&&G.screen==='combat'){endCombat(false);addLog('Escaped with Smoke Bomb!','event');G.screen='world';renderMain();return}
+    if(item.escape&&G.screen==='combat'){
+      G.combat.ended=true;
+      G.player.inventory.splice(invIdx,1);
+      addLog('Smoke Bomb thrown! You slip away into the shadows.','event');
+      G.screen='world'; G.combat=null;
+      updateSidebar(); renderMain(); return;
+    }
     if(item.combatStr&&G.screen==='combat')applyStatusP('strength',item.combatStr);
     if(item.combatBlock&&G.screen==='combat')addBlock(item.combatBlock);
     if(item.curePoison&&G.screen==='combat')delete G.combat.player.statuses.poison;
@@ -1774,20 +1807,49 @@ function checkQuestComplete(questId){
 // Some quest stage triggers
 function talkToMartaQuest(){
   const q=G.quests['missing_smith'];
-  if(q&&q.active&&q.stage===1){
+  if(!q.active&&!q.complete){
+    q.active=true;q.stage=1;
+    addLog("Marta grabs your arm: 'Please — Aldren the blacksmith is missing! He went into Darkwood Forest three days ago. Find him!' New Quest: The Missing Blacksmith!",'loot');
+  }else if(q.active&&q.stage===1){
+    addLog("Marta whispers urgently: 'Travellers spoke of a fearsome troll near the old woodcutter's camp. Aldren must be there!'",'event');
     q.stage=2;
-    addLog("Marta wipes her eyes: 'Aldren went into the forest two days past. He never came back. Please — find him.' Quest updated!",'event');
-  }else addLog("Marta looks exhausted. 'The Flagon used to be merrier than this.'", 'event');
+  }else if(q.active&&q.stage===2){
+    addLog("Marta pleads: 'Please — you must defeat whatever took him. The troll near the old grove!'",'event');
+  }else if(q.active&&q.stage===3){
+    returnQuestMarta();
+  }else if(q.complete){
+    addLog("Marta beams: 'Thanks to you, the Flagon's first round is always on me, hero.'",'event');
+  }else addLog("Marta looks exhausted. 'The Flagon used to be merrier than this.'",'event');
   renderMain();
 }
 
 function returnQuestMarta(){
   const q=G.quests['missing_smith'];
-  if(q&&q.stage===3){
+  if(q&&q.active&&q.stage===3){
     q.stage=4;checkQuestComplete('missing_smith');
-    addLog("Marta gasps with relief: 'He's safe! Bless you, traveler!'", 'event');
-  }else addLog("Marta pours you a drink. 'Not much to celebrate these days.'", 'event');
+    addLog("Marta gasps with relief: 'He's safe! Bless you, traveler! Take this — he'd want you to have it.'",'event');
+  }else if(q&&q.active&&q.stage<3){
+    addLog("Marta wrings her hands: 'Please — have you found Aldren yet? He was taken to the forest...'",'event');
+  }else addLog("Marta pours you a drink. 'Not much to celebrate these days.'",'event');
   renderMain();
+}
+
+function townHallReturn(){
+  const q=G.quests['cursed_tomb'];
+  if(q&&q.active&&q.stage===2){
+    q.stage=3;checkQuestComplete('cursed_tomb');
+    addLog("The councillor weeps: 'The Death Knight is vanquished? After all these years... Bless you, adventurer.'",'event');
+  }else if(q&&q.active&&q.stage<2){
+    addLog("A councillor grimaces: 'The evil in Grimshold has plagued us for years. It must be stopped.'",'event');
+  }else addLog("A clerk shuffles papers. 'Nothing to report today.'",'event');
+  renderMain();
+}
+
+function townHallDonate(){
+  if(G.player.gold<15){addLog("Not enough gold (need 15).",'sys');return}
+  G.player.gold-=15;healPlayer(10);
+  addLog('The survivors share what little they have. Your generosity warms your spirit. (+10 HP)','heal');
+  renderMain();updateSidebar();
 }
 
 // ============================================================
@@ -1822,9 +1884,11 @@ function renderWorld(){
   const loc=reg.locations[G.location];
   let acts='';
   for(const a of loc.actions){
-    const fn=a.fn.startsWith('()')?a.fn.slice(2):a.fn;
     const type=a.type||'';
-    acts+=`<button class="act-btn ${type}" onclick="${a.fn.startsWith('()')?a.fn+'()':a.fn+'()'}">${a.label}</button>`;
+    // Replace inner double-quotes with single so the onclick attr doesn't break
+    const safeFn=a.fn.replace(/"/g,"'");
+    const onclk=safeFn.startsWith('()')?'('+safeFn+')()':safeFn+'()';
+    acts+=`<button class="act-btn ${type}" onclick="${onclk}">${a.label}</button>`;
   }
   // Quest hint
   let questHint='';
@@ -1854,8 +1918,9 @@ function renderCombat(){
   // Energy orbs
   let orbs='';
   for(let i=0;i<c.player.energyMax;i++){
-    orbs+=`<div class="energy-orb ${i<c.player.energy?'':'empty'}">${i<c.player.energy?c.player.energy-i:''}</div>`;
+    orbs+=`<div class="energy-orb ${i<c.player.energy?'':'empty'}">${i<c.player.energy?'◆':''}</div>`;
   }
+  orbs+=`<span style="font-size:12px;color:var(--blueb);margin-left:6px">${c.player.energy}/${c.player.energyMax}</span>`;
   // Player statuses
   let pStatTags=renderStatuses(c.player.statuses);
   if(c.player.block>0)pStatTags+=`<span class="s-tag blk-s">🛡 ${c.player.block}</span>`;
@@ -2128,8 +2193,9 @@ function renderCardReward(){
 function renderEvent(){
   const ev=G.currentEvent;if(!ev)return '<div class="view">No event.</div>';
   let choices='';
-  for(const ch of ev.choices){
-    choices+=`<button class="act-btn" onclick="G.currentEvent.choices[${ev.choices.indexOf(ch)}].fn()">${ch.label}</button>`;
+  for(let i=0;i<ev.choices.length;i++){
+    const ch=ev.choices[i];
+    choices+=`<button class="act-btn" onclick="G.currentEvent.choices[${i}].fn()">${ch.label}</button>`;
   }
   return `<div class="event-view">
     <div class="event-title">${ev.art} ${ev.title}</div>
