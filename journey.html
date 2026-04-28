@@ -1603,11 +1603,84 @@ function searchCamp(){
 function campRest(){healPlayer(15);addLog('Rested by the fire. +15 HP.','heal');renderMain();updateSidebar()}
 
 function shrineEvent(){
+  // Show shrine picker UI instead of free reward
+  G.screen='shrine';renderMain();
+}
+
+function renderShrine(){
+  const deck=G.player.deck;
+  const inv=G.player.inventory;
+  let cardOpts='';
+  // deduplicate for display but track all indices
+  for(let i=0;i<deck.length;i++){
+    const c=CARDS[deck[i]];if(!c)continue;
+    cardOpts+=`<div class="smith-item" style="cursor:pointer" onclick="shrineSacrificeCard(${i})">
+      <div class="smith-item-info">
+        <div style="color:var(--gold);font-size:13px">${c.art} ${c.name} <span style="color:var(--inkf);font-size:11px">(${c.type})</span></div>
+        <div style="font-size:11px;color:var(--inkd)">${c.desc}</div>
+      </div>
+      <button class="upgrade-btn" style="background:var(--purp);border-color:var(--purpb)">Sacrifice</button>
+    </div>`;
+  }
+  let itemOpts='';
+  for(let i=0;i<inv.length;i++){
+    const item=ITEMS[inv[i]];if(!item)continue;
+    const sellVal=Math.floor((SHOP_PRICES[inv[i]]||20)*0.4);
+    itemOpts+=`<div class="smith-item" style="cursor:pointer" onclick="shrineSacrificeItem(${i})">
+      <div class="smith-item-info">
+        <div style="color:var(--gold);font-size:13px">${item.icon} ${item.name}</div>
+        <div style="font-size:11px;color:var(--inkd);font-style:italic">"${item.flavor}"</div>
+      </div>
+      <button class="upgrade-btn" style="background:var(--purp);border-color:var(--purpb)">Sacrifice</button>
+    </div>`;
+  }
+  if(!cardOpts&&!itemOpts){
+    return `<div class="view">
+      <div class="loc-title">🔮 Ancient Shrine</div>
+      <div class="loc-desc">The shrine hungers, but you carry nothing worth sacrificing.</div>
+      <button class="act-btn" onclick="showView('world')">← Walk Away</button>
+    </div>`;
+  }
+  return `<div class="view">
+    <div class="loc-title">🔮 Ancient Shrine</div>
+    <div class="loc-desc" style="margin-bottom:16px">The shrine's stones are warm to the touch. Ancient runes pulse faintly. <strong style="color:var(--gold)">It demands a sacrifice</strong> — a card from your deck, or an item from your pack. In return, it grants a boon: full healing, a new card, or increased power.</div>
+    ${cardOpts?`<div class="subsection-title" style="margin-bottom:6px">Sacrifice a Card</div>${cardOpts}`:''}
+    ${itemOpts?`<div class="sep"></div><div class="subsection-title" style="margin-bottom:6px">Sacrifice an Item</div>${itemOpts}`:''}
+    <div class="sep"></div>
+    <button class="act-btn" onclick="showView('world')">← Leave the shrine</button>
+  </div>`;
+}
+
+function shrineSacrificeCard(deckIdx){
+  const cardId=G.player.deck[deckIdx];
+  if(!cardId)return;
+  G.player.deck.splice(deckIdx,1);
+  addLog(`You lay ${CARDS[cardId].name} upon the altar. It crumbles to ash.`,'status');
+  shrineBoon();
+}
+
+function shrineSacrificeItem(invIdx){
+  const itemId=G.player.inventory[invIdx];
+  if(!itemId)return;
+  G.player.inventory.splice(invIdx,1);
+  addLog(`You place ${ITEMS[itemId].name} upon the altar. It dissolves into mist.`,'status');
+  shrineBoon();
+}
+
+function shrineBoon(){
   const r=Math.random();
-  if(r<0.33){healPlayer(getMaxHp());addLog('The shrine radiates warmth. Fully healed!','heal')}
-  else if(r<0.66){const c=pick(['shrug_it_off','iron_wave','warcry','flex','pommel_strike']);G.player.deck.push(c);addLog(`The shrine blesses your deck: ${CARDS[c].name}!`,'loot')}
-  else{G.player.baseAtk+=2;addLog('The shrine empowers your arm. +2 Attack!','loot')}
-  renderMain();updateSidebar();
+  if(r<0.33){
+    const old=G.player.hp;G.player.hp=getMaxHp();
+    addLog(`The shrine blazes with warmth. Fully healed! (${G.player.hp} HP)`,'heal');
+  }else if(r<0.66){
+    const pool=['shrug_it_off','iron_wave','warcry','flex','pommel_strike','cleave','reaper','spot_weakness','battle_trance','blade_dance'];
+    const c=pick(pool);G.player.deck.push(c);
+    addLog(`The altar rewards your sacrifice: ${CARDS[c].name} added to your deck!`,'loot');
+  }else{
+    G.player.baseAtk+=2;
+    addLog('The altar empowers your strike arm. +2 permanent Attack!','loot');
+  }
+  G.screen='world';updateSidebar();renderMain();
 }
 
 function shrineDisturb(){
@@ -1875,6 +1948,7 @@ function renderMain(){
   else if(s==='blacksmith')main.innerHTML=renderBlacksmith();
   else if(s==='cardreward')main.innerHTML=renderCardReward();
   else if(s==='event')main.innerHTML=renderEvent();
+  else if(s==='shrine')main.innerHTML=renderShrine();
   else if(s==='gameover')main.innerHTML=renderGameOver();
   else if(s==='victory')main.innerHTML=renderVictory();
 }
@@ -2128,6 +2202,25 @@ function renderShop(){
       <button class="shop-btn" ${canBuy?'':'disabled'} onclick="buyItem('${id}')">${canBuy?'Buy':'Poor'}</button>
     </div>`;
   }
+  // Sell section
+  let sellHtml='';
+  if(G.player.inventory.length===0){
+    sellHtml='<div style="color:var(--inkf);font-style:italic;padding:8px 0">Nothing to sell.</div>';
+  }else{
+    for(let i=0;i<G.player.inventory.length;i++){
+      const sid=G.player.inventory[i];const sitem=ITEMS[sid];if(!sitem)continue;
+      const sellVal=Math.floor((SHOP_PRICES[sid]||20)*0.4);
+      sellHtml+=`<div class="shop-item-row">
+        <div class="shop-item-info">
+          <div style="color:var(--inkd);font-size:13px">${sitem.icon} ${sitem.name}</div>
+          <div style="font-size:10px;color:var(--inkf);font-style:italic">"${sitem.flavor}"</div>
+        </div>
+        <span class="shop-price" style="color:var(--greenb)">+${sellVal}g</span>
+        <button class="shop-btn" style="background:var(--goldd)" onclick="sellItem(${i})">Sell</button>
+      </div>`;
+    }
+  }
+
   return `<div class="view">
     <div class="loc-title">🛒 ${shop.name}</div>
     <div class="shop-npc">
@@ -2135,42 +2228,116 @@ function renderShop(){
       <div class="npc-speech">"${shop.speech}"</div>
     </div>
     <div style="margin-bottom:10px;font-size:13px;color:var(--inkd)">💰 You have: <strong class="gold-txt">${G.player.gold} gold</strong></div>
+    <div class="subsection-title">Buy</div>
     ${itemHtml}
+    <div class="sep"></div>
+    <div class="subsection-title">Sell (40% value)</div>
+    ${sellHtml}
     <div class="sep"></div>
     <button class="act-btn" onclick="showView('world')">← Leave Shop</button>
   </div>`;
 }
 
 function renderBlacksmith(){
-  let html='';
-  const upgradeable=G.player.deck.map((id,i)=>({id,i})).filter(({id})=>CARDS[id+'_plus']);
+  // Only the original 10 starting cards (strike/defend) can be upgraded
+  const STARTER_IDS=['strike','defend'];
+  const upgradeable=G.player.deck.map((id,i)=>({id,i})).filter(({id})=>STARTER_IDS.includes(id));
+
+  let upgradeHtml='';
   if(upgradeable.length===0){
-    html='<div style="color:var(--inkf);font-style:italic;padding:12px">No cards available for upgrade.</div>';
+    upgradeHtml='<div style="color:var(--inkf);font-style:italic;padding:8px 0">No starting cards left to upgrade. (Only your original Strike and Defend cards can be forged.)</div>';
   }else{
     for(const{id,i}of upgradeable){
       const c=CARDS[id];const up=CARDS[id+'_plus'];
-      html+=`<div class="smith-item">
+      upgradeHtml+=`<div class="smith-item">
         <div class="smith-item-info">
-          <div style="color:var(--gold);font-size:14px">${c.name} → ${up.name}</div>
-          <div style="font-size:12px;color:var(--inkd)">${c.desc} → <strong>${up.desc}</strong></div>
+          <div style="color:var(--gold);font-size:14px">${c.art} ${c.name} → ${up.name}</div>
+          <div style="font-size:12px;color:var(--inkd)">${c.desc} → <strong style="color:#6acc6a">${up.desc}</strong></div>
         </div>
         <span class="upgrade-cost">💰 50</span>
-        <button class="upgrade-btn" ${G.player.gold>=50?'':'disabled'} onclick="upgradeCard('${id}',${i})">Upgrade</button>
+        <button class="upgrade-btn" ${G.player.gold>=50?'':'disabled'} onclick="upgradeCard('${id}',${i})">Forge</button>
       </div>`;
     }
   }
+
+  // Card removal — any card, costs 75g
+  let removeHtml='';
+  const removable=G.player.deck.map((id,i)=>({id,i}));
+  if(removable.length<=1){
+    removeHtml='<div style="color:var(--inkf);font-style:italic;padding:8px 0">You cannot remove your last card.</div>';
+  }else{
+    // group by card id for display, show each copy
+    for(const{id,i}of removable){
+      const c=CARDS[id];if(!c)continue;
+      removeHtml+=`<div class="smith-item">
+        <div class="smith-item-info">
+          <div style="color:var(--inkd);font-size:13px">${c.art} ${c.name} <span style="color:var(--inkf);font-size:11px">(${c.type}${c.upgraded?' · upgraded':''})</span></div>
+          <div style="font-size:11px;color:var(--inkf)">${c.desc}</div>
+        </div>
+        <span class="upgrade-cost" style="color:var(--redb)">💰 75</span>
+        <button class="upgrade-btn" style="background:var(--red);border-color:var(--redb)" ${G.player.gold>=75?'':'disabled'} onclick="removeCard(${i})">Remove</button>
+      </div>`;
+    }
+  }
+
+  // Sell items
+  let sellHtml='';
+  if(G.player.inventory.length===0){
+    sellHtml='<div style="color:var(--inkf);font-style:italic;padding:8px 0">Your pack is empty.</div>';
+  }else{
+    for(let i=0;i<G.player.inventory.length;i++){
+      const id=G.player.inventory[i];const item=ITEMS[id];if(!item)continue;
+      const sellVal=Math.floor((SHOP_PRICES[id]||20)*0.4);
+      sellHtml+=`<div class="smith-item">
+        <div class="smith-item-info">
+          <div style="color:var(--inkd);font-size:13px">${item.icon} ${item.name}</div>
+          <div style="font-size:11px;color:var(--inkf);font-style:italic">"${item.flavor}"</div>
+        </div>
+        <span class="upgrade-cost" style="color:var(--gold)">+${sellVal}g</span>
+        <button class="upgrade-btn" style="background:var(--goldd);border-color:var(--gold);color:var(--bg)" onclick="sellItem(${i})">Sell</button>
+      </div>`;
+    }
+  }
+
   return `<div class="view">
-    <div class="loc-title">🔨 Blacksmith</div>
+    <div class="loc-title">🔨 Brennan's Forge</div>
     <div class="shop-npc">
       <div class="npc-name">Brennan the Smith</div>
-      <div class="npc-speech">"Bring me the card and the coin. I'll make it sing."</div>
+      <div class="npc-speech">"I forge what you were born with. Other tricks are beyond my craft. And aye, I'll buy your junk — at my price, not yours."</div>
     </div>
     <div style="margin-bottom:12px;font-size:13px;color:var(--inkd)">💰 You have: <strong class="gold-txt">${G.player.gold} gold</strong></div>
-    <div class="subsection-title">Upgradeable Cards (50 gold each)</div>
-    ${html}
+    <div class="subsection-title">Upgrade Starting Cards (50 gold each)</div>
+    <div style="font-size:11px;color:var(--inkf);margin-bottom:8px;font-style:italic">Only your original Strike and Defend cards can be forged. Acquired cards are already at their peak.</div>
+    ${upgradeHtml}
     <div class="sep"></div>
-    <button class="act-btn" onclick="showView('world')">← Leave Smithy</button>
+    <div class="subsection-title">Remove a Card (75 gold each)</div>
+    <div style="font-size:11px;color:var(--inkf);margin-bottom:8px;font-style:italic">Brennan burns the card in his forge. Gone forever — but a leaner deck draws stronger hands.</div>
+    ${removeHtml}
+    <div class="sep"></div>
+    <div class="subsection-title">Sell Items (40% value)</div>
+    ${sellHtml}
+    <div class="sep"></div>
+    <button class="act-btn" onclick="showView('world')">← Leave the Forge</button>
   </div>`;
+}
+
+function removeCard(deckIdx){
+  if(G.player.gold<75){addLog('Need 75 gold to remove a card.','sys');return}
+  if(G.player.deck.length<=1){addLog('Cannot remove your last card!','sys');return}
+  const cardId=G.player.deck[deckIdx];
+  G.player.gold-=75;
+  G.player.deck.splice(deckIdx,1);
+  addLog(`Brennan burns ${CARDS[cardId]?.name||cardId} in the forge. It is gone.`,'loot');
+  updateSidebar();renderMain();
+}
+
+function sellItem(invIdx){
+  const id=G.player.inventory[invIdx];const item=ITEMS[id];if(!item)return;
+  const val=Math.floor((SHOP_PRICES[id]||20)*0.4);
+  G.player.inventory.splice(invIdx,1);
+  G.player.gold+=val;
+  addLog(`Sold ${item.name} for ${val} gold.`,'loot');
+  updateSidebar();renderMain();
 }
 
 function renderCardReward(){
