@@ -9,6 +9,41 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#080806;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Share Tech Mono',monospace}
+
+/* ── BOOT SCREEN ── */
+#bootScreen{
+  position:fixed;inset:0;background:#080806;z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  transition:opacity 0.6s;
+}
+#bootScreen.hidden{opacity:0;pointer-events:none}
+.boot-title{font-family:'Special Elite',serif;font-size:32px;color:#d4a843;letter-spacing:6px;text-transform:uppercase}
+.boot-sub{font-size:11px;color:#555;letter-spacing:2px;text-align:center;max-width:380px;line-height:1.9}
+.model-selector{display:flex;flex-direction:column;gap:8px;width:340px}
+.model-selector label{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase}
+.model-selector select{
+  background:#111008;border:1px solid #3a3520;color:#c8b882;
+  font-family:'Share Tech Mono',monospace;font-size:12px;padding:8px 12px;border-radius:3px;outline:none;
+  appearance:none;cursor:pointer;
+}
+.model-selector select:focus{border-color:#6a5a28}
+.load-btn{
+  background:#1e1c10;border:1px solid #5a4a20;color:#d4a843;
+  font-family:'Share Tech Mono',monospace;font-size:13px;
+  padding:10px 32px;cursor:pointer;border-radius:3px;letter-spacing:2px;
+  transition:all 0.15s;
+}
+.load-btn:hover{background:#2a2818;border-color:#8a7030}
+.load-btn:disabled{opacity:0.4;cursor:not-allowed}
+.progress-wrap{width:340px;display:none;flex-direction:column;gap:8px}
+.progress-wrap.visible{display:flex}
+.progress-bar-bg{background:#1a1a12;height:6px;border-radius:3px;border:1px solid #2a2418;overflow:hidden}
+.progress-bar{height:100%;background:#5a3a10;border-radius:3px;transition:width 0.3s;width:0%}
+.progress-label{font-size:10px;color:#555;text-align:center;line-height:1.6}
+.webgpu-warn{font-size:10px;color:#c87070;text-align:center;max-width:360px;line-height:1.8;display:none}
+.webgpu-warn.visible{display:block}
+
+/* ── GAME ── */
 .game-wrap{background:#0d0d0b;color:#c8b882;width:700px;max-width:100vw;border-radius:8px;overflow:hidden;border:1px solid #3a3520;display:flex;flex-direction:column;height:96vh;max-height:700px}
 .game-header{background:#111008;border-bottom:1px solid #3a3520;padding:9px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .game-title{font-family:'Special Elite',serif;font-size:17px;color:#d4a843;letter-spacing:3px;text-transform:uppercase}
@@ -58,13 +93,42 @@ body{background:#080806;display:flex;align-items:center;justify-content:center;m
 .xp-bar{height:100%;background:#5a3a10;border-radius:2px;transition:width 0.4s}
 .prompt-toggle{font-size:10px;color:#444;cursor:pointer;padding:5px 16px;background:#0a0a08;border-top:1px solid #1a1a10;text-align:center;flex-shrink:0;user-select:none}
 .prompt-toggle:hover{color:#777}
-
 .prompt-box{background:#080807;border-top:1px solid #1a1a10;padding:12px 16px;font-size:10px;color:#4a4a38;line-height:1.7;max-height:130px;overflow-y:auto;display:none;font-family:'Share Tech Mono',monospace;flex-shrink:0;white-space:pre-wrap}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.thinking-dot::after{content:'▋';animation:blink 0.9s step-start infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 </style>
 </head>
 <body>
 
+<!-- ── BOOT SCREEN ── -->
+<div id="bootScreen">
+  <div class="boot-title">☢ Dust &amp; Darkness</div>
+  <div class="boot-sub">
+    Runs entirely in your browser — no server, no account, no API key.<br/>
+    The AI model is downloaded once and cached locally.<br/>
+    Requires a browser with <strong style="color:#d4a843">WebGPU support</strong> (Chrome 113+, Edge 113+).
+  </div>
+  <div class="webgpu-warn" id="webgpuWarn">
+    ⚠ WebGPU is not available in this browser.<br/>
+    Please use Chrome 113+ or Edge 113+ on a desktop device.
+  </div>
+  <div class="model-selector">
+    <label>Choose model (downloaded once, cached)</label>
+    <select id="modelSelect">
+      <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 · 1B · ~880 MB — fastest download</option>
+      <option value="Llama-3.2-3B-Instruct-q4f32_1-MLC">Llama 3.2 · 3B · ~2 GB — better quality</option>
+      <option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi-3.5 Mini · 3.8B · ~2.2 GB — smartest</option>
+    </select>
+  </div>
+  <button class="load-btn" id="loadBtn" onclick="initWebLLM()">LOAD MODEL &amp; BEGIN →</button>
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="progress-label" id="progressLabel">Initialising…</div>
+  </div>
+</div>
+
+<!-- ── GAME ── -->
 <div class="game-wrap" id="gw">
   <div class="game-header">
     <div class="game-title">☢ Dust &amp; Darkness</div>
@@ -100,7 +164,7 @@ body{background:#080806;display:flex;align-items:center;justify-content:center;m
       <div class="narrative-log" id="log"></div>
       <div class="options-area" id="optArea"></div>
       <div class="input-area">
-        <input class="cmd-input" id="cmdInput" placeholder="what do you do..." maxlength="120"/>
+        <input class="cmd-input" id="cmdInput" placeholder="what do you do…" maxlength="120"/>
         <button class="send-btn" id="sendBtn" onclick="sendAction()">ACT →</button>
       </div>
     </div>
@@ -109,129 +173,173 @@ body{background:#080806;display:flex;align-items:center;justify-content:center;m
   <div class="prompt-box" id="promptBox"></div>
 </div>
 
-<script>
-// Pollinations.ai — free, no account, no age requirement
-// Uses GET endpoint to avoid CORS preflight issues with local/GitHub file origins
-async function callPollinations(history, maxTokens) {
-  // Build self-contained prompt including recent story context
-  const lastMsg = history[history.length - 1]?.content || '';
-  const context = (state.storyLog || []).slice(-3).join(' ');
-  const fullPrompt = context ? 'Story so far: ' + context + '\n\n' + lastMsg : lastMsg;
+<script type="module">
+// ── WebLLM via ESM CDN ──────────────────────────────────────────────────────
+import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm';
 
-  const url = 'https://text.pollinations.ai/' + encodeURIComponent(fullPrompt)
-    + '?model=openai'
-    + '&system=' + encodeURIComponent(SYSTEM_PROMPT)
-    + '&json=true'
-    + '&seed=' + Math.floor(Math.random() * 99999);
-
-  const res = await fetch(url);
-  if (!res.ok) {
-    const errText = await res.text().catch(() => String(res.status));
-    throw new Error('Pollinations ' + res.status + ': ' + errText);
-  }
-  const text = await res.text();
-  return text.replace(/```json|```/g, '').trim();
-}
-
-const SYSTEM_PROMPT = `You are the narrator of DUST & DARKNESS — a brutal post-apocalyptic survival RPG fusing Fallout's wasteland RPG with Don't Starve's unforgiving mechanics. The world: nuclear war ended 40 years ago. Mutant creatures stalk irradiated ruins. Night brings shadow beasts. The player scavenges to survive.
+// ── System prompt ───────────────────────────────────────────────────────────
+const SYSTEM_PROMPT = `You are the narrator of DUST & DARKNESS — a brutal post-apocalyptic survival RPG. Nuclear war ended 40 years ago. Mutant creatures stalk irradiated ruins. Night brings shadow beasts. The player scavenges to survive.
 
 STATS: hp (0-100), hunger (0-100), sanity (0-100). Hunger below 20 drains hp. Sanity below 20 causes hallucinations. Night raises danger.
 
 TONE: Dark, literary, brutal. Short vivid sentences. No warmth.
 
-Respond ONLY with a valid JSON object (no markdown, no extra text):
+YOU MUST respond ONLY with a single valid JSON object — no markdown fences, no explanation, no extra text before or after. The JSON must have exactly these fields:
 {
   "narrative": "2-4 tense sentences describing what happens",
-  "hpChange": <integer -25 to +15>,
-  "hungerChange": <integer -20 to +8>,
-  "sanityChange": <integer -15 to +10>,
-  "itemGained": <"item name" or null>,
-  "xpGain": <integer 0 to 30>,
-  "locationDiscovered": <{"name":"location name","type":"settlement|outpost|raider_camp|ruin|danger_zone|unknown","notes":"one short grim phrase"} or null>,
+  "hpChange": 0,
+  "hungerChange": -5,
+  "sanityChange": -2,
+  "itemGained": null,
+  "xpGain": 5,
+  "locationDiscovered": null,
   "options": ["short option 1","short option 2","short option 3"]
 }
 
-Rules: Be brutal but fair. Reward smart survival. Punish recklessness. Items are scarce. Danger escalates at night. Occasionally let the player find something useful. Make options meaningful tradeoffs. Discover a named location (locationDiscovered) when the player meaningfully explores a new place — ruins, camps, settlements. Do not repeat already-known locations.`;
+Rules:
+- hpChange: integer -25 to +15
+- hungerChange: integer -20 to +8
+- sanityChange: integer -15 to +10
+- itemGained: a short item name string, or null
+- xpGain: integer 0 to 30
+- locationDiscovered: {"name":"place name","type":"settlement|outpost|raider_camp|ruin|danger_zone|unknown","notes":"one short grim phrase"} or null
+- options: array of exactly 3 short action strings
+- Be brutal but fair. Reward smart survival. Punish recklessness. Items are scarce.
+- Danger escalates at night. Discover named locations when the player meaningfully explores new places.
+- Do NOT repeat already-known locations.
+- OUTPUT ONLY THE JSON OBJECT. NOTHING ELSE.`;
 
 document.getElementById('promptBox').textContent = SYSTEM_PROMPT;
 
+// ── State ───────────────────────────────────────────────────────────────────
+let engine = null;
 let state = {
-  hp: 80, hunger: 70, sanity: 60,
-  day: 1, hour: 6, isNight: false,
-  inventory: [], level: 1, xp: 0,
-  busy: false, locations: [],
-  history: [], storyLog: []
+  hp:80, hunger:70, sanity:60,
+  day:1, hour:6, isNight:false,
+  inventory:[], level:1, xp:0,
+  busy:false, locations:[],
+  history:[]
 };
 
 const XP_PER_LEVEL = 100;
 const LEVEL_TITLES = ['Survivor','Drifter','Scavenger','Raider','Warlord','Ghost'];
 
-function updateUI() {
-  document.getElementById('hpBar').style.width = Math.max(0, state.hp) + '%';
-  document.getElementById('hpVal').textContent = Math.max(0, Math.round(state.hp)) + '/100';
-  document.getElementById('hunBar').style.width = Math.max(0, state.hunger) + '%';
-  document.getElementById('hunVal').textContent = Math.max(0, Math.round(state.hunger)) + '/100';
-  document.getElementById('sanBar').style.width = Math.max(0, state.sanity) + '%';
-  document.getElementById('sanVal').textContent = Math.max(0, Math.round(state.sanity)) + '/100';
-  document.getElementById('hpBar').style.background = state.hp > 40 ? '#8b2020' : '#dd3030';
-  document.getElementById('hunBar').style.background = state.hunger > 30 ? '#8b5a10' : '#d4840a';
-  document.getElementById('sanBar').style.background = state.sanity > 30 ? '#3a3a8b' : '#7070d0';
-  document.getElementById('dayNum').textContent = state.day;
-  const h = state.hour;
-  let timeStr = h < 6 ? 'Night' : h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : h < 20 ? 'Dusk' : 'Night';
-  state.isNight = h >= 20 || h < 6;
-  document.getElementById('timeLabel').textContent = timeStr;
-  const xpPct = (state.xp % (state.level * XP_PER_LEVEL)) / (state.level * XP_PER_LEVEL) * 100;
-  document.getElementById('xpBar').style.width = xpPct + '%';
-  const lvlIdx = Math.min(state.level - 1, LEVEL_TITLES.length - 1);
-  document.getElementById('lvlBadge').textContent = 'LEVEL ' + state.level + ' — ' + LEVEL_TITLES[lvlIdx];
-  const invList = document.getElementById('invList');
-  invList.innerHTML = state.inventory.length === 0
-    ? '<div class="inv-empty">empty pockets</div>'
-    : state.inventory.map(i => '<div class="inv-item">• ' + i + '</div>').join('');
-  const LOC_ICONS = {settlement:'⌂',outpost:'⚑',raider_camp:'☠',ruin:'◫',danger_zone:'☢',unknown:'?'};
-  const locList = document.getElementById('locList');
-  locList.innerHTML = state.locations.length === 0
-    ? '<div class="inv-empty">none mapped</div>'
-    : state.locations.map(l => {
-        const t = l.type || 'unknown';
-        const icon = LOC_ICONS[t] || '?';
-        return `<div class="loc-item ${t}"><span class="loc-name">${icon} ${l.name}</span>${l.notes ? '<span class="loc-note">' + l.notes + '</span>' : ''}</div>`;
-      }).join('');
-}
+// ── WebLLM init ─────────────────────────────────────────────────────────────
+window.initWebLLM = async function() {
+  if (!navigator.gpu) {
+    document.getElementById('webgpuWarn').classList.add('visible');
+    document.getElementById('modelSelect').style.display = 'none';
+    document.getElementById('loadBtn').style.display = 'none';
+    return;
+  }
 
-function addLog(text, type) {
-  const log = document.getElementById('log');
-  const div = document.createElement('div');
-  div.className = 'log-entry' + (type ? ' ' + type : '');
-  div.textContent = text;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-}
+  const modelId = document.getElementById('modelSelect').value;
+  document.getElementById('loadBtn').disabled = true;
+  document.getElementById('modelSelect').disabled = true;
+  const progressWrap = document.getElementById('progressWrap');
+  const progressBar  = document.getElementById('progressBar');
+  const progressLabel= document.getElementById('progressLabel');
+  progressWrap.classList.add('visible');
 
-function setOptions(opts) {
-  const area = document.getElementById('optArea');
-  area.innerHTML = '';
-  (opts || []).forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.textContent = '▸ ' + opt;
-    btn.disabled = state.busy;
-    btn.onclick = () => { document.getElementById('cmdInput').value = opt; sendAction(); };
-    area.appendChild(btn);
+  try {
+    engine = await CreateMLCEngine(modelId, {
+      initProgressCallback: (progress) => {
+        const pct = Math.round((progress.progress || 0) * 100);
+        progressBar.style.width = pct + '%';
+        progressLabel.textContent = progress.text
+          ? progress.text.slice(0, 80)
+          : `Loading… ${pct}%`;
+      }
+    });
+
+    // Hide boot, show game
+    const boot = document.getElementById('bootScreen');
+    boot.classList.add('hidden');
+    setTimeout(() => boot.style.display = 'none', 700);
+
+    updateUI();
+    await startGame();
+
+  } catch(err) {
+    progressLabel.textContent = '✕ Error: ' + err.message;
+    document.getElementById('loadBtn').disabled = false;
+    document.getElementById('modelSelect').disabled = false;
+  }
+};
+
+// ── AI call ─────────────────────────────────────────────────────────────────
+async function askAI(userContent) {
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...state.history,
+    { role: 'user', content: userContent }
+  ];
+
+  const reply = await engine.chat.completions.create({
+    messages,
+    temperature: 0.85,
+    max_tokens: 512,
+    // Ask the engine to constrain to JSON where supported
+    response_format: { type: 'json_object' }
   });
+
+  const raw = reply.choices[0].message.content || '';
+
+  // Push exchange into history (keep last 10 turns = 20 messages)
+  state.history.push({ role:'user', content:userContent });
+  state.history.push({ role:'assistant', content:raw });
+  if (state.history.length > 20) state.history = state.history.slice(-20);
+
+  return raw;
 }
 
-function setBusy(v) {
-  state.busy = v;
-  document.getElementById('sendBtn').disabled = v;
-  document.getElementById('cmdInput').disabled = v;
-  document.getElementById('sendBtn').textContent = v ? '...' : 'ACT →';
-  document.querySelectorAll('.option-btn').forEach(b => b.disabled = v);
+// ── Parse AI response ────────────────────────────────────────────────────────
+function parseResponse(raw) {
+  // Strip any accidental markdown fences
+  let clean = raw.replace(/```json|```/g,'').trim();
+  // Find the first {...} block if the model added preamble
+  const match = clean.match(/\{[\s\S]*\}/);
+  if (match) clean = match[0];
+  try {
+    return JSON.parse(clean);
+  } catch(_) {
+    return {
+      narrative:'The wasteland offers only silence.',
+      hpChange:0, hungerChange:-3, sanityChange:-2,
+      xpGain:2, itemGained:null, locationDiscovered:null,
+      options:['Look around','Search for food','Rest']
+    };
+  }
 }
 
-async function sendAction() {
-  const input = document.getElementById('cmdInput');
+// ── Game start ───────────────────────────────────────────────────────────────
+async function startGame() {
+  setBusy(true);
+  addLog('Initialising…', 'system');
+  try {
+    const raw = await askAI(
+      'Start the game. The player wakes at dawn in the wasteland, injured and hungry. ' +
+      'HP=80, Hunger=70, Sanity=60. Set the scene vividly. Respond ONLY with the JSON object.'
+    );
+    const parsed = parseResponse(raw);
+    // Remove the "Initialising…" placeholder
+    const log = document.getElementById('log');
+    if (log.lastChild) log.removeChild(log.lastChild);
+    addLog(parsed.narrative || 'You wake in the ash. The sky is the colour of old blood.', '');
+    setOptions(parsed.options || ['Search nearby ruins','Look for food','Check your wounds']);
+    updateUI();
+  } catch(e) {
+    const log = document.getElementById('log');
+    if (log.lastChild) log.removeChild(log.lastChild);
+    addLog('You wake in the ash. The sky is the colour of old blood. Somewhere, something is burning.', '');
+    setOptions(['Search nearby ruins','Look for food','Check your wounds']);
+  }
+  setBusy(false);
+}
+
+// ── Send action ──────────────────────────────────────────────────────────────
+window.sendAction = async function() {
+  const input  = document.getElementById('cmdInput');
   const action = input.value.trim();
   if (!action || state.busy) return;
   if (state.hp <= 0) { addLog('You are dead. Refresh to begin again.', 'danger'); return; }
@@ -239,6 +347,7 @@ async function sendAction() {
   setBusy(true);
   addLog('> ' + action, 'system');
 
+  // Advance time
   state.hour = (state.hour + 2) % 24;
   if (state.hour === 0) {
     state.day++;
@@ -246,60 +355,61 @@ async function sendAction() {
   }
   if (state.hour === 20) addLog('Night falls. The shadow beasts stir.', 'danger');
 
-  const userMsg = {
-    role: 'user',
-    content: `Current state: HP=${Math.round(state.hp)}, Hunger=${Math.round(state.hunger)}, Sanity=${Math.round(state.sanity)}, Day=${state.day}, Time=${state.isNight?'Night':'Day'}, Inventory=[${state.inventory.join(', ')||'nothing'}], Level=${state.level}, KnownLocations=[${state.locations.map(l=>l.name).join(', ')||'none'}]\nPlayer action: "${action}"`
-  };
+  const userContent =
+    `Current state: HP=${Math.round(state.hp)}, Hunger=${Math.round(state.hunger)}, ` +
+    `Sanity=${Math.round(state.sanity)}, Day=${state.day}, ` +
+    `Time=${state.isNight?'Night':'Day'}, ` +
+    `Inventory=[${state.inventory.join(', ')||'nothing'}], Level=${state.level}, ` +
+    `KnownLocations=[${state.locations.map(l=>l.name).join(', ')||'none'}]\n` +
+    `Player action: "${action}"\nRespond ONLY with the JSON object.`;
 
-  const msgs = [...state.history, userMsg];
+  // Show a thinking indicator
+  const thinkId = addThinking();
 
   try {
-    const raw = await callPollinations(msgs, 500);
-    let parsed;
-    try { parsed = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
-    catch(e) { parsed = {narrative:'The wasteland offers no answer.',hpChange:0,hungerChange:-3,sanityChange:-2,xpGain:2,options:['Look around','Search for food','Rest']}; }
+    const raw    = await askAI(userContent);
+    removeThinking(thinkId);
+    const parsed = parseResponse(raw);
 
-    state.history.push(userMsg);
-    state.history.push({role:'assistant', content: raw});
-    if (state.history.length > 14) state.history = state.history.slice(-14);
+    const hpChg  = parsed.hpChange   || 0;
+    const hunChg = parsed.hungerChange|| 0;
+    const sanChg = parsed.sanityChange|| 0;
+    const xpGain = parsed.xpGain     || 5;
 
-    const hpChg = parsed.hpChange || 0;
-    const hunChg = parsed.hungerChange || 0;
-    const sanChg = parsed.sanityChange || 0;
-    const xpGain = parsed.xpGain || 5;
-
-    state.hp = Math.min(100, Math.max(0, state.hp + hpChg));
+    state.hp     = Math.min(100, Math.max(0, state.hp     + hpChg));
     state.hunger = Math.min(100, Math.max(0, state.hunger + hunChg));
     state.sanity = Math.min(100, Math.max(0, state.sanity + sanChg));
-    state.xp += xpGain;
+    state.xp    += xpGain;
 
     if (state.xp >= state.level * XP_PER_LEVEL) {
       state.level++;
-      addLog('LEVEL UP → Level ' + state.level + ' — ' + (LEVEL_TITLES[Math.min(state.level-1, LEVEL_TITLES.length-1)]), 'good');
+      addLog('LEVEL UP → Level ' + state.level + ' — ' +
+        (LEVEL_TITLES[Math.min(state.level-1, LEVEL_TITLES.length-1)]), 'good');
     }
     if (state.hunger < 20 && state.hp > 0) {
       state.hp = Math.max(0, state.hp - 5);
       addLog('Starvation gnaws. Your vision dims.', 'danger');
     }
-    if (state.sanity < 20) addLog('The shadows whisper your name. None of it is real. Probably.', 'danger');
+    if (state.sanity < 20)
+      addLog('The shadows whisper your name. None of it is real. Probably.', 'danger');
+
     if (parsed.itemGained) {
       state.inventory.push(parsed.itemGained);
       addLog('+ Found: ' + parsed.itemGained, 'good');
     }
-    if (parsed.locationDiscovered && parsed.locationDiscovered.name) {
+    if (parsed.locationDiscovered?.name) {
       const loc = parsed.locationDiscovered;
-      const already = state.locations.some(l => l.name.toLowerCase() === loc.name.toLowerCase());
+      const already = state.locations.some(l =>
+        l.name.toLowerCase() === loc.name.toLowerCase());
       if (!already) {
         state.locations.push(loc);
-        const typeLabel = loc.type ? loc.type.replace('_',' ') : 'location';
+        const typeLabel = (loc.type||'location').replace('_',' ');
         addLog('◉ Mapped: ' + loc.name + ' [' + typeLabel + ']', 'good');
       }
     }
 
     const logType = hpChg < -10 ? 'danger' : (hpChg > 0 || hunChg > 0) ? 'good' : '';
-    const narrative = parsed.narrative || 'Nothing happens.';
-    addLog(narrative, logType);
-    if (narrative) { state.storyLog.push(narrative); if (state.storyLog.length > 6) state.storyLog.shift(); }
+    addLog(parsed.narrative || 'Nothing happens.', logType);
 
     if (state.hp <= 0) {
       addLog('YOU ARE DEAD. The wasteland claims another soul.', 'danger');
@@ -308,45 +418,116 @@ async function sendAction() {
       setOptions(parsed.options || ['Look around','Search for food','Rest here']);
     }
     updateUI();
+
   } catch(err) {
+    removeThinking(thinkId);
     addLog('Signal lost: ' + err.message, 'system');
-    setBusy(false);
-    return;
   }
   setBusy(false);
+};
+
+// ── UI helpers ───────────────────────────────────────────────────────────────
+function addLog(text, type) {
+  const log = document.getElementById('log');
+  const div = document.createElement('div');
+  div.className = 'log-entry' + (type ? ' ' + type : '');
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
 }
 
-document.getElementById('cmdInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') sendAction();
-});
+let thinkCounter = 0;
+function addThinking() {
+  const id = ++thinkCounter;
+  const log = document.getElementById('log');
+  const div = document.createElement('div');
+  div.className = 'log-entry system thinking-dot';
+  div.id = 'think-' + id;
+  div.textContent = 'The wasteland deliberates';
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return id;
+}
+function removeThinking(id) {
+  const el = document.getElementById('think-' + id);
+  if (el) el.remove();
+}
 
-function togglePrompt() {
+function setOptions(opts) {
+  const area = document.getElementById('optArea');
+  area.innerHTML = '';
+  (opts||[]).forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = '▸ ' + opt;
+    btn.disabled = state.busy;
+    btn.onclick = () => {
+      document.getElementById('cmdInput').value = opt;
+      window.sendAction();
+    };
+    area.appendChild(btn);
+  });
+}
+
+function setBusy(v) {
+  state.busy = v;
+  document.getElementById('sendBtn').disabled  = v;
+  document.getElementById('cmdInput').disabled = v;
+  document.getElementById('sendBtn').textContent = v ? '…' : 'ACT →';
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = v);
+}
+
+function updateUI() {
+  document.getElementById('hpBar').style.width  = Math.max(0,state.hp)    +'%';
+  document.getElementById('hpVal').textContent  = Math.max(0,Math.round(state.hp))    +'/100';
+  document.getElementById('hunBar').style.width = Math.max(0,state.hunger)+'%';
+  document.getElementById('hunVal').textContent = Math.max(0,Math.round(state.hunger))+'/100';
+  document.getElementById('sanBar').style.width = Math.max(0,state.sanity)+'%';
+  document.getElementById('sanVal').textContent = Math.max(0,Math.round(state.sanity))+'/100';
+  document.getElementById('hpBar').style.background  = state.hp    > 40 ? '#8b2020' : '#dd3030';
+  document.getElementById('hunBar').style.background = state.hunger> 30 ? '#8b5a10' : '#d4840a';
+  document.getElementById('sanBar').style.background = state.sanity> 30 ? '#3a3a8b' : '#7070d0';
+  document.getElementById('dayNum').textContent  = state.day;
+  const h = state.hour;
+  const timeStr = h < 6 ? 'Night' : h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : h < 20 ? 'Dusk' : 'Night';
+  state.isNight = h >= 20 || h < 6;
+  document.getElementById('timeLabel').textContent = timeStr;
+  const xpPct = (state.xp % (state.level * XP_PER_LEVEL)) / (state.level * XP_PER_LEVEL) * 100;
+  document.getElementById('xpBar').style.width = xpPct + '%';
+  const lvlIdx = Math.min(state.level - 1, LEVEL_TITLES.length - 1);
+  document.getElementById('lvlBadge').textContent = 'LEVEL ' + state.level + ' — ' + LEVEL_TITLES[lvlIdx];
+
+  const invList = document.getElementById('invList');
+  invList.innerHTML = state.inventory.length === 0
+    ? '<div class="inv-empty">empty pockets</div>'
+    : state.inventory.map(i => '<div class="inv-item">• '+i+'</div>').join('');
+
+  const LOC_ICONS = {settlement:'⌂',outpost:'⚑',raider_camp:'☠',ruin:'◫',danger_zone:'☢',unknown:'?'};
+  const locList = document.getElementById('locList');
+  locList.innerHTML = state.locations.length === 0
+    ? '<div class="inv-empty">none mapped</div>'
+    : state.locations.map(l => {
+        const t = l.type||'unknown';
+        const icon = LOC_ICONS[t]||'?';
+        return `<div class="loc-item ${t}"><span class="loc-name">${icon} ${l.name}</span>${l.notes?'<span class="loc-note">'+l.notes+'</span>':''}</div>`;
+      }).join('');
+}
+
+window.togglePrompt = function() {
   const pb = document.getElementById('promptBox');
   pb.style.display = pb.style.display === 'block' ? 'none' : 'block';
-}
+};
 
-async function startGame() {
-  setBusy(true);
-  try {
-    const initMsg = {role:'user', content:'Start the game. The player wakes at dawn in the wasteland, injured and hungry. HP=80, Hunger=70, Sanity=60. Set the scene vividly.'};
-    const raw = await callPollinations([initMsg], 400);
-    let parsed;
-    try { parsed = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
-    catch(e) { parsed = {narrative:'You wake in the ash. The sky is the colour of old blood. Something moved in the ruins to the west, and it was not the wind.',options:['Search the ruins to the west','Scavenge for food','Tend to your wounds']}; }
-    state.history.push(initMsg);
-    state.history.push({role:'assistant', content: raw});
-    addLog(parsed.narrative, '');
-    setOptions(parsed.options || ['Search the ruins','Scavenge for food','Rest']);
-    updateUI();
-  } catch(e) {
-    addLog('You wake in the ash. The sky is the colour of old blood. Somewhere, something is burning.', '');
-    setOptions(['Search nearby ruins','Look for food','Check your wounds']);
-  }
-  setBusy(false);
-}
+document.getElementById('cmdInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.sendAction();
+});
 
-updateUI();
-startGame();
+// Check WebGPU on load
+if (!navigator.gpu) {
+  document.getElementById('webgpuWarn').classList.add('visible');
+  document.getElementById('loadBtn').disabled = true;
+}
 </script>
 </body>
 </html>
