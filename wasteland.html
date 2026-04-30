@@ -10,38 +10,41 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#080806;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Share Tech Mono',monospace}
 
-/* ── BOOT SCREEN ── */
+/* ── BOOT ── */
 #bootScreen{
   position:fixed;inset:0;background:#080806;z-index:999;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
   transition:opacity 0.6s;
 }
 #bootScreen.hidden{opacity:0;pointer-events:none}
 .boot-title{font-family:'Special Elite',serif;font-size:32px;color:#d4a843;letter-spacing:6px;text-transform:uppercase}
-.boot-sub{font-size:11px;color:#555;letter-spacing:2px;text-align:center;max-width:380px;line-height:1.9}
-.model-selector{display:flex;flex-direction:column;gap:8px;width:340px}
+.boot-sub{font-size:11px;color:#555;letter-spacing:2px;text-align:center;max-width:400px;line-height:1.9}
+.webgpu-warn{font-size:11px;color:#c87070;text-align:center;max-width:380px;line-height:1.9;display:none;border:1px solid #5a2020;padding:12px 16px;border-radius:4px;background:#1a0808}
+.webgpu-warn.visible{display:block}
+.model-selector{display:flex;flex-direction:column;gap:8px;width:360px}
 .model-selector label{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase}
 .model-selector select{
   background:#111008;border:1px solid #3a3520;color:#c8b882;
-  font-family:'Share Tech Mono',monospace;font-size:12px;padding:8px 12px;border-radius:3px;outline:none;
-  appearance:none;cursor:pointer;
+  font-family:'Share Tech Mono',monospace;font-size:12px;padding:8px 12px;border-radius:3px;outline:none;cursor:pointer;
 }
 .model-selector select:focus{border-color:#6a5a28}
 .load-btn{
   background:#1e1c10;border:1px solid #5a4a20;color:#d4a843;
   font-family:'Share Tech Mono',monospace;font-size:13px;
-  padding:10px 32px;cursor:pointer;border-radius:3px;letter-spacing:2px;
-  transition:all 0.15s;
+  padding:10px 32px;cursor:pointer;border-radius:3px;letter-spacing:2px;transition:all 0.15s;
 }
-.load-btn:hover{background:#2a2818;border-color:#8a7030}
+.load-btn:hover:not(:disabled){background:#2a2818;border-color:#8a7030}
 .load-btn:disabled{opacity:0.4;cursor:not-allowed}
-.progress-wrap{width:340px;display:none;flex-direction:column;gap:8px}
+.progress-wrap{width:360px;display:none;flex-direction:column;gap:8px}
 .progress-wrap.visible{display:flex}
 .progress-bar-bg{background:#1a1a12;height:6px;border-radius:3px;border:1px solid #2a2418;overflow:hidden}
-.progress-bar{height:100%;background:#5a3a10;border-radius:3px;transition:width 0.3s;width:0%}
-.progress-label{font-size:10px;color:#555;text-align:center;line-height:1.6}
-.webgpu-warn{font-size:10px;color:#c87070;text-align:center;max-width:360px;line-height:1.8;display:none}
-.webgpu-warn.visible{display:block}
+.progress-bar{height:100%;background:#5a3a10;border-radius:3px;transition:width 0.4s;width:0%}
+.progress-label{font-size:11px;color:#777;text-align:center;line-height:1.6;min-height:32px}
+.progress-phase{font-size:10px;color:#444;text-align:center;letter-spacing:1px;min-height:16px}
+.stuck-note{font-size:10px;color:#555;text-align:center;max-width:360px;line-height:1.8;display:none;font-style:italic;border:1px solid #2a2418;padding:10px 14px;border-radius:4px}
+.stuck-note.visible{display:block}
+.ready-msg{font-size:13px;color:#78a858;text-align:center;letter-spacing:2px;display:none}
+.ready-msg.visible{display:block}
 
 /* ── GAME ── */
 .game-wrap{background:#0d0d0b;color:#c8b882;width:700px;max-width:100vw;border-radius:8px;overflow:hidden;border:1px solid #3a3520;display:flex;flex-direction:column;height:96vh;max-height:700px}
@@ -94,42 +97,49 @@ body{background:#080806;display:flex;align-items:center;justify-content:center;m
 .prompt-toggle{font-size:10px;color:#444;cursor:pointer;padding:5px 16px;background:#0a0a08;border-top:1px solid #1a1a10;text-align:center;flex-shrink:0;user-select:none}
 .prompt-toggle:hover{color:#777}
 .prompt-box{background:#080807;border-top:1px solid #1a1a10;padding:12px 16px;font-size:10px;color:#4a4a38;line-height:1.7;max-height:130px;overflow-y:auto;display:none;font-family:'Share Tech Mono',monospace;flex-shrink:0;white-space:pre-wrap}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .thinking-dot::after{content:'▋';animation:blink 0.9s step-start infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
-<!-- ── BOOT SCREEN ── -->
+<!-- ── BOOT ── -->
 <div id="bootScreen">
   <div class="boot-title">☢ Dust &amp; Darkness</div>
   <div class="boot-sub">
-    Runs entirely in your browser — no server, no account, no API key.<br/>
-    The AI model is downloaded once and cached locally.<br/>
-    Requires a browser with <strong style="color:#d4a843">WebGPU support</strong> (Chrome 113+, Edge 113+).
+    AI runs fully in your browser — no server, no API key.<br/>
+    Model downloads once (~900 MB) then caches locally.<br/>
+    Requires <strong style="color:#d4a843">Chrome 113+</strong> or <strong style="color:#d4a843">Edge 113+</strong> on desktop.
   </div>
   <div class="webgpu-warn" id="webgpuWarn">
-    ⚠ WebGPU is not available in this browser.<br/>
-    Please use Chrome 113+ or Edge 113+ on a desktop device.
+    ⚠ WebGPU unavailable in this browser.<br/>
+    Please open in <strong>Chrome 113+</strong> or <strong>Edge 113+</strong> on desktop.<br/>
+    Also ensure you are serving over HTTPS or localhost — file:// won't work.
   </div>
-  <div class="model-selector">
-    <label>Choose model (downloaded once, cached)</label>
+  <div class="model-selector" id="modelBlock">
+    <label>Model — downloaded once, cached permanently</label>
     <select id="modelSelect">
-      <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 · 1B · ~880 MB — fastest download</option>
+      <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 · 1B · ~880 MB — fastest</option>
       <option value="Llama-3.2-3B-Instruct-q4f32_1-MLC">Llama 3.2 · 3B · ~2 GB — better quality</option>
       <option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi-3.5 Mini · 3.8B · ~2.2 GB — smartest</option>
     </select>
   </div>
-  <button class="load-btn" id="loadBtn" onclick="initWebLLM()">LOAD MODEL &amp; BEGIN →</button>
+  <button class="load-btn" id="loadBtn">LOAD MODEL &amp; BEGIN →</button>
   <div class="progress-wrap" id="progressWrap">
     <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
-    <div class="progress-label" id="progressLabel">Initialising…</div>
+    <div class="progress-phase" id="progressPhase"></div>
+    <div class="progress-label" id="progressLabel">Starting…</div>
   </div>
+  <div class="stuck-note" id="stuckNote">
+    ⏳ GPU shader compilation in progress — this is normal and takes 1–3 minutes on first run.<br/>
+    The page will advance automatically. Do not close the tab.
+  </div>
+  <div class="ready-msg" id="readyMsg">✔ MODEL READY — ENTERING WASTELAND…</div>
 </div>
 
 <!-- ── GAME ── -->
-<div class="game-wrap" id="gw">
+<div class="game-wrap">
   <div class="game-header">
     <div class="game-title">☢ Dust &amp; Darkness</div>
     <div class="day-badge">Day <span id="dayNum">1</span> &mdash; <span id="timeLabel">Dawn</span></div>
@@ -165,94 +175,117 @@ body{background:#080806;display:flex;align-items:center;justify-content:center;m
       <div class="options-area" id="optArea"></div>
       <div class="input-area">
         <input class="cmd-input" id="cmdInput" placeholder="what do you do…" maxlength="120"/>
-        <button class="send-btn" id="sendBtn" onclick="sendAction()">ACT →</button>
+        <button class="send-btn" id="sendBtn">ACT →</button>
       </div>
     </div>
   </div>
-  <div class="prompt-toggle" onclick="togglePrompt()">[ view ai system prompt ]</div>
+  <div class="prompt-toggle" id="promptToggle">[ view ai system prompt ]</div>
   <div class="prompt-box" id="promptBox"></div>
 </div>
 
 <script type="module">
-// ── WebLLM via ESM CDN ──────────────────────────────────────────────────────
 import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm';
 
-// ── System prompt ───────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are the narrator of DUST & DARKNESS — a brutal post-apocalyptic survival RPG. Nuclear war ended 40 years ago. Mutant creatures stalk irradiated ruins. Night brings shadow beasts. The player scavenges to survive.
+// ── System prompt ─────────────────────────────────────────────────────────────
+const SYSTEM_PROMPT = `You are the narrator of DUST & DARKNESS — a brutal post-apocalyptic survival RPG. Nuclear war ended 40 years ago. Mutants stalk ruins. Night brings shadow beasts.
 
-STATS: hp (0-100), hunger (0-100), sanity (0-100). Hunger below 20 drains hp. Sanity below 20 causes hallucinations. Night raises danger.
+STATS: hp (0-100), hunger (0-100), sanity (0-100). Hunger below 20 drains hp. Sanity below 20 causes hallucinations.
 
 TONE: Dark, literary, brutal. Short vivid sentences. No warmth.
 
-YOU MUST respond ONLY with a single valid JSON object — no markdown fences, no explanation, no extra text before or after. The JSON must have exactly these fields:
+CRITICAL: Your ENTIRE response must be ONE valid JSON object. Nothing before it. Nothing after it. Begin with { and end with }. No markdown fences. No explanation.
+
+Required JSON fields:
 {
   "narrative": "2-4 tense sentences describing what happens",
-  "hpChange": 0,
-  "hungerChange": -5,
-  "sanityChange": -2,
-  "itemGained": null,
-  "xpGain": 5,
-  "locationDiscovered": null,
-  "options": ["short option 1","short option 2","short option 3"]
+  "hpChange": <integer -25 to 15>,
+  "hungerChange": <integer -20 to 8>,
+  "sanityChange": <integer -15 to 10>,
+  "itemGained": <"item name" or null>,
+  "xpGain": <integer 0 to 30>,
+  "locationDiscovered": <{"name":"str","type":"settlement|outpost|raider_camp|ruin|danger_zone|unknown","notes":"short grim phrase"} or null>,
+  "options": ["action 1","action 2","action 3"]
 }
 
-Rules:
-- hpChange: integer -25 to +15
-- hungerChange: integer -20 to +8
-- sanityChange: integer -15 to +10
-- itemGained: a short item name string, or null
-- xpGain: integer 0 to 30
-- locationDiscovered: {"name":"place name","type":"settlement|outpost|raider_camp|ruin|danger_zone|unknown","notes":"one short grim phrase"} or null
-- options: array of exactly 3 short action strings
-- Be brutal but fair. Reward smart survival. Punish recklessness. Items are scarce.
-- Danger escalates at night. Discover named locations when the player meaningfully explores new places.
-- Do NOT repeat already-known locations.
-- OUTPUT ONLY THE JSON OBJECT. NOTHING ELSE.`;
+Rules: Be brutal but fair. Items are scarce. Danger escalates at night. Do not repeat known locations.`;
 
 document.getElementById('promptBox').textContent = SYSTEM_PROMPT;
 
-// ── State ───────────────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────────────────
 let engine = null;
 let state = {
   hp:80, hunger:70, sanity:60,
   day:1, hour:6, isNight:false,
   inventory:[], level:1, xp:0,
-  busy:false, locations:[],
-  history:[]
+  busy:false, locations:[], history:[]
 };
+const XP_PER_LEVEL  = 100;
+const LEVEL_TITLES  = ['Survivor','Drifter','Scavenger','Raider','Warlord','Ghost'];
 
-const XP_PER_LEVEL = 100;
-const LEVEL_TITLES = ['Survivor','Drifter','Scavenger','Raider','Warlord','Ghost'];
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const $pBar    = document.getElementById('progressBar');
+const $pLabel  = document.getElementById('progressLabel');
+const $pPhase  = document.getElementById('progressPhase');
+const $pWrap   = document.getElementById('progressWrap');
+const $stuck   = document.getElementById('stuckNote');
+const $ready   = document.getElementById('readyMsg');
+const $loadBtn = document.getElementById('loadBtn');
+const $mSel    = document.getElementById('modelSelect');
 
-// ── WebLLM init ─────────────────────────────────────────────────────────────
-window.initWebLLM = async function() {
-  if (!navigator.gpu) {
-    document.getElementById('webgpuWarn').classList.add('visible');
-    document.getElementById('modelSelect').style.display = 'none';
-    document.getElementById('loadBtn').style.display = 'none';
-    return;
-  }
+// ── WebGPU check ──────────────────────────────────────────────────────────────
+if (!navigator.gpu) {
+  document.getElementById('webgpuWarn').classList.add('visible');
+  $loadBtn.disabled = true;
+  document.getElementById('modelBlock').style.opacity = '0.3';
+}
 
-  const modelId = document.getElementById('modelSelect').value;
-  document.getElementById('loadBtn').disabled = true;
-  document.getElementById('modelSelect').disabled = true;
-  const progressWrap = document.getElementById('progressWrap');
-  const progressBar  = document.getElementById('progressBar');
-  const progressLabel= document.getElementById('progressLabel');
-  progressWrap.classList.add('visible');
+// ── Load button ───────────────────────────────────────────────────────────────
+$loadBtn.addEventListener('click', async () => {
+  if (!navigator.gpu) return;
+  $loadBtn.disabled = true;
+  $mSel.disabled    = true;
+  $pWrap.classList.add('visible');
+
+  // Show "stuck" warning after 25 s of no callback
+  let stuckTimer = setTimeout(() => $stuck.classList.add('visible'), 25000);
+  const resetStuck = () => {
+    clearTimeout(stuckTimer);
+    stuckTimer = setTimeout(() => $stuck.classList.add('visible'), 25000);
+  };
 
   try {
-    engine = await CreateMLCEngine(modelId, {
-      initProgressCallback: (progress) => {
-        const pct = Math.round((progress.progress || 0) * 100);
-        progressBar.style.width = pct + '%';
-        progressLabel.textContent = progress.text
-          ? progress.text.slice(0, 80)
-          : `Loading… ${pct}%`;
+    engine = await CreateMLCEngine($mSel.value, {
+      initProgressCallback: (p) => {
+        resetStuck();
+        const pct = Math.round((p.progress || 0) * 100);
+        $pBar.style.width = pct + '%';
+
+        const txt = (p.text || '').toLowerCase();
+        if (txt.includes('fetch') || txt.includes('download')) {
+          $pPhase.textContent = 'PHASE 1 / 3 — DOWNLOADING';
+          $stuck.classList.remove('visible');
+        } else if (txt.includes('load') || txt.includes('param')) {
+          $pPhase.textContent = 'PHASE 2 / 3 — LOADING WEIGHTS';
+          $stuck.classList.remove('visible');
+        } else if (txt.includes('compil') || txt.includes('shader') || txt.includes('wasm')) {
+          $pPhase.textContent = 'PHASE 3 / 3 — COMPILING SHADERS';
+          $stuck.classList.add('visible');
+        }
+        $pLabel.textContent = p.text ? p.text.slice(0, 90) : (pct + '%');
       }
     });
 
-    // Hide boot, show game
+    clearTimeout(stuckTimer);
+
+    // Explicit ready state
+    $pBar.style.width   = '100%';
+    $pPhase.textContent = '';
+    $pLabel.textContent = '';
+    $stuck.classList.remove('visible');
+    $ready.classList.add('visible');
+
+    await new Promise(r => setTimeout(r, 1400));
+
     const boot = document.getElementById('bootScreen');
     boot.classList.add('hidden');
     setTimeout(() => boot.style.display = 'none', 700);
@@ -261,273 +294,215 @@ window.initWebLLM = async function() {
     await startGame();
 
   } catch(err) {
-    progressLabel.textContent = '✕ Error: ' + err.message;
-    document.getElementById('loadBtn').disabled = false;
-    document.getElementById('modelSelect').disabled = false;
+    clearTimeout(stuckTimer);
+    $pPhase.textContent = '✕ Failed';
+    $pLabel.textContent = err.message;
+    $loadBtn.disabled   = false;
+    $mSel.disabled      = false;
+    console.error('WebLLM init:', err);
   }
-};
+});
 
-// ── AI call ─────────────────────────────────────────────────────────────────
+// ── AI ────────────────────────────────────────────────────────────────────────
 async function askAI(userContent) {
-  const messages = [
-    { role: 'system', content: SYSTEM_PROMPT },
-    ...state.history,
-    { role: 'user', content: userContent }
+  const msgs = [
+    { role:'system', content: SYSTEM_PROMPT },
+    ...state.history.slice(-16),
+    { role:'user', content: userContent }
   ];
-
   const reply = await engine.chat.completions.create({
-    messages,
+    messages: msgs,
     temperature: 0.85,
-    max_tokens: 512,
-    // Ask the engine to constrain to JSON where supported
-    response_format: { type: 'json_object' }
+    max_tokens: 480
   });
-
   const raw = reply.choices[0].message.content || '';
-
-  // Push exchange into history (keep last 10 turns = 20 messages)
   state.history.push({ role:'user', content:userContent });
   state.history.push({ role:'assistant', content:raw });
-  if (state.history.length > 20) state.history = state.history.slice(-20);
-
   return raw;
 }
 
-// ── Parse AI response ────────────────────────────────────────────────────────
 function parseResponse(raw) {
-  // Strip any accidental markdown fences
-  let clean = raw.replace(/```json|```/g,'').trim();
-  // Find the first {...} block if the model added preamble
-  const match = clean.match(/\{[\s\S]*\}/);
-  if (match) clean = match[0];
-  try {
-    return JSON.parse(clean);
-  } catch(_) {
-    return {
-      narrative:'The wasteland offers only silence.',
-      hpChange:0, hungerChange:-3, sanityChange:-2,
-      xpGain:2, itemGained:null, locationDiscovered:null,
-      options:['Look around','Search for food','Rest']
-    };
+  let s = raw.replace(/```json|```/gi,'').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a !== -1 && b > a) s = s.slice(a, b+1);
+  try { return JSON.parse(s); }
+  catch(_) {
+    return { narrative:'The wasteland offers only silence.', hpChange:0, hungerChange:-3, sanityChange:-2, xpGain:2, itemGained:null, locationDiscovered:null, options:['Look around','Search for food','Rest'] };
   }
 }
 
-// ── Game start ───────────────────────────────────────────────────────────────
+// ── Game ──────────────────────────────────────────────────────────────────────
 async function startGame() {
   setBusy(true);
-  addLog('Initialising…', 'system');
+  const tid = addThinking('Setting the scene');
   try {
-    const raw = await askAI(
-      'Start the game. The player wakes at dawn in the wasteland, injured and hungry. ' +
-      'HP=80, Hunger=70, Sanity=60. Set the scene vividly. Respond ONLY with the JSON object.'
-    );
-    const parsed = parseResponse(raw);
-    // Remove the "Initialising…" placeholder
-    const log = document.getElementById('log');
-    if (log.lastChild) log.removeChild(log.lastChild);
-    addLog(parsed.narrative || 'You wake in the ash. The sky is the colour of old blood.', '');
-    setOptions(parsed.options || ['Search nearby ruins','Look for food','Check your wounds']);
+    const p = parseResponse(await askAI(
+      'START GAME. Player wakes at dawn in the wasteland, injured and hungry. HP=80 Hunger=70 Sanity=60. ' +
+      'Describe the opening scene vividly in 2-4 sentences. ' +
+      'Respond ONLY with the JSON object beginning with {.'
+    ));
+    removeThinking(tid);
+    addLog(p.narrative || 'You wake in the ash. The sky is the colour of old blood.', '');
+    setOptions(p.options || ['Search the ruins','Scavenge for food','Check your wounds']);
     updateUI();
   } catch(e) {
-    const log = document.getElementById('log');
-    if (log.lastChild) log.removeChild(log.lastChild);
+    removeThinking(tid);
     addLog('You wake in the ash. The sky is the colour of old blood. Somewhere, something is burning.', '');
-    setOptions(['Search nearby ruins','Look for food','Check your wounds']);
+    setOptions(['Search the ruins','Scavenge for food','Check your wounds']);
+    console.error('startGame:', e);
   }
   setBusy(false);
 }
 
-// ── Send action ──────────────────────────────────────────────────────────────
-window.sendAction = async function() {
-  const input  = document.getElementById('cmdInput');
-  const action = input.value.trim();
+async function sendAction() {
+  const inp    = document.getElementById('cmdInput');
+  const action = inp.value.trim();
   if (!action || state.busy) return;
   if (state.hp <= 0) { addLog('You are dead. Refresh to begin again.', 'danger'); return; }
-  input.value = '';
+  inp.value = '';
   setBusy(true);
   addLog('> ' + action, 'system');
 
-  // Advance time
   state.hour = (state.hour + 2) % 24;
-  if (state.hour === 0) {
-    state.day++;
-    addLog('Day ' + state.day + ' dawns. The wasteland does not rest.', 'system');
-  }
+  if (state.hour === 0) { state.day++; addLog('Day ' + state.day + ' dawns. The wasteland does not rest.', 'system'); }
   if (state.hour === 20) addLog('Night falls. The shadow beasts stir.', 'danger');
+  state.isNight = state.hour >= 20 || state.hour < 6;
 
   const userContent =
-    `Current state: HP=${Math.round(state.hp)}, Hunger=${Math.round(state.hunger)}, ` +
-    `Sanity=${Math.round(state.sanity)}, Day=${state.day}, ` +
-    `Time=${state.isNight?'Night':'Day'}, ` +
-    `Inventory=[${state.inventory.join(', ')||'nothing'}], Level=${state.level}, ` +
-    `KnownLocations=[${state.locations.map(l=>l.name).join(', ')||'none'}]\n` +
-    `Player action: "${action}"\nRespond ONLY with the JSON object.`;
+    `State: HP=${Math.round(state.hp)} Hunger=${Math.round(state.hunger)} Sanity=${Math.round(state.sanity)} ` +
+    `Day=${state.day} Time=${state.isNight?'Night':'Day'} ` +
+    `Inventory=[${state.inventory.join(',')||'nothing'}] ` +
+    `KnownLocations=[${state.locations.map(l=>l.name).join(',')||'none'}]\n` +
+    `Player action: "${action}"\nRespond ONLY with the JSON object beginning with {.`;
 
-  // Show a thinking indicator
-  const thinkId = addThinking();
-
+  const tid = addThinking('The wasteland deliberates');
   try {
-    const raw    = await askAI(userContent);
-    removeThinking(thinkId);
-    const parsed = parseResponse(raw);
+    const p = parseResponse(await askAI(userContent));
+    removeThinking(tid);
 
-    const hpChg  = parsed.hpChange   || 0;
-    const hunChg = parsed.hungerChange|| 0;
-    const sanChg = parsed.sanityChange|| 0;
-    const xpGain = parsed.xpGain     || 5;
+    const hpC  = clamp(p.hpChange    ||0,-25,15);
+    const hunC = clamp(p.hungerChange||0,-20,8);
+    const sanC = clamp(p.sanityChange||0,-15,10);
+    const xpG  = clamp(p.xpGain      ||5,  0,30);
 
-    state.hp     = Math.min(100, Math.max(0, state.hp     + hpChg));
-    state.hunger = Math.min(100, Math.max(0, state.hunger + hunChg));
-    state.sanity = Math.min(100, Math.max(0, state.sanity + sanChg));
-    state.xp    += xpGain;
+    state.hp     = clamp(state.hp     + hpC,  0,100);
+    state.hunger = clamp(state.hunger + hunC, 0,100);
+    state.sanity = clamp(state.sanity + sanC, 0,100);
+    state.xp    += xpG;
 
     if (state.xp >= state.level * XP_PER_LEVEL) {
       state.level++;
-      addLog('LEVEL UP → Level ' + state.level + ' — ' +
-        (LEVEL_TITLES[Math.min(state.level-1, LEVEL_TITLES.length-1)]), 'good');
+      addLog('LEVEL UP → Level ' + state.level + ' — ' + LEVEL_TITLES[Math.min(state.level-1,LEVEL_TITLES.length-1)], 'good');
     }
-    if (state.hunger < 20 && state.hp > 0) {
-      state.hp = Math.max(0, state.hp - 5);
-      addLog('Starvation gnaws. Your vision dims.', 'danger');
-    }
-    if (state.sanity < 20)
-      addLog('The shadows whisper your name. None of it is real. Probably.', 'danger');
-
-    if (parsed.itemGained) {
-      state.inventory.push(parsed.itemGained);
-      addLog('+ Found: ' + parsed.itemGained, 'good');
-    }
-    if (parsed.locationDiscovered?.name) {
-      const loc = parsed.locationDiscovered;
-      const already = state.locations.some(l =>
-        l.name.toLowerCase() === loc.name.toLowerCase());
-      if (!already) {
+    if (state.hunger < 20 && state.hp > 0) { state.hp = Math.max(0,state.hp-5); addLog('Starvation gnaws. Your vision dims.','danger'); }
+    if (state.sanity < 20) addLog('The shadows whisper your name. None of it is real. Probably.','danger');
+    if (p.itemGained && typeof p.itemGained === 'string') { state.inventory.push(p.itemGained); addLog('+ Found: '+p.itemGained,'good'); }
+    if (p.locationDiscovered?.name) {
+      const loc = p.locationDiscovered;
+      if (!state.locations.some(l=>l.name.toLowerCase()===loc.name.toLowerCase())) {
         state.locations.push(loc);
-        const typeLabel = (loc.type||'location').replace('_',' ');
-        addLog('◉ Mapped: ' + loc.name + ' [' + typeLabel + ']', 'good');
+        addLog('◉ Mapped: '+loc.name+' ['+(loc.type||'unknown').replace('_',' ')+']','good');
       }
     }
-
-    const logType = hpChg < -10 ? 'danger' : (hpChg > 0 || hunChg > 0) ? 'good' : '';
-    addLog(parsed.narrative || 'Nothing happens.', logType);
-
-    if (state.hp <= 0) {
-      addLog('YOU ARE DEAD. The wasteland claims another soul.', 'danger');
-      document.getElementById('optArea').innerHTML = '';
+    addLog(p.narrative||'Nothing happens.', hpC<-10?'danger':(hpC>0||hunC>0)?'good':'');
+    if (state.hp<=0) {
+      addLog('YOU ARE DEAD. The wasteland claims another soul.','danger');
+      document.getElementById('optArea').innerHTML='';
     } else {
-      setOptions(parsed.options || ['Look around','Search for food','Rest here']);
+      setOptions(Array.isArray(p.options)?p.options:['Look around','Search for food','Rest here']);
     }
     updateUI();
-
   } catch(err) {
-    removeThinking(thinkId);
-    addLog('Signal lost: ' + err.message, 'system');
+    removeThinking(tid);
+    addLog('Signal lost: '+err.message,'system');
+    console.error('sendAction:',err);
   }
   setBusy(false);
-};
+}
 
-// ── UI helpers ───────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const clamp = (v,mn,mx) => Math.min(mx,Math.max(mn,v));
+
 function addLog(text, type) {
   const log = document.getElementById('log');
-  const div = document.createElement('div');
-  div.className = 'log-entry' + (type ? ' ' + type : '');
-  div.textContent = text;
-  log.appendChild(div);
+  const d   = document.createElement('div');
+  d.className = 'log-entry'+(type?' '+type:'');
+  d.textContent = text;
+  log.appendChild(d);
   log.scrollTop = log.scrollHeight;
-  return div;
 }
-
-let thinkCounter = 0;
-function addThinking() {
-  const id = ++thinkCounter;
+let _tn = 0;
+function addThinking(label) {
+  const id  = 'think-'+(++_tn);
   const log = document.getElementById('log');
-  const div = document.createElement('div');
-  div.className = 'log-entry system thinking-dot';
-  div.id = 'think-' + id;
-  div.textContent = 'The wasteland deliberates';
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
+  const d   = document.createElement('div');
+  d.className = 'log-entry system thinking-dot';
+  d.id = id; d.textContent = label;
+  log.appendChild(d); log.scrollTop = log.scrollHeight;
   return id;
 }
-function removeThinking(id) {
-  const el = document.getElementById('think-' + id);
-  if (el) el.remove();
-}
+function removeThinking(id) { document.getElementById(id)?.remove(); }
 
 function setOptions(opts) {
   const area = document.getElementById('optArea');
   area.innerHTML = '';
-  (opts||[]).forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.textContent = '▸ ' + opt;
-    btn.disabled = state.busy;
-    btn.onclick = () => {
-      document.getElementById('cmdInput').value = opt;
-      window.sendAction();
-    };
-    area.appendChild(btn);
+  opts.slice(0,4).forEach(opt=>{
+    const b = document.createElement('button');
+    b.className = 'option-btn';
+    b.textContent = '▸ '+opt;
+    b.disabled = state.busy;
+    b.onclick = ()=>{ document.getElementById('cmdInput').value=opt; sendAction(); };
+    area.appendChild(b);
   });
 }
-
 function setBusy(v) {
   state.busy = v;
   document.getElementById('sendBtn').disabled  = v;
   document.getElementById('cmdInput').disabled = v;
-  document.getElementById('sendBtn').textContent = v ? '…' : 'ACT →';
-  document.querySelectorAll('.option-btn').forEach(b => b.disabled = v);
+  document.getElementById('sendBtn').textContent = v?'…':'ACT →';
+  document.querySelectorAll('.option-btn').forEach(b=>b.disabled=v);
 }
-
 function updateUI() {
-  document.getElementById('hpBar').style.width  = Math.max(0,state.hp)    +'%';
-  document.getElementById('hpVal').textContent  = Math.max(0,Math.round(state.hp))    +'/100';
-  document.getElementById('hunBar').style.width = Math.max(0,state.hunger)+'%';
-  document.getElementById('hunVal').textContent = Math.max(0,Math.round(state.hunger))+'/100';
-  document.getElementById('sanBar').style.width = Math.max(0,state.sanity)+'%';
-  document.getElementById('sanVal').textContent = Math.max(0,Math.round(state.sanity))+'/100';
-  document.getElementById('hpBar').style.background  = state.hp    > 40 ? '#8b2020' : '#dd3030';
-  document.getElementById('hunBar').style.background = state.hunger> 30 ? '#8b5a10' : '#d4840a';
-  document.getElementById('sanBar').style.background = state.sanity> 30 ? '#3a3a8b' : '#7070d0';
-  document.getElementById('dayNum').textContent  = state.day;
+  const sb = (id,val,hi,lo) => {
+    document.getElementById(id+'Bar').style.width      = Math.max(0,val)+'%';
+    document.getElementById(id+'Bar').style.background = val>40?hi:lo;
+    document.getElementById(id+'Val').textContent      = Math.max(0,Math.round(val))+'/100';
+  };
+  sb('hp',  state.hp,    '#8b2020','#dd3030');
+  sb('hun', state.hunger,'#8b5a10','#d4840a');
+  sb('san', state.sanity,'#3a3a8b','#7070d0');
+
+  document.getElementById('dayNum').textContent   = state.day;
   const h = state.hour;
-  const timeStr = h < 6 ? 'Night' : h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : h < 20 ? 'Dusk' : 'Night';
-  state.isNight = h >= 20 || h < 6;
-  document.getElementById('timeLabel').textContent = timeStr;
-  const xpPct = (state.xp % (state.level * XP_PER_LEVEL)) / (state.level * XP_PER_LEVEL) * 100;
-  document.getElementById('xpBar').style.width = xpPct + '%';
-  const lvlIdx = Math.min(state.level - 1, LEVEL_TITLES.length - 1);
-  document.getElementById('lvlBadge').textContent = 'LEVEL ' + state.level + ' — ' + LEVEL_TITLES[lvlIdx];
+  document.getElementById('timeLabel').textContent =
+    h<6?'Night':h<12?'Morning':h<17?'Afternoon':h<20?'Dusk':'Night';
 
-  const invList = document.getElementById('invList');
-  invList.innerHTML = state.inventory.length === 0
-    ? '<div class="inv-empty">empty pockets</div>'
-    : state.inventory.map(i => '<div class="inv-item">• '+i+'</div>').join('');
+  const xpPct = (state.xp%(state.level*XP_PER_LEVEL))/(state.level*XP_PER_LEVEL)*100;
+  document.getElementById('xpBar').style.width    = xpPct+'%';
+  document.getElementById('lvlBadge').textContent =
+    'LEVEL '+state.level+' — '+LEVEL_TITLES[Math.min(state.level-1,LEVEL_TITLES.length-1)];
 
-  const LOC_ICONS = {settlement:'⌂',outpost:'⚑',raider_camp:'☠',ruin:'◫',danger_zone:'☢',unknown:'?'};
-  const locList = document.getElementById('locList');
-  locList.innerHTML = state.locations.length === 0
-    ? '<div class="inv-empty">none mapped</div>'
-    : state.locations.map(l => {
-        const t = l.type||'unknown';
-        const icon = LOC_ICONS[t]||'?';
-        return `<div class="loc-item ${t}"><span class="loc-name">${icon} ${l.name}</span>${l.notes?'<span class="loc-note">'+l.notes+'</span>':''}</div>`;
-      }).join('');
+  document.getElementById('invList').innerHTML = state.inventory.length
+    ? state.inventory.map(i=>`<div class="inv-item">• ${i}</div>`).join('')
+    : '<div class="inv-empty">empty pockets</div>';
+
+  const icons = {settlement:'⌂',outpost:'⚑',raider_camp:'☠',ruin:'◫',danger_zone:'☢',unknown:'?'};
+  document.getElementById('locList').innerHTML = state.locations.length
+    ? state.locations.map(l=>{
+        const t=l.type||'unknown';
+        return `<div class="loc-item ${t}"><span class="loc-name">${icons[t]||'?'} ${l.name}</span>${l.notes?`<span class="loc-note">${l.notes}</span>`:''}</div>`;
+      }).join('')
+    : '<div class="inv-empty">none mapped</div>';
 }
 
-window.togglePrompt = function() {
+document.getElementById('sendBtn').addEventListener('click', sendAction);
+document.getElementById('cmdInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendAction(); });
+document.getElementById('promptToggle').addEventListener('click', ()=>{
   const pb = document.getElementById('promptBox');
-  pb.style.display = pb.style.display === 'block' ? 'none' : 'block';
-};
-
-document.getElementById('cmdInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') window.sendAction();
+  pb.style.display = pb.style.display==='block'?'none':'block';
 });
 
-// Check WebGPU on load
-if (!navigator.gpu) {
-  document.getElementById('webgpuWarn').classList.add('visible');
-  document.getElementById('loadBtn').disabled = true;
-}
+updateUI();
 </script>
 </body>
 </html>
