@@ -591,9 +591,18 @@ async function sendAction() {
     try {
       const msgs = [...state.history, userMsg];
       raw = await callFreeAPI(msgs, 550);
-      p = JSON.parse(raw);
-    } catch(e) { p = null; if (e.message.includes('API') || e.message.includes('Network')) throw e; }
-    
+      
+      // NEW PARSING LOGIC: Hunt for the curly brackets and ignore everything else
+      let firstBrace = raw.indexOf('{');
+      let lastBrace = raw.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        let cleanJson = raw.substring(firstBrace, lastBrace + 1);
+        p = JSON.parse(cleanJson);
+      } else {
+        throw new Error("No JSON found in response");
+      }
+      
+    } catch(e) { p = null; if (e.message.includes('API') || e.message.includes('Network')) throw e; }    
     if (!p) p = {narrative:'The wasteland offers no answer.',hpChange:0,hungerChange:-3,sanityChange:-2,xpGain:2,itemsConsumed:[],options:['Look around','Search for food','Rest']};
     
     state.history.push(userMsg);
@@ -670,7 +679,13 @@ async function startGame() {
   try {
     const im = {role:'user', content:'Start the game. The player wakes at dawn in the wasteland, injured and hungry. HP=80, Hunger=70, Sanity=60. Set the scene vividly.'};
     const raw = await callFreeAPI([im], 400);
-    let p; try { p = JSON.parse(raw); } catch(e) { p = {narrative:'You wake in the ash. The sky is the colour of old blood. Something moved in the ruins to the west, and it was not the wind.',options:['Search the ruins to the west','Scavenge for food','Tend to your wounds']}; }
+    let p; 
+    try { 
+      let first = raw.indexOf('{'); let last = raw.lastIndexOf('}');
+      p = JSON.parse(raw.substring(first, last + 1)); 
+    } catch(e) { 
+      p = {narrative:'You wake in the ash. The sky is the colour of old blood. Something moved in the ruins to the west, and it was not the wind.',options:['Search the ruins to the west','Scavenge for food','Tend to your wounds']}; 
+    }
     state.history.push(im); state.history.push({role:'assistant', content: JSON.stringify(p)});
     addLog(p.narrative, '');
     setOptions(p.options || ['Search the ruins','Scavenge for food','Rest']);
