@@ -9,500 +9,648 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#080806;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Share Tech Mono',monospace}
-
-/* ── BOOT ── */
-#bootScreen{
-  position:fixed;inset:0;background:#080806;z-index:999;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
-  transition:opacity 0.6s;
-}
-#bootScreen.hidden{opacity:0;pointer-events:none}
-.boot-title{font-family:'Special Elite',serif;font-size:32px;color:#d4a843;letter-spacing:6px;text-transform:uppercase}
-.boot-sub{font-size:11px;color:#555;letter-spacing:2px;text-align:center;max-width:400px;line-height:1.9}
-.webgpu-warn{font-size:11px;color:#c87070;text-align:center;max-width:380px;line-height:1.9;display:none;border:1px solid #5a2020;padding:12px 16px;border-radius:4px;background:#1a0808}
-.webgpu-warn.visible{display:block}
-.model-selector{display:flex;flex-direction:column;gap:8px;width:360px}
-.model-selector label{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase}
-.model-selector select{
-  background:#111008;border:1px solid #3a3520;color:#c8b882;
-  font-family:'Share Tech Mono',monospace;font-size:12px;padding:8px 12px;border-radius:3px;outline:none;cursor:pointer;
-}
-.model-selector select:focus{border-color:#6a5a28}
-.load-btn{
-  background:#1e1c10;border:1px solid #5a4a20;color:#d4a843;
-  font-family:'Share Tech Mono',monospace;font-size:13px;
-  padding:10px 32px;cursor:pointer;border-radius:3px;letter-spacing:2px;transition:all 0.15s;
-}
-.load-btn:hover:not(:disabled){background:#2a2818;border-color:#8a7030}
-.load-btn:disabled{opacity:0.4;cursor:not-allowed}
-.progress-wrap{width:360px;display:none;flex-direction:column;gap:8px}
-.progress-wrap.visible{display:flex}
-.progress-bar-bg{background:#1a1a12;height:6px;border-radius:3px;border:1px solid #2a2418;overflow:hidden}
-.progress-bar{height:100%;background:#5a3a10;border-radius:3px;transition:width 0.4s;width:0%}
-.progress-label{font-size:11px;color:#777;text-align:center;line-height:1.6;min-height:32px}
-.progress-phase{font-size:10px;color:#444;text-align:center;letter-spacing:1px;min-height:16px}
-.stuck-note{font-size:10px;color:#555;text-align:center;max-width:360px;line-height:1.8;display:none;font-style:italic;border:1px solid #2a2418;padding:10px 14px;border-radius:4px}
-.stuck-note.visible{display:block}
-.ready-msg{font-size:13px;color:#78a858;text-align:center;letter-spacing:2px;display:none}
-.ready-msg.visible{display:block}
-
-/* ── GAME ── */
-.game-wrap{background:#0d0d0b;color:#c8b882;width:700px;max-width:100vw;border-radius:8px;overflow:hidden;border:1px solid #3a3520;display:flex;flex-direction:column;height:96vh;max-height:700px}
-.game-header{background:#111008;border-bottom:1px solid #3a3520;padding:9px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.game-title{font-family:'Special Elite',serif;font-size:17px;color:#d4a843;letter-spacing:3px;text-transform:uppercase}
-.day-badge{font-size:11px;color:#777;background:#1a1a12;border:1px solid #3a3520;padding:3px 12px;border-radius:4px}
-.day-badge span{color:#d4a843}
-.game-body{display:flex;flex:1;min-height:0}
-.sidebar{width:165px;flex-shrink:0;background:#0b0b08;border-right:1px solid #2a2418;padding:12px 10px;display:flex;flex-direction:column;gap:11px;overflow-y:auto}
-.stat-block{display:flex;flex-direction:column;gap:4px}
-.stat-label{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase}
-.stat-bar-bg{background:#1a1a12;height:8px;border-radius:2px;border:1px solid #2a2418;overflow:hidden}
-.stat-bar{height:100%;border-radius:2px;transition:width 0.4s}
-.stat-val{font-size:11px;color:#777;text-align:right}
-.inv-title{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase;border-top:1px solid #2a2418;padding-top:10px}
-.inv-list{display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto}
-.inv-item{font-size:11px;color:#a08850;background:#141410;border:1px solid #2a2418;padding:3px 7px;border-radius:2px}
-.inv-empty{font-size:11px;color:#3a3a30;font-style:italic}
-.loc-title{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase;border-top:1px solid #2a2418;padding-top:10px}
-.loc-list{display:flex;flex-direction:column;gap:3px;overflow-y:auto}
-.loc-item{font-size:10px;background:#141410;border:1px solid #2a2418;padding:3px 7px;border-radius:2px;line-height:1.4}
-.loc-item .loc-name{display:block;font-size:11px}
-.loc-item .loc-note{display:block;color:#555;font-size:9px;margin-top:1px;font-style:italic}
-.loc-item.settlement{border-left:2px solid #3a6b2a}.loc-item.settlement .loc-name{color:#78a858}
-.loc-item.outpost{border-left:2px solid #6a5a28}.loc-item.outpost .loc-name{color:#d4a843}
-.loc-item.raider_camp{border-left:2px solid #8b2020}.loc-item.raider_camp .loc-name{color:#c87070}
-.loc-item.ruin{border-left:2px solid #333}.loc-item.ruin .loc-name{color:#777}
-.loc-item.danger_zone{border-left:2px solid #7a4a10}.loc-item.danger_zone .loc-name{color:#d4840a}
-.loc-item.unknown{border-left:2px solid #2a2418}.loc-item.unknown .loc-name{color:#555}
-.main-area{flex:1;display:flex;flex-direction:column;min-width:0}
-.narrative-log{flex:1;padding:14px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:9px}
-.log-entry{border-left:2px solid #3a3520;padding:4px 11px;font-size:13px;line-height:1.65;color:#b8a872;animation:fadeIn 0.35s}
-.log-entry.system{color:#666;font-size:11px;border-left-color:#222018;font-style:italic}
-.log-entry.danger{border-left-color:#8b2020;color:#c87070}
-.log-entry.good{border-left-color:#3a6b2a;color:#78a858}
-.options-area{padding:6px 14px 4px;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
-.option-btn{background:#111008;border:1px solid #3a3520;color:#c8b882;padding:6px 11px;font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;text-align:left;border-radius:3px;transition:all 0.15s}
-.option-btn:hover{background:#1e1c10;border-color:#6a5a28;color:#e8d8a2}
-.option-btn:disabled{opacity:0.35;cursor:not-allowed}
-.input-area{border-top:1px solid #2a2418;padding:9px 12px;display:flex;gap:8px;background:#0b0b08;flex-shrink:0}
-.cmd-input{flex:1;background:#111008;border:1px solid #3a3520;color:#c8b882;font-family:'Share Tech Mono',monospace;font-size:13px;padding:7px 11px;border-radius:3px;outline:none}
-.cmd-input:focus{border-color:#6a5a28}
-.cmd-input::placeholder{color:#3a3a30}
-.send-btn{background:#1e1c10;border:1px solid #5a4a20;color:#d4a843;font-family:'Share Tech Mono',monospace;font-size:12px;padding:7px 16px;cursor:pointer;border-radius:3px;white-space:nowrap}
-.send-btn:hover:not(:disabled){background:#2a2818;border-color:#8a7030}
-.send-btn:disabled{opacity:0.4;cursor:not-allowed}
-.level-badge{font-size:10px;color:#8a6828;text-align:center;border:1px solid #2a2418;padding:3px 4px;border-radius:2px;letter-spacing:1px}
-.xp-bar-bg{background:#1a1a12;height:3px;border-radius:2px;overflow:hidden}
-.xp-bar{height:100%;background:#5a3a10;border-radius:2px;transition:width 0.4s}
-.prompt-toggle{font-size:10px;color:#444;cursor:pointer;padding:5px 16px;background:#0a0a08;border-top:1px solid #1a1a10;text-align:center;flex-shrink:0;user-select:none}
-.prompt-toggle:hover{color:#777}
-.prompt-box{background:#080807;border-top:1px solid #1a1a10;padding:12px 16px;font-size:10px;color:#4a4a38;line-height:1.7;max-height:130px;overflow-y:auto;display:none;font-family:'Share Tech Mono',monospace;flex-shrink:0;white-space:pre-wrap}
-.thinking-dot::after{content:'▋';animation:blink 0.9s step-start infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.gw{background:#0d0d0b;color:#c8b882;width:700px;max-width:100vw;border-radius:8px;overflow:hidden;border:1px solid #3a3520;display:flex;flex-direction:column;height:96vh;max-height:700px;position:relative}
+.gh{background:#111008;border-bottom:1px solid #3a3520;padding:9px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.gt{font-family:'Special Elite',serif;font-size:17px;color:#d4a843;letter-spacing:3px;text-transform:uppercase}
+.hr2{display:flex;align-items:center;gap:8px}
+.db{font-size:11px;color:#777;background:#1a1a12;border:1px solid #3a3520;padding:3px 12px;border-radius:4px}
+.db span{color:#d4a843}
+.smb{font-size:10px;color:#555;background:#111008;border:1px solid #2a2418;padding:3px 9px;border-radius:3px;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:1px;transition:all 0.15s}
+.smb:hover{color:#d4a843;border-color:#5a4a20}
+.gbod{display:flex;flex:1;min-height:0}
+.sb{width:165px;flex-shrink:0;background:#0b0b08;border-right:1px solid #2a2418;padding:12px 10px;display:flex;flex-direction:column;gap:11px;overflow-y:auto}
+.sl{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase}
+.sbb{background:#1a1a12;height:8px;border-radius:2px;border:1px solid #2a2418;overflow:hidden}
+.sbar{height:100%;border-radius:2px;transition:width 0.4s}
+.sv{font-size:11px;color:#777;text-align:right}
+.sh{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #2a2418;padding-top:10px}
+.sh-label{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase}
+.sh-btn{font-size:9px;color:#444;background:none;border:1px solid #2a2418;padding:2px 6px;border-radius:2px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all 0.15s}
+.sh-btn:hover{color:#d4a843;border-color:#5a4a20}
+.il{display:flex;flex-direction:column;gap:3px;max-height:80px;overflow-y:auto}
+.ii{font-size:11px;color:#a08850;background:#141410;border:1px solid #2a2418;padding:3px 7px;border-radius:2px}
+.ie{font-size:11px;color:#3a3a30;font-style:italic}
+.ll{display:flex;flex-direction:column;gap:3px;max-height:110px;overflow-y:auto}
+.li{font-size:10px;background:#141410;border:1px solid #2a2418;padding:3px 7px;border-radius:2px;line-height:1.4}
+.ln{display:block;font-size:11px}
+.lnt{display:block;color:#555;font-size:9px;margin-top:1px;font-style:italic}
+.li.settlement{border-left:2px solid #3a6b2a}.li.settlement .ln{color:#78a858}
+.li.outpost{border-left:2px solid #6a5a28}.li.outpost .ln{color:#d4a843}
+.li.raider_camp{border-left:2px solid #8b2020}.li.raider_camp .ln{color:#c87070}
+.li.ruin{border-left:2px solid #333}.li.ruin .ln{color:#777}
+.li.danger_zone{border-left:2px solid #7a4a10}.li.danger_zone .ln{color:#d4840a}
+.li.unknown{border-left:2px solid #2a2418}.li.unknown .ln{color:#555}
+.lvb{font-size:10px;color:#8a6828;text-align:center;border:1px solid #2a2418;padding:3px 4px;border-radius:2px;letter-spacing:1px}
+.xbg{background:#1a1a12;height:3px;border-radius:2px;overflow:hidden;margin-top:4px}
+.xb{height:100%;background:#5a3a10;border-radius:2px;transition:width 0.4s}
+.ma{flex:1;display:flex;flex-direction:column;min-width:0}
+.nl{flex:1;padding:14px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:9px}
+.le{border-left:2px solid #3a3520;padding:4px 11px;font-size:13px;line-height:1.65;color:#b8a872;animation:fi 0.35s}
+.le.sys{color:#666;font-size:11px;border-left-color:#222018;font-style:italic}
+.le.danger{border-left-color:#8b2020;color:#c87070}
+.le.good{border-left-color:#3a6b2a;color:#78a858}
+.oa{padding:6px 14px 4px;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.ob{background:#111008;border:1px solid #3a3520;color:#c8b882;padding:6px 11px;font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;text-align:left;border-radius:3px;transition:all 0.15s}
+.ob:hover{background:#1e1c10;border-color:#6a5a28;color:#e8d8a2}
+.ob:disabled{opacity:0.35;cursor:not-allowed}
+.ia{border-top:1px solid #2a2418;padding:9px 12px;display:flex;gap:8px;background:#0b0b08;flex-shrink:0}
+.ci{flex:1;background:#111008;border:1px solid #3a3520;color:#c8b882;font-family:'Share Tech Mono',monospace;font-size:13px;padding:7px 11px;border-radius:3px;outline:none}
+.ci:focus{border-color:#6a5a28}
+.ci::placeholder{color:#3a3a30}
+.ab{background:#1e1c10;border:1px solid #5a4a20;color:#d4a843;font-family:'Share Tech Mono',monospace;font-size:12px;padding:7px 16px;cursor:pointer;border-radius:3px;white-space:nowrap}
+.ab:hover:not(:disabled){background:#2a2818;border-color:#8a7030}
+.ab:disabled{opacity:0.4;cursor:not-allowed}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:100;animation:fi 0.2s}
+.mo.hid{display:none}
+.mb{background:#0d0d0b;border:1px solid #3a3520;border-radius:6px;padding:22px 24px;width:440px;max-width:95vw;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow-y:auto}
+.mb.perk-border{border-color:#6a5a28}
+.mb.stat-border{border-color:#3a6b2a}
+.mtt{font-family:'Special Elite',serif;color:#d4a843;font-size:15px;letter-spacing:2px}
+.mtt.green{color:#78a858}
+.md{font-size:11px;color:#666;line-height:1.6}
+.mcode{background:#080807;border:1px solid #2a2418;border-radius:3px;padding:10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:#8a7848;word-break:break-all;min-height:52px;max-height:100px;overflow-y:auto;cursor:text;white-space:pre-wrap;line-height:1.5}
+.mi{background:#111008;border:1px solid #3a3520;color:#c8b882;font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px 10px;border-radius:3px;outline:none;width:100%;resize:none;height:72px}
+.mi:focus{border-color:#6a5a28}
+.mi::placeholder{color:#3a3a30}
+.mr{display:flex;gap:8px}
+.mbtn{flex:1;padding:8px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;border-radius:3px;letter-spacing:1px;transition:all 0.15s}
+.mbtn.p{background:#1e1c10;border:1px solid #5a4a20;color:#d4a843}
+.mbtn.p:hover{background:#2a2818;border-color:#8a7030}
+.mbtn.s{background:#111008;border:1px solid #2a2418;color:#666}
+.mbtn.s:hover{border-color:#3a3520;color:#999}
+.mst{font-size:10px;min-height:14px;text-align:center}
+.mst.ok{color:#78a858}
+.mst.err{color:#c87070}
+.pchoices{display:flex;flex-direction:column;gap:8px}
+.pbtn{background:#111008;border:1px solid #3a3520;color:#c8b882;padding:10px 14px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;text-align:left;border-radius:3px;transition:all 0.15s;display:flex;flex-direction:column;gap:3px}
+.pbtn:hover{background:#1e1c10;border-color:#8a7030}
+.pn{font-size:13px;letter-spacing:1px}
+.pd{color:#666;font-size:10px;line-height:1.5}
+.pbtn.hp .pn{color:#c87070}
+.pbtn.hunger .pn{color:#d4a843}
+.pbtn.sanity .pn{color:#7878d0}
+.pbtn.utility .pn{color:#78a858}
+.pbtn.stat_hp .pn{color:#c87070}
+.pbtn.stat_hunger .pn{color:#d4a843}
+.pbtn.stat_sanity .pn{color:#7878d0}
+.vml{display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1}
+.vmi{color:#a08850;background:#141410;border:1px solid #2a2418;padding:6px 10px;border-radius:2px}
+.vmi-name{font-size:12px}
+.vmi-desc{font-size:10px;color:#555;line-height:1.5;margin-top:3px}
+.pt{font-size:10px;color:#444;cursor:pointer;padding:5px 16px;background:#0a0a08;border-top:1px solid #1a1a10;text-align:center;flex-shrink:0;user-select:none}
+.pt:hover{color:#777}
+.pb{background:#080807;border-top:1px solid #1a1a10;padding:12px 16px;font-size:10px;color:#4a4a38;line-height:1.7;max-height:130px;overflow-y:auto;display:none;font-family:'Share Tech Mono',monospace;flex-shrink:0;white-space:pre-wrap}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
-<!-- ── BOOT ── -->
-<div id="bootScreen">
-  <div class="boot-title">☢ Dust &amp; Darkness</div>
-  <div class="boot-sub">
-    AI runs fully in your browser — no server, no API key.<br/>
-    Model downloads once (~900 MB) then caches locally.<br/>
-    Requires <strong style="color:#d4a843">Chrome 113+</strong> or <strong style="color:#d4a843">Edge 113+</strong> on desktop.
+<div class="mo hid" id="saveModal">
+  <div class="mb">
+    <div class="mtt">&#9762; SAVE / LOAD</div>
+    <div class="md">Copy this code to preserve your run. Paste it back any time to restore.</div>
+    <div class="mcode" id="saveCodeBox"></div>
+    <div class="mr">
+      <button class="mbtn p" onclick="copyCode()">[ COPY CODE ]</button>
+      <button class="mbtn s" onclick="closeMo('saveModal')">[ CLOSE ]</button>
+    </div>
+    <div style="border-top:1px solid #2a2418;padding-top:12px;display:flex;flex-direction:column;gap:8px">
+      <div class="md">Paste a save code to restore a previous run:</div>
+      <textarea class="mi" id="loadInput" placeholder="paste save code here..."></textarea>
+      <button class="mbtn p" onclick="loadCode()">[ LOAD GAME ]</button>
+    </div>
+    <div class="mst" id="saveStatus"></div>
   </div>
-  <div class="webgpu-warn" id="webgpuWarn">
-    ⚠ WebGPU unavailable in this browser.<br/>
-    Please open in <strong>Chrome 113+</strong> or <strong>Edge 113+</strong> on desktop.<br/>
-    Also ensure you are serving over HTTPS or localhost — file:// won't work.
-  </div>
-  <div class="model-selector" id="modelBlock">
-    <label>Model — downloaded once, cached permanently</label>
-    <select id="modelSelect">
-      <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 · 1B · ~880 MB — fastest</option>
-      <option value="Llama-3.2-3B-Instruct-q4f32_1-MLC">Llama 3.2 · 3B · ~2 GB — better quality</option>
-      <option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi-3.5 Mini · 3.8B · ~2.2 GB — smartest</option>
-    </select>
-  </div>
-  <button class="load-btn" id="loadBtn">LOAD MODEL &amp; BEGIN →</button>
-  <div class="progress-wrap" id="progressWrap">
-    <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
-    <div class="progress-phase" id="progressPhase"></div>
-    <div class="progress-label" id="progressLabel">Starting…</div>
-  </div>
-  <div class="stuck-note" id="stuckNote">
-    ⏳ GPU shader compilation in progress — this is normal and takes 1–3 minutes on first run.<br/>
-    The page will advance automatically. Do not close the tab.
-  </div>
-  <div class="ready-msg" id="readyMsg">✔ MODEL READY — ENTERING WASTELAND…</div>
 </div>
 
-<!-- ── GAME ── -->
-<div class="game-wrap">
-  <div class="game-header">
-    <div class="game-title">☢ Dust &amp; Darkness</div>
-    <div class="day-badge">Day <span id="dayNum">1</span> &mdash; <span id="timeLabel">Dawn</span></div>
+<div class="mo hid" id="invModal">
+  <div class="mb">
+    <div class="mtt">&#127976; INVENTORY</div>
+    <div class="vml" id="invModalList"></div>
+    <button class="mbtn s" onclick="closeMo('invModal')">[ CLOSE ]</button>
   </div>
-  <div class="game-body">
-    <div class="sidebar">
+</div>
+
+<div class="mo hid" id="perkViewModal">
+  <div class="mb">
+    <div class="mtt">&#9650; PERKS</div>
+    <div class="vml" id="perkViewList"></div>
+    <div id="statCapsDisplay" style="margin-top:4px;font-size:10px;color:#5a5a3a;font-style:italic;border-top:1px solid #2a2418;padding-top:10px;display:none"></div>
+    <button class="mbtn s" onclick="closeMo('perkViewModal')">[ CLOSE ]</button>
+  </div>
+</div>
+
+<div class="mo hid" id="perkChoiceModal" style="z-index:200">
+  <div class="mb perk-border">
+    <div class="mtt">&#9650; LEVEL UP</div>
+    <div class="md" id="perkChoiceSub"></div>
+    <div class="pchoices" id="perkChoices"></div>
+  </div>
+</div>
+
+<div class="mo hid" id="statModal" style="z-index:200">
+  <div class="mb stat-border">
+    <div class="mtt green">TRANSCENDENCE</div>
+    <div class="md" id="statModalSub"></div>
+    <div class="pchoices" id="statChoices"></div>
+  </div>
+</div>
+
+<div class="gw">
+  <div class="gh">
+    <div class="gt">&#9762; Dust &amp; Darkness</div>
+    <div class="hr2">
+      <button class="smb" onclick="openSaveModal()">SAVE / LOAD</button>
+      <div class="db">Day <span id="dayNum">1</span> &mdash; <span id="timeLabel">Dawn</span></div>
+    </div>
+  </div>
+  <div class="gbod">
+    <div class="sb">
       <div class="stat-block">
-        <div class="stat-label">Health</div>
-        <div class="stat-bar-bg"><div class="stat-bar" id="hpBar" style="width:80%;background:#8b2020"></div></div>
-        <div class="stat-val" id="hpVal">80/100</div>
+        <div class="sl">Health</div>
+        <div class="sbb"><div class="sbar" id="hpBar" style="background:#8b2020"></div></div>
+        <div class="sv" id="hpVal">80/100</div>
       </div>
       <div class="stat-block">
-        <div class="stat-label">Hunger</div>
-        <div class="stat-bar-bg"><div class="stat-bar" id="hunBar" style="width:70%;background:#8b5a10"></div></div>
-        <div class="stat-val" id="hunVal">70/100</div>
+        <div class="sl">Hunger</div>
+        <div class="sbb"><div class="sbar" id="hunBar" style="background:#8b5a10"></div></div>
+        <div class="sv" id="hunVal">70/100</div>
       </div>
       <div class="stat-block">
-        <div class="stat-label">Sanity</div>
-        <div class="stat-bar-bg"><div class="stat-bar" id="sanBar" style="width:60%;background:#3a3a8b"></div></div>
-        <div class="stat-val" id="sanVal">60/100</div>
+        <div class="sl">Sanity</div>
+        <div class="sbb"><div class="sbar" id="sanBar" style="background:#3a3a8b"></div></div>
+        <div class="sv" id="sanVal">60/100</div>
       </div>
       <div>
-        <div class="level-badge" id="lvlBadge">LEVEL 1 — SURVIVOR</div>
-        <div class="xp-bar-bg" style="margin-top:4px"><div class="xp-bar" id="xpBar" style="width:0%"></div></div>
+        <div class="lvb" id="lvlBadge">LEVEL 1 — SURVIVOR</div>
+        <div class="xbg"><div class="xb" id="xpBar"></div></div>
       </div>
-      <div class="inv-title">Inventory</div>
-      <div class="inv-list" id="invList"><div class="inv-empty">empty pockets</div></div>
-      <div class="loc-title">Locations</div>
-      <div class="loc-list" id="locList"><div class="inv-empty">none mapped</div></div>
+      <div class="sh">
+        <div class="sh-label">Inventory</div>
+        <button class="sh-btn" onclick="openInvModal()">&#9776;</button>
+      </div>
+      <div class="il" id="invList"><div class="ie">empty pockets</div></div>
+      <div class="sh">
+        <div class="sh-label">Perks</div>
+        <button class="sh-btn" onclick="openPerkViewModal()">&#9776;</button>
+      </div>
+      <div class="il" id="perkMini"><div class="ie">none yet</div></div>
+      <div class="sh"><div class="sh-label">Locations</div></div>
+      <div class="ll" id="locList"><div class="ie">none mapped</div></div>
     </div>
-    <div class="main-area">
-      <div class="narrative-log" id="log"></div>
-      <div class="options-area" id="optArea"></div>
-      <div class="input-area">
-        <input class="cmd-input" id="cmdInput" placeholder="what do you do…" maxlength="120"/>
-        <button class="send-btn" id="sendBtn">ACT →</button>
+    <div class="ma">
+      <div class="nl" id="log"></div>
+      <div class="oa" id="optArea"></div>
+      <div class="ia">
+        <input class="ci" id="cmdInput" placeholder="what do you do..." maxlength="120"/>
+        <button class="ab" id="sendBtn" onclick="sendAction()">ACT &#8594;</button>
       </div>
     </div>
   </div>
-  <div class="prompt-toggle" id="promptToggle">[ view ai system prompt ]</div>
-  <div class="prompt-box" id="promptBox"></div>
+  <div class="pt" onclick="togglePrompt()">[ view ai system prompt ]</div>
+  <div class="pb" id="promptBox"></div>
 </div>
 
-<script type="module">
-import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm';
+<script>
+// ==========================================
+// IMPORTANT: ADD YOUR GEMINI API KEY HERE
+// ==========================================
+const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
 
-// ── System prompt ─────────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are the narrator of DUST & DARKNESS — a brutal post-apocalyptic survival RPG. Nuclear war ended 40 years ago. Mutants stalk ruins. Night brings shadow beasts.
+const SP = `You are the narrator of DUST & DARKNESS — a brutal post-apocalyptic survival RPG fusing Fallout's wasteland with Don't Starve's unforgiving mechanics. Nuclear war ended 40 years ago. Mutant creatures stalk irradiated ruins. Night brings shadow beasts.
 
-STATS: hp (0-100), hunger (0-100), sanity (0-100). Hunger below 20 drains hp. Sanity below 20 causes hallucinations.
+STATS: hp (0-100+), hunger (0-100+), sanity (0-100+). Hunger below 20 drains hp. Sanity below 20 causes hallucinations. Night raises danger.
 
 TONE: Dark, literary, brutal. Short vivid sentences. No warmth.
 
-CRITICAL: Your ENTIRE response must be ONE valid JSON object. Nothing before it. Nothing after it. Begin with { and end with }. No markdown fences. No explanation.
-
-Required JSON fields:
+Respond ONLY with valid JSON (no markdown, no extra text):
 {
   "narrative": "2-4 tense sentences describing what happens",
-  "hpChange": <integer -25 to 15>,
-  "hungerChange": <integer -20 to 8>,
-  "sanityChange": <integer -15 to 10>,
+  "hpChange": <int -25 to +15>,
+  "hungerChange": <int -20 to +8>,
+  "sanityChange": <int -15 to +10>,
   "itemGained": <"item name" or null>,
-  "xpGain": <integer 0 to 30>,
-  "locationDiscovered": <{"name":"str","type":"settlement|outpost|raider_camp|ruin|danger_zone|unknown","notes":"short grim phrase"} or null>,
-  "options": ["action 1","action 2","action 3"]
+  "itemsConsumed": <["exact inventory name",...] or []>,
+  "xpGain": <int 0-30>,
+  "locationDiscovered": <{"name":"...","type":"settlement|outpost|raider_camp|ruin|danger_zone|unknown","notes":"one grim phrase"} or null>,
+  "locationUpdated": <{"name":"exact existing name","type":"...","notes":"..."} or null>,
+  "options": ["option 1","option 2","option 3"]
 }
 
-Rules: Be brutal but fair. Items are scarce. Danger escalates at night. Do not repeat known locations.`;
+Rules: Be brutal but fair. Reward smart survival. Punish recklessness. Items are scarce. Danger escalates at night. ITEM TRACKING CRITICAL: list exact inventory names in itemsConsumed when used/eaten/lost. Only consume items currently in inventory. Discover locations when player meaningfully explores new places. Do not repeat known locations.`;
 
-document.getElementById('promptBox').textContent = SYSTEM_PROMPT;
+document.getElementById('promptBox').textContent = SP;
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let engine = null;
+const PERKS = {
+  tough_skin:  { name:"Tough Skin",      cat:"hp",     desc:"All HP damage reduced by 4. Scar tissue is your armour." },
+  grit:        { name:"Survivor's Grit",  cat:"hp",     desc:"Max HP +15, restored immediately. You refuse to break." },
+  field_medic: { name:"Field Medic",      cat:"hp",     desc:"Eating or drinking also heals +8 HP." },
+  iron_gut:    { name:"Iron Gut",         cat:"hunger", desc:"Hunger drains 30% slower." },
+  scavenger:   { name:"Scavenger's Eye",  cat:"hunger", desc:"Greatly increases chance of finding items." },
+  iron_mind:   { name:"Iron Mind",        cat:"sanity", desc:"Sanity drains 30% slower." },
+  night_eyes:  { name:"Night Eyes",       cat:"sanity", desc:"Sanity damage at night is halved." },
+  hoarder:     { name:"Hoarder",          cat:"utility",desc:"Gain sanity on item pickup: +1 at 3 items, +2 at 7, +3 at 12, +4 at 18... Possessions anchor the self." },
+};
+const ALL_PERK_IDS = Object.keys(PERKS);
+const LT = ['Survivor','Drifter','Scavenger','Raider','Warlord','Ghost'];
+const XPL = 100;
+
 let state = {
   hp:80, hunger:70, sanity:60,
   day:1, hour:6, isNight:false,
   inventory:[], level:1, xp:0,
-  busy:false, locations:[], history:[]
+  busy:false, locations:[], perks:[],
+  perkDrawsOwed:0, statPoints:0,
+  statCaps:{hp:100, hunger:100, sanity:100},
+  history:[]
 };
-const XP_PER_LEVEL  = 100;
-const LEVEL_TITLES  = ['Survivor','Drifter','Scavenger','Raider','Warlord','Ghost'];
 
-// ── DOM refs ──────────────────────────────────────────────────────────────────
-const $pBar    = document.getElementById('progressBar');
-const $pLabel  = document.getElementById('progressLabel');
-const $pPhase  = document.getElementById('progressPhase');
-const $pWrap   = document.getElementById('progressWrap');
-const $stuck   = document.getElementById('stuckNote');
-const $ready   = document.getElementById('readyMsg');
-const $loadBtn = document.getElementById('loadBtn');
-const $mSel    = document.getElementById('modelSelect');
-
-// ── WebGPU check ──────────────────────────────────────────────────────────────
-if (!navigator.gpu) {
-  document.getElementById('webgpuWarn').classList.add('visible');
-  $loadBtn.disabled = true;
-  document.getElementById('modelBlock').style.opacity = '0.3';
+function fx() {
+  const p = state.perks || [];
+  return {
+    hungerMult: p.includes('iron_gut')   ? 0.7 : 1,
+    sanityMult: p.includes('iron_mind')  ? 0.7 : 1,
+    dmgReduce:  p.includes('tough_skin') ? 4   : 0,
+    maxHp:      state.statCaps.hp,
+    maxHunger:  state.statCaps.hunger,
+    maxSanity:  state.statCaps.sanity,
+    nightEyes:  p.includes('night_eyes'),
+    fieldMedic: p.includes('field_medic'),
+    hoarder:    p.includes('hoarder'),
+    scavenger:  p.includes('scavenger'),
+  };
 }
 
-// ── Load button ───────────────────────────────────────────────────────────────
-$loadBtn.addEventListener('click', async () => {
-  if (!navigator.gpu) return;
-  $loadBtn.disabled = true;
-  $mSel.disabled    = true;
-  $pWrap.classList.add('visible');
+function hoarderTier(count) {
+  if (count < 3) return 0;
+  let thresh = 3, tier = 1, gap = 4;
+  while (count >= thresh + gap) { thresh += gap; gap++; tier++; }
+  return tier;
+}
 
-  // Show "stuck" warning after 25 s of no callback
-  let stuckTimer = setTimeout(() => $stuck.classList.add('visible'), 25000);
-  const resetStuck = () => {
-    clearTimeout(stuckTimer);
-    stuckTimer = setTimeout(() => $stuck.classList.add('visible'), 25000);
+function allPerksOwned() {
+  return ALL_PERK_IDS.every(id => (state.perks||[]).includes(id));
+}
+
+function catColor(cat) {
+  return {hp:'#c87070',hunger:'#d4a843',sanity:'#7878d0',utility:'#78a858'}[cat]||'#a08850';
+}
+
+// ── API ──────────────────────────────────────────────────────────
+async function callGemini(msgs, tok) {
+  if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
+    throw new Error("Missing API Key! Edit the HTML to add your Gemini API Key.");
+  }
+
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  
+  // Map standard roles to Gemini roles and format
+  const geminiContents = msgs.map(m => ({
+    role: m.role === 'assistant' ? 'model' : m.role,
+    parts: [{ text: m.content }]
+  }));
+
+  const payload = {
+    systemInstruction: {
+      parts: [{ text: SP }]
+    },
+    contents: geminiContents,
+    generationConfig: {
+      maxOutputTokens: tok,
+      responseMimeType: "application/json" // Force strict JSON parsing
+    }
   };
 
+  let res;
   try {
-    engine = await CreateMLCEngine($mSel.value, {
-      initProgressCallback: (p) => {
-        resetStuck();
-        const pct = Math.round((p.progress || 0) * 100);
-        $pBar.style.width = pct + '%';
-
-        const txt = (p.text || '').toLowerCase();
-        if (txt.includes('fetch') || txt.includes('download')) {
-          $pPhase.textContent = 'PHASE 1 / 3 — DOWNLOADING';
-          $stuck.classList.remove('visible');
-        } else if (txt.includes('load') || txt.includes('param')) {
-          $pPhase.textContent = 'PHASE 2 / 3 — LOADING WEIGHTS';
-          $stuck.classList.remove('visible');
-        } else if (txt.includes('compil') || txt.includes('shader') || txt.includes('wasm')) {
-          $pPhase.textContent = 'PHASE 3 / 3 — COMPILING SHADERS';
-          $stuck.classList.add('visible');
-        }
-        $pLabel.textContent = p.text ? p.text.slice(0, 90) : (pct + '%');
-      }
+    res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
-
-    clearTimeout(stuckTimer);
-
-    // Explicit ready state
-    $pBar.style.width   = '100%';
-    $pPhase.textContent = '';
-    $pLabel.textContent = '';
-    $stuck.classList.remove('visible');
-    $ready.classList.add('visible');
-
-    await new Promise(r => setTimeout(r, 1400));
-
-    const boot = document.getElementById('bootScreen');
-    boot.classList.add('hidden');
-    setTimeout(() => boot.style.display = 'none', 700);
-
-    updateUI();
-    await startGame();
-
-  } catch(err) {
-    clearTimeout(stuckTimer);
-    $pPhase.textContent = '✕ Failed';
-    $pLabel.textContent = err.message;
-    $loadBtn.disabled   = false;
-    $mSel.disabled      = false;
-    console.error('WebLLM init:', err);
+  } catch(e) { throw new Error('Network: ' + e.message); }
+  
+  let data;
+  try { data = await res.json(); } catch(e) { throw new Error('Read failed'); }
+  
+  if (!res.ok) {
+    throw new Error(data.error?.message || 'HTTP ' + res.status);
   }
-});
+  
+  const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!content) throw new Error('Empty response');
+  return content.trim();
+}
 
-// ── AI ────────────────────────────────────────────────────────────────────────
-async function askAI(userContent) {
-  const msgs = [
-    { role:'system', content: SYSTEM_PROMPT },
-    ...state.history.slice(-16),
-    { role:'user', content: userContent }
-  ];
-  const reply = await engine.chat.completions.create({
-    messages: msgs,
-    temperature: 0.85,
-    max_tokens: 480
+// ── Save / Load ──────────────────────────────────────────────────
+function genCode() {
+  const snap = { hp:state.hp, hunger:state.hunger, sanity:state.sanity, day:state.day, hour:state.hour, inventory:state.inventory, level:state.level, xp:state.xp, locations:state.locations, perks:state.perks||[], statCaps:state.statCaps, statPoints:state.statPoints||0 };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(snap))));
+}
+function applyCode(c) {
+  const j = JSON.parse(decodeURIComponent(escape(atob(c.trim()))));
+  state.hp=j.hp??80; state.hunger=j.hunger??70; state.sanity=j.sanity??60;
+  state.day=j.day??1; state.hour=j.hour??6;
+  state.inventory=Array.isArray(j.inventory)?j.inventory:[];
+  state.level=j.level??1; state.xp=j.xp??0;
+  state.locations=Array.isArray(j.locations)?j.locations:[];
+  state.perks=Array.isArray(j.perks)?j.perks:[];
+  state.statCaps=j.statCaps||{hp:100,hunger:100,sanity:100};
+  state.statPoints=j.statPoints||0;
+  state.perkDrawsOwed=0; state.history=[];
+}
+function openSaveModal() {
+  document.getElementById('saveCodeBox').textContent = genCode();
+  document.getElementById('loadInput').value = '';
+  document.getElementById('saveStatus').textContent = '';
+  document.getElementById('saveStatus').className = 'mst';
+  document.getElementById('saveModal').classList.remove('hid');
+}
+function closeMo(id) { document.getElementById(id).classList.add('hid'); }
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('saveCodeBox').textContent)
+    .then(() => setSt('Copied to clipboard.','ok'))
+    .catch(() => setSt('Select and copy the code manually.','err'));
+}
+function setSt(m,t) { const el=document.getElementById('saveStatus'); el.textContent=m; el.className='mst '+(t||''); }
+function loadCode() {
+  const raw = document.getElementById('loadInput').value.trim();
+  if (!raw) { setSt('Paste a save code first.','err'); return; }
+  try {
+    applyCode(raw); updateUI();
+    document.getElementById('log').innerHTML = '';
+    addLog('Save restored. The wasteland remembers you.','good');
+    setOptions(['Look around','Search for food','Check surroundings']);
+    setSt('Game loaded.','ok');
+    setTimeout(() => { closeMo('saveModal'); checkCatchUp(); }, 900);
+  } catch(e) { setSt('Invalid save code.','err'); }
+}
+document.getElementById('saveModal').addEventListener('click', function(e){ if(e.target===this) closeMo('saveModal'); });
+document.getElementById('invModal').addEventListener('click', function(e){ if(e.target===this) closeMo('invModal'); });
+document.getElementById('perkViewModal').addEventListener('click', function(e){ if(e.target===this) closeMo('perkViewModal'); });
+
+// ── Inventory / Perk view modals ─────────────────────────────────
+function openInvModal() {
+  const el = document.getElementById('invModalList');
+  el.innerHTML = state.inventory.length === 0
+    ? '<div class="ie" style="padding:6px 0">Your pockets are empty.</div>'
+    : state.inventory.map(i => `<div class="vmi"><div class="vmi-name">&#8226; ${i}</div></div>`).join('');
+  document.getElementById('invModal').classList.remove('hid');
+}
+function openPerkViewModal() {
+  const owned = state.perks || [];
+  const el = document.getElementById('perkViewList');
+  el.innerHTML = owned.length === 0
+    ? '<div class="ie" style="padding:6px 0">No perks acquired yet.</div>'
+    : owned.map(id => { const pk=PERKS[id]; return pk ? `<div class="vmi"><div class="vmi-name" style="color:${catColor(pk.cat)}">${pk.name}</div><div class="vmi-desc">${pk.desc}</div></div>` : ''; }).join('');
+  const caps = state.statCaps;
+  const capEl = document.getElementById('statCapsDisplay');
+  const lines = [];
+  if (caps.hp > 100) lines.push('Max HP: ' + caps.hp);
+  if (caps.hunger > 100) lines.push('Max Hunger: ' + caps.hunger);
+  if (caps.sanity > 100) lines.push('Max Sanity: ' + caps.sanity);
+  if (lines.length) { capEl.textContent = 'Enhanced caps — ' + lines.join(', '); capEl.style.display = 'block'; }
+  else { capEl.style.display = 'none'; }
+  document.getElementById('perkViewModal').classList.remove('hid');
+}
+
+// ── Level-up: Perk choice ────────────────────────────────────────
+function openPerkChoiceModal(level) {
+  const owned = state.perks || [];
+  const avail = ALL_PERK_IDS.filter(id => !owned.includes(id));
+  const picks = avail.sort(() => Math.random()-0.5).slice(0,3);
+  const owed = state.perkDrawsOwed || 0;
+  document.getElementById('perkChoiceSub').textContent =
+    'Level ' + level + ' — ' + LT[Math.min(level-1, LT.length-1)] + '. The wasteland has made you harder. Choose one adaptation.' + (owed > 1 ? ' (' + owed + ' draws remaining)' : '');
+  const cont = document.getElementById('perkChoices');
+  cont.innerHTML = '';
+  if (picks.length === 0) { document.getElementById('perkChoiceModal').classList.add('hid'); return; }
+  picks.forEach(id => {
+    const pk = PERKS[id];
+    const btn = document.createElement('button');
+    btn.className = 'pbtn ' + pk.cat;
+    btn.innerHTML = '<span class="pn">' + pk.name + '</span><span class="pd">' + pk.desc + '</span>';
+    btn.onclick = () => selectPerk(id);
+    cont.appendChild(btn);
   });
-  const raw = reply.choices[0].message.content || '';
-  state.history.push({ role:'user', content:userContent });
-  state.history.push({ role:'assistant', content:raw });
-  return raw;
+  document.getElementById('perkChoiceModal').classList.remove('hid');
+}
+function selectPerk(id) {
+  const pk = PERKS[id]; if (!pk) return;
+  state.perks = state.perks || [];
+  state.perks.push(id);
+  if (id === 'grit') { state.statCaps.hp += 15; state.hp = Math.min(state.statCaps.hp, state.hp + 15); }
+  addLog('PERK: ' + pk.name + ' — ' + pk.desc, 'good');
+  closeMo('perkChoiceModal');
+  state.perkDrawsOwed = Math.max(0, (state.perkDrawsOwed||1) - 1);
+  updateUI();
+  if (state.perkDrawsOwed > 0) setTimeout(() => openPerkChoiceModal(state.level), 350);
 }
 
-function parseResponse(raw) {
-  let s = raw.replace(/```json|```/gi,'').trim();
-  const a = s.indexOf('{'), b = s.lastIndexOf('}');
-  if (a !== -1 && b > a) s = s.slice(a, b+1);
-  try { return JSON.parse(s); }
-  catch(_) {
-    return { narrative:'The wasteland offers only silence.', hpChange:0, hungerChange:-3, sanityChange:-2, xpGain:2, itemGained:null, locationDiscovered:null, options:['Look around','Search for food','Rest'] };
+// ── Level-up: Stat cap buff ──────────────────────────────────────
+function openStatModal() {
+  const pts = state.statPoints || 0;
+  document.getElementById('statModalSub').textContent =
+    'Level ' + state.level + ' — All adaptations mastered. Choose a permanent stat cap increase.' + (pts > 1 ? ' (' + pts + ' points remaining)' : '');
+  const cont = document.getElementById('statChoices');
+  cont.innerHTML = '';
+  [
+    { stat:'hp',     label:'Resilient Body',      desc:'Max HP +10. The flesh grows harder to kill.',      cat:'stat_hp' },
+    { stat:'hunger', label:'Cast Iron Stomach',   desc:'Max Hunger cap +10. Starvation retreats further.', cat:'stat_hunger' },
+    { stat:'sanity', label:'Fortified Mind',       desc:'Max Sanity cap +10. The darkness has less hold.',  cat:'stat_sanity' },
+  ].forEach(o => {
+    const btn = document.createElement('button');
+    btn.className = 'pbtn ' + o.cat;
+    btn.innerHTML = '<span class="pn">' + o.label + '</span><span class="pd">' + o.desc + ' (cap becomes ' + (state.statCaps[o.stat]+10) + ')</span>';
+    btn.onclick = () => selectStat(o.stat);
+    cont.appendChild(btn);
+  });
+  document.getElementById('statModal').classList.remove('hid');
+}
+function selectStat(stat) {
+  state.statCaps[stat] += 10;
+  addLog('Limit broken — ' + stat + ' cap raised to ' + state.statCaps[stat], 'good');
+  closeMo('statModal');
+  state.statPoints = Math.max(0, (state.statPoints||1) - 1);
+  updateUI();
+  if (state.statPoints > 0) setTimeout(() => openStatModal(), 350);
+}
+
+function levelUp() {
+  state.level++;
+  addLog('LEVEL UP \u2192 Level ' + state.level + ' \u2014 ' + LT[Math.min(state.level-1, LT.length-1)], 'good');
+  if (allPerksOwned()) {
+    state.statPoints = (state.statPoints||0) + 1;
+    setTimeout(() => openStatModal(), 400);
+  } else {
+    state.perkDrawsOwed = (state.perkDrawsOwed||0) + 1;
+    setTimeout(() => openPerkChoiceModal(state.level), 400);
   }
 }
 
-// ── Game ──────────────────────────────────────────────────────────────────────
-async function startGame() {
-  setBusy(true);
-  const tid = addThinking('Setting the scene');
-  try {
-    const p = parseResponse(await askAI(
-      'START GAME. Player wakes at dawn in the wasteland, injured and hungry. HP=80 Hunger=70 Sanity=60. ' +
-      'Describe the opening scene vividly in 2-4 sentences. ' +
-      'Respond ONLY with the JSON object beginning with {.'
-    ));
-    removeThinking(tid);
-    addLog(p.narrative || 'You wake in the ash. The sky is the colour of old blood.', '');
-    setOptions(p.options || ['Search the ruins','Scavenge for food','Check your wounds']);
-    updateUI();
-  } catch(e) {
-    removeThinking(tid);
-    addLog('You wake in the ash. The sky is the colour of old blood. Somewhere, something is burning.', '');
-    setOptions(['Search the ruins','Scavenge for food','Check your wounds']);
-    console.error('startGame:', e);
+function checkCatchUp() {
+  const drawsEarned = Math.max(0, state.level - 1);
+  const perksOwned = (state.perks||[]).length;
+  const maxPerks = ALL_PERK_IDS.length;
+  const perkOwed = Math.max(0, Math.min(maxPerks, drawsEarned) - perksOwned);
+  if (perkOwed > 0 && !allPerksOwned()) {
+    state.perkDrawsOwed = perkOwed;
+    setTimeout(() => openPerkChoiceModal(state.level), 600);
+  } else if (state.statPoints > 0) {
+    setTimeout(() => openStatModal(), 600);
   }
-  setBusy(false);
 }
 
-async function sendAction() {
-  const inp    = document.getElementById('cmdInput');
-  const action = inp.value.trim();
-  if (!action || state.busy) return;
-  if (state.hp <= 0) { addLog('You are dead. Refresh to begin again.', 'danger'); return; }
-  inp.value = '';
-  setBusy(true);
-  addLog('> ' + action, 'system');
-
-  state.hour = (state.hour + 2) % 24;
-  if (state.hour === 0) { state.day++; addLog('Day ' + state.day + ' dawns. The wasteland does not rest.', 'system'); }
-  if (state.hour === 20) addLog('Night falls. The shadow beasts stir.', 'danger');
-  state.isNight = state.hour >= 20 || state.hour < 6;
-
-  const userContent =
-    `State: HP=${Math.round(state.hp)} Hunger=${Math.round(state.hunger)} Sanity=${Math.round(state.sanity)} ` +
-    `Day=${state.day} Time=${state.isNight?'Night':'Day'} ` +
-    `Inventory=[${state.inventory.join(',')||'nothing'}] ` +
-    `KnownLocations=[${state.locations.map(l=>l.name).join(',')||'none'}]\n` +
-    `Player action: "${action}"\nRespond ONLY with the JSON object beginning with {.`;
-
-  const tid = addThinking('The wasteland deliberates');
-  try {
-    const p = parseResponse(await askAI(userContent));
-    removeThinking(tid);
-
-    const hpC  = clamp(p.hpChange    ||0,-25,15);
-    const hunC = clamp(p.hungerChange||0,-20,8);
-    const sanC = clamp(p.sanityChange||0,-15,10);
-    const xpG  = clamp(p.xpGain      ||5,  0,30);
-
-    state.hp     = clamp(state.hp     + hpC,  0,100);
-    state.hunger = clamp(state.hunger + hunC, 0,100);
-    state.sanity = clamp(state.sanity + sanC, 0,100);
-    state.xp    += xpG;
-
-    if (state.xp >= state.level * XP_PER_LEVEL) {
-      state.level++;
-      addLog('LEVEL UP → Level ' + state.level + ' — ' + LEVEL_TITLES[Math.min(state.level-1,LEVEL_TITLES.length-1)], 'good');
-    }
-    if (state.hunger < 20 && state.hp > 0) { state.hp = Math.max(0,state.hp-5); addLog('Starvation gnaws. Your vision dims.','danger'); }
-    if (state.sanity < 20) addLog('The shadows whisper your name. None of it is real. Probably.','danger');
-    if (p.itemGained && typeof p.itemGained === 'string') { state.inventory.push(p.itemGained); addLog('+ Found: '+p.itemGained,'good'); }
-    if (p.locationDiscovered?.name) {
-      const loc = p.locationDiscovered;
-      if (!state.locations.some(l=>l.name.toLowerCase()===loc.name.toLowerCase())) {
-        state.locations.push(loc);
-        addLog('◉ Mapped: '+loc.name+' ['+(loc.type||'unknown').replace('_',' ')+']','good');
-      }
-    }
-    addLog(p.narrative||'Nothing happens.', hpC<-10?'danger':(hpC>0||hunC>0)?'good':'');
-    if (state.hp<=0) {
-      addLog('YOU ARE DEAD. The wasteland claims another soul.','danger');
-      document.getElementById('optArea').innerHTML='';
-    } else {
-      setOptions(Array.isArray(p.options)?p.options:['Look around','Search for food','Rest here']);
-    }
-    updateUI();
-  } catch(err) {
-    removeThinking(tid);
-    addLog('Signal lost: '+err.message,'system');
-    console.error('sendAction:',err);
-  }
-  setBusy(false);
+// ── UI ───────────────────────────────────────────────────────────
+function updateUI() {
+  const f = fx();
+  document.getElementById('hpBar').style.width = Math.min(100, Math.max(0, state.hp/f.maxHp*100)) + '%';
+  document.getElementById('hpBar').style.background = state.hp > f.maxHp*0.4 ? '#8b2020' : '#dd3030';
+  document.getElementById('hpVal').textContent = Math.max(0,Math.round(state.hp)) + '/' + f.maxHp;
+  document.getElementById('hunBar').style.width = Math.min(100, Math.max(0, state.hunger/f.maxHunger*100)) + '%';
+  document.getElementById('hunBar').style.background = state.hunger > 30 ? '#8b5a10' : '#d4840a';
+  document.getElementById('hunVal').textContent = Math.max(0,Math.round(state.hunger)) + '/' + f.maxHunger;
+  document.getElementById('sanBar').style.width = Math.min(100, Math.max(0, state.sanity/f.maxSanity*100)) + '%';
+  document.getElementById('sanBar').style.background = state.sanity > 30 ? '#3a3a8b' : '#7070d0';
+  document.getElementById('sanVal').textContent = Math.max(0,Math.round(state.sanity)) + '/' + f.maxSanity;
+  document.getElementById('dayNum').textContent = state.day;
+  const h = state.hour;
+  document.getElementById('timeLabel').textContent = h<6?'Night':h<12?'Morning':h<17?'Afternoon':h<20?'Dusk':'Night';
+  state.isNight = h >= 20 || h < 6;
+  document.getElementById('xpBar').style.width = ((state.xp%(state.level*XPL))/(state.level*XPL)*100) + '%';
+  document.getElementById('lvlBadge').textContent = 'LEVEL ' + state.level + ' \u2014 ' + LT[Math.min(state.level-1, LT.length-1)];
+  const owned = state.perks || [];
+  document.getElementById('perkMini').innerHTML = owned.length === 0
+    ? '<div class="ie">none yet</div>'
+    : owned.slice(0,3).map(id => { const pk=PERKS[id]; return pk ? '<div class="ii" style="color:'+catColor(pk.cat)+'">\u2022 '+pk.name+'</div>' : ''; }).join('') + (owned.length > 3 ? '<div class="ie">+' + (owned.length-3) + ' more</div>' : '');
+  document.getElementById('invList').innerHTML = state.inventory.length === 0
+    ? '<div class="ie">empty pockets</div>'
+    : state.inventory.slice(0,4).map(i => '<div class="ii">\u2022 ' + i + '</div>').join('') + (state.inventory.length > 4 ? '<div class="ie">+' + (state.inventory.length-4) + ' more</div>' : '');
+  const LOC = {settlement:'&#8962;',outpost:'&#9873;',raider_camp:'&#9760;',ruin:'&#9747;',danger_zone:'&#9762;',unknown:'?'};
+  document.getElementById('locList').innerHTML = state.locations.length === 0
+    ? '<div class="ie">none mapped</div>'
+    : state.locations.map(l => `<div class="li ${l.type||'unknown'}"><span class="ln">${LOC[l.type]||'?'} ${l.name}</span>${l.notes?'<span class="lnt">'+l.notes+'</span>':''}</div>`).join('');
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const clamp = (v,mn,mx) => Math.min(mx,Math.max(mn,v));
 
 function addLog(text, type) {
   const log = document.getElementById('log');
-  const d   = document.createElement('div');
-  d.className = 'log-entry'+(type?' '+type:'');
-  d.textContent = text;
-  log.appendChild(d);
+  const div = document.createElement('div');
+  div.className = 'log-entry le' + (type ? ' ' + type : '');
+  div.textContent = text;
+  log.appendChild(div);
   log.scrollTop = log.scrollHeight;
 }
-let _tn = 0;
-function addThinking(label) {
-  const id  = 'think-'+(++_tn);
-  const log = document.getElementById('log');
-  const d   = document.createElement('div');
-  d.className = 'log-entry system thinking-dot';
-  d.id = id; d.textContent = label;
-  log.appendChild(d); log.scrollTop = log.scrollHeight;
-  return id;
-}
-function removeThinking(id) { document.getElementById(id)?.remove(); }
-
 function setOptions(opts) {
-  const area = document.getElementById('optArea');
-  area.innerHTML = '';
-  opts.slice(0,4).forEach(opt=>{
-    const b = document.createElement('button');
-    b.className = 'option-btn';
-    b.textContent = '▸ '+opt;
-    b.disabled = state.busy;
-    b.onclick = ()=>{ document.getElementById('cmdInput').value=opt; sendAction(); };
-    area.appendChild(b);
+  const area = document.getElementById('optArea'); area.innerHTML = '';
+  (opts||[]).forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'ob'; btn.textContent = '\u25B8 ' + opt; btn.disabled = state.busy;
+    btn.onclick = () => { document.getElementById('cmdInput').value = opt; sendAction(); };
+    area.appendChild(btn);
   });
 }
 function setBusy(v) {
   state.busy = v;
-  document.getElementById('sendBtn').disabled  = v;
+  document.getElementById('sendBtn').disabled = v;
   document.getElementById('cmdInput').disabled = v;
-  document.getElementById('sendBtn').textContent = v?'…':'ACT →';
-  document.querySelectorAll('.option-btn').forEach(b=>b.disabled=v);
+  document.getElementById('sendBtn').textContent = v ? '...' : 'ACT \u2192';
+  document.querySelectorAll('.ob').forEach(b => b.disabled = v);
 }
-function updateUI() {
-  const sb = (id,val,hi,lo) => {
-    document.getElementById(id+'Bar').style.width      = Math.max(0,val)+'%';
-    document.getElementById(id+'Bar').style.background = val>40?hi:lo;
-    document.getElementById(id+'Val').textContent      = Math.max(0,Math.round(val))+'/100';
-  };
-  sb('hp',  state.hp,    '#8b2020','#dd3030');
-  sb('hun', state.hunger,'#8b5a10','#d4840a');
-  sb('san', state.sanity,'#3a3a8b','#7070d0');
-
-  document.getElementById('dayNum').textContent   = state.day;
-  const h = state.hour;
-  document.getElementById('timeLabel').textContent =
-    h<6?'Night':h<12?'Morning':h<17?'Afternoon':h<20?'Dusk':'Night';
-
-  const xpPct = (state.xp%(state.level*XP_PER_LEVEL))/(state.level*XP_PER_LEVEL)*100;
-  document.getElementById('xpBar').style.width    = xpPct+'%';
-  document.getElementById('lvlBadge').textContent =
-    'LEVEL '+state.level+' — '+LEVEL_TITLES[Math.min(state.level-1,LEVEL_TITLES.length-1)];
-
-  document.getElementById('invList').innerHTML = state.inventory.length
-    ? state.inventory.map(i=>`<div class="inv-item">• ${i}</div>`).join('')
-    : '<div class="inv-empty">empty pockets</div>';
-
-  const icons = {settlement:'⌂',outpost:'⚑',raider_camp:'☠',ruin:'◫',danger_zone:'☢',unknown:'?'};
-  document.getElementById('locList').innerHTML = state.locations.length
-    ? state.locations.map(l=>{
-        const t=l.type||'unknown';
-        return `<div class="loc-item ${t}"><span class="loc-name">${icons[t]||'?'} ${l.name}</span>${l.notes?`<span class="loc-note">${l.notes}</span>`:''}</div>`;
-      }).join('')
-    : '<div class="inv-empty">none mapped</div>';
+function removeConsumed(list) {
+  if (!Array.isArray(list)) return;
+  for (const n of list) {
+    const i = state.inventory.findIndex(x => x.toLowerCase() === n.toLowerCase());
+    if (i !== -1) { state.inventory.splice(i, 1); addLog('\u2212 Used: ' + n, 'sys'); }
+  }
 }
 
-document.getElementById('sendBtn').addEventListener('click', sendAction);
-document.getElementById('cmdInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendAction(); });
-document.getElementById('promptToggle').addEventListener('click', ()=>{
-  const pb = document.getElementById('promptBox');
-  pb.style.display = pb.style.display==='block'?'none':'block';
-});
+// ── Main action ──────────────────────────────────────────────────
+async function sendAction() {
+  const input = document.getElementById('cmdInput');
+  const action = input.value.trim();
+  if (!action || state.busy) return;
+  if (state.hp <= 0) { addLog('You are dead. Refresh to begin again.', 'danger'); return; }
+  input.value = ''; setBusy(true);
+  addLog('> ' + action, 'sys');
+  state.hour = (state.hour + 2) % 24;
+  if (state.hour === 0) { state.day++; addLog('Day ' + state.day + ' dawns. The wasteland does not rest.', 'sys'); }
+  if (state.hour === 20) addLog('Night falls. The shadow beasts stir.', 'danger');
+  const f = fx();
+  const scavHint = f.scavenger ? '\nPERK ACTIVE — Scavenger\'s Eye: strongly prefer setting itemGained this turn.' : '';
+  const userMsg = { role:'user', content:`HP=${Math.round(state.hp)}, Hunger=${Math.round(state.hunger)}, Sanity=${Math.round(state.sanity)}, Day=${state.day}, Time=${state.isNight?'Night':'Day'}, Inventory=[${state.inventory.join(', ')||'nothing'}], Level=${state.level}, KnownLocations=[${state.locations.map(l=>l.name).join(', ')||'none'}]\nAction: "${action}"${scavHint}` };
+  try {
+    let raw, p;
+    // Removed the complex retry loop since Gemini's responseMimeType guarantees JSON
+    try {
+      const msgs = [...state.history, userMsg];
+      raw = await callGemini(msgs, 550);
+      p = JSON.parse(raw);
+    } catch(e) { p = null; if (e.message.startsWith('Rate')||e.message.startsWith('Network')||e.message.startsWith('Missing API')) throw e; }
+    
+    if (!p) p = {narrative:'The wasteland offers no answer.',hpChange:0,hungerChange:-3,sanityChange:-2,xpGain:2,itemsConsumed:[],options:['Look around','Search for food','Rest']};
+    
+    state.history.push(userMsg);
+    state.history.push({role:'assistant', content: JSON.stringify(p)});
+    if (state.history.length > 4) state.history = state.history.slice(-4);
+    
+    let hpD = p.hpChange||0, hunD = p.hungerChange||0, sanD = p.sanityChange||0;
+    if (hpD < 0) hpD = Math.min(0, hpD + f.dmgReduce);
+    if (hunD < 0) hunD = Math.round(hunD * f.hungerMult);
+    if (sanD < 0) { if (state.isNight && f.nightEyes) sanD = Math.round(sanD * 0.5); sanD = Math.round(sanD * f.sanityMult); }
+    state.hp     = Math.min(f.maxHp,     Math.max(0, state.hp     + hpD));
+    state.hunger = Math.min(f.maxHunger, Math.max(0, state.hunger + hunD));
+    state.sanity = Math.min(f.maxSanity, Math.max(0, state.sanity + sanD));
+    state.xp += (p.xpGain || 5);
+    while (state.xp >= state.level * XPL) levelUp();
+    if (state.hunger < 20 && state.hp > 0) { state.hp = Math.max(0, state.hp - 5); addLog('Starvation gnaws. Your vision dims.', 'danger'); }
+    if (state.sanity < 20) addLog('The shadows whisper your name. None of it is real. Probably.', 'danger');
+    removeConsumed(p.itemsConsumed);
+    if (p.itemGained) {
+      state.inventory.push(p.itemGained);
+      addLog('+ Found: ' + p.itemGained, 'good');
+      if (f.hoarder) { const tier = hoarderTier(state.inventory.length); if (tier > 0) { state.sanity = Math.min(f.maxSanity, state.sanity + tier); addLog('The hoard steadies you. (+' + tier + ' sanity)', 'good'); } }
+    }
+    if (hunD > 0 && f.fieldMedic) { state.hp = Math.min(f.maxHp, state.hp + 8); addLog('Nourishment repairs the flesh. (+8 HP)', 'good'); }
+    if (p.locationUpdated?.name) {
+      const ex = state.locations.find(l => l.name.toLowerCase() === p.locationUpdated.name.toLowerCase());
+      if (ex) { const old = ex.type; ex.type = p.locationUpdated.type||ex.type; ex.notes = p.locationUpdated.notes||ex.notes; if (old !== ex.type) addLog('\u25CE ' + ex.name + ' reclassified: ' + ex.type.replace('_',' '), 'good'); }
+    }
+    if (p.locationDiscovered?.name) {
+      const loc = p.locationDiscovered;
+      if (!state.locations.some(l => l.name.toLowerCase() === loc.name.toLowerCase())) {
+        state.locations.push(loc);
+        addLog('\u25CE Mapped: ' + loc.name + ' [' + (loc.type||'unknown').replace('_',' ') + ']', 'good');
+      }
+    }
+    addLog(p.narrative || 'Nothing happens.', hpD < -10 ? 'danger' : (hpD > 0 || hunD > 0) ? 'good' : '');
+    if (state.hp <= 0) { addLog('YOU ARE DEAD. The wasteland claims another soul.', 'danger'); document.getElementById('optArea').innerHTML = ''; }
+    else setOptions(p.options || ['Look around','Search for food','Rest here']);
+    updateUI();
+  } catch(err) { addLog('System Error: ' + (err.message||'unknown'), 'sys'); }
+  setBusy(false);
+}
 
-updateUI();
+document.getElementById('cmdInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendAction(); });
+function togglePrompt() { const pb = document.getElementById('promptBox'); pb.style.display = pb.style.display === 'block' ? 'none' : 'block'; }
+
+async function startGame() {
+  setBusy(true);
+  try {
+    const im = {role:'user', content:'Start the game. The player wakes at dawn in the wasteland, injured and hungry. HP=80, Hunger=70, Sanity=60. Set the scene vividly.'};
+    const raw = await callGemini([im], 400);
+    let p; try { p = JSON.parse(raw); } catch(e) { p = {narrative:'You wake in the ash. The sky is the colour of old blood. Something moved in the ruins to the west, and it was not the wind.',options:['Search the ruins to the west','Scavenge for food','Tend to your wounds']}; }
+    state.history.push(im); state.history.push({role:'assistant', content: JSON.stringify(p)});
+    addLog(p.narrative, '');
+    setOptions(p.options || ['Search the ruins','Scavenge for food','Rest']);
+    updateUI();
+  } catch(e) {
+    addLog('Initialization Failed. ' + e.message, 'danger');
+    setOptions(['Retry']);
+  }
+  setBusy(false);
+}
+
+updateUI(); startGame();
 </script>
 </body>
 </html>
