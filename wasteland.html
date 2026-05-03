@@ -213,9 +213,11 @@ body{background:#080806;display:flex;align-items:center;justify-content:center;m
 
 <script>
 // ==========================================
-// IMPORTANT: ADD YOUR GEMINI API KEY HERE
+// GET A FREE KEY AT: https://openrouter.ai/
 // ==========================================
-const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
+const OPENROUTER_API_KEY = "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";
+// We'll use a high-quality free model available on OpenRouter
+const FREE_MODEL = "google/gemma-2-9b-it:free"; 
 
 const SP = `You are the narrator of DUST & DARKNESS — a brutal post-apocalyptic survival RPG fusing Fallout's wasteland with Don't Starve's unforgiving mechanics. Nuclear war ended 40 years ago. Mutant creatures stalk irradiated ruins. Night brings shadow beasts.
 
@@ -297,33 +299,30 @@ function catColor(cat) {
 }
 
 // ── API ──────────────────────────────────────────────────────────
-async function callGemini(msgs, tok) {
-  if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
-    throw new Error("Missing API Key! Edit the HTML to add your Gemini API Key.");
+async function callFreeAPI(msgs, tok) {
+  if (OPENROUTER_API_KEY === "YOUR_FREE_OPENROUTER_KEY_HERE") {
+    throw new Error("Missing API Key! Get a free key from openrouter.ai");
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-  
-  const geminiContents = msgs.map(m => ({
-    role: m.role === 'assistant' ? 'model' : m.role,
-    parts: [{ text: m.content }]
-  }));
-
-  const payload = {
-    systemInstruction: { parts: [{ text: SP }] },
-    contents: geminiContents,
-    generationConfig: {
-      maxOutputTokens: tok,
-      responseMimeType: "application/json"
-    }
-  };
+  // Combine system prompt with history
+  const fullMessages = [{ role: "system", content: SP }, ...msgs];
 
   let res;
   try {
-    res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        // OpenRouter requires these headers for ranking
+        "HTTP-Referer": window.location.href, 
+        "X-Title": "Dust and Darkness RPG"
+      },
+      body: JSON.stringify({
+        model: FREE_MODEL,
+        messages: fullMessages,
+        max_tokens: tok
+      })
     });
   } catch(e) { throw new Error('Network: ' + e.message); }
   
@@ -334,9 +333,11 @@ async function callGemini(msgs, tok) {
     throw new Error(data.error?.message || 'HTTP ' + res.status);
   }
   
-  const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error('Empty response');
-  return content.trim();
+  
+  // Free models sometimes ignore formatting rules and wrap in markdown anyway
+  return content.replace(/```json|```/g,'').trim();
 }
 
 // ── Save / Load / Auto-Cache ─────────────────────────────────────
@@ -589,9 +590,9 @@ async function sendAction() {
     let raw, p;
     try {
       const msgs = [...state.history, userMsg];
-      raw = await callGemini(msgs, 550);
+      raw = await callFreeAPI(msgs, 550);
       p = JSON.parse(raw);
-    } catch(e) { p = null; if (e.message.startsWith('Rate')||e.message.startsWith('Network')||e.message.startsWith('Missing API')) throw e; }
+    } catch(e) { p = null; if (e.message.includes('API') || e.message.includes('Network')) throw e; }
     
     if (!p) p = {narrative:'The wasteland offers no answer.',hpChange:0,hungerChange:-3,sanityChange:-2,xpGain:2,itemsConsumed:[],options:['Look around','Search for food','Rest']};
     
@@ -642,7 +643,6 @@ function togglePrompt() { const pb = document.getElementById('promptBox'); pb.st
 async function startGame() {
   setBusy(true);
   
-  // Try to load cached save from local storage first
   const cachedSave = localStorage.getItem('dd_save_cache');
   if (cachedSave) {
     try {
@@ -650,7 +650,6 @@ async function startGame() {
       updateUI();
       addLog('Save restored from local memory. The wasteland waits.', 'sys');
       
-      // Attempt to pull the last set of options from history, or provide defaults
       let lastOptions = ['Look around','Search for food','Check inventory'];
       if (state.history.length > 0) {
         try {
@@ -668,10 +667,9 @@ async function startGame() {
     }
   }
 
-  // If no cache exists, generate a new opening scenario
   try {
     const im = {role:'user', content:'Start the game. The player wakes at dawn in the wasteland, injured and hungry. HP=80, Hunger=70, Sanity=60. Set the scene vividly.'};
-    const raw = await callGemini([im], 400);
+    const raw = await callFreeAPI([im], 400);
     let p; try { p = JSON.parse(raw); } catch(e) { p = {narrative:'You wake in the ash. The sky is the colour of old blood. Something moved in the ruins to the west, and it was not the wind.',options:['Search the ruins to the west','Scavenge for food','Tend to your wounds']}; }
     state.history.push(im); state.history.push({role:'assistant', content: JSON.stringify(p)});
     addLog(p.narrative, '');
@@ -685,6 +683,6 @@ async function startGame() {
 }
 
 updateUI(); startGame();
-</script>```
+</script>
 </body>
 </html>
