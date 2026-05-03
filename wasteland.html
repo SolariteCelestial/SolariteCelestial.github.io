@@ -105,6 +105,19 @@ body{background:#080806;display:flex;align-items:center;justify-content:center;m
 </head>
 <body>
 
+<div class="mo hid" id="apiModal">
+  <div class="mb">
+    <div class="mtt">&#9881; SYSTEM UPLINK</div>
+    <div class="md">Enter your free OpenRouter API key to connect to the game engine. Your key is saved locally in your browser and is never sent anywhere else.</div>
+    <input type="password" class="ci" id="apiKeyInput" placeholder="sk-or-v1-..." style="width:100%; margin-top:8px; margin-bottom:8px;"/>
+    <div class="mr">
+      <button class="mbtn p" onclick="saveApiKey()">[ SAVE KEY ]</button>
+      <button class="mbtn s" onclick="closeMo('apiModal')">[ CLOSE ]</button>
+    </div>
+    <div class="mst" id="apiStatus"></div>
+  </div>
+</div>
+
 <div class="mo hid" id="saveModal">
   <div class="mb">
     <div class="mtt">&#9762; SAVE / LOAD</div>
@@ -160,6 +173,7 @@ body{background:#080806;display:flex;align-items:center;justify-content:center;m
   <div class="gh">
     <div class="gt">&#9762; Dust &amp; Darkness</div>
     <div class="hr2">
+      <button class="smb" onclick="openApiModal()">API KEY</button>
       <button class="smb" onclick="openSaveModal()">SAVE / LOAD</button>
       <div class="db">Day <span id="dayNum">1</span> &mdash; <span id="timeLabel">Dawn</span></div>
     </div>
@@ -212,12 +226,10 @@ body{background:#080806;display:flex;align-items:center;justify-content:center;m
 </div>
 
 <script>
-// ==========================================
-// GET A FREE KEY AT: https://openrouter.ai/
-// ==========================================
-const OPENROUTER_API_KEY = "";
-// We'll use a high-quality free model available on OpenRouter
-const FREE_MODEL = "meta-llama/llama-3.1-8b-instruct:free";
+// Load API key from local browser storage
+let OPENROUTER_API_KEY = localStorage.getItem('dd_api_key') || "";
+
+const FREE_MODEL = "google/gemma-2-9b-it:free"; 
 
 const SP = `You are the narrator of DUST & DARKNESS — a brutal post-apocalyptic survival RPG fusing Fallout's wasteland with Don't Starve's unforgiving mechanics. Nuclear war ended 40 years ago. Mutant creatures stalk irradiated ruins. Night brings shadow beasts.
 
@@ -298,13 +310,34 @@ function catColor(cat) {
   return {hp:'#c87070',hunger:'#d4a843',sanity:'#7878d0',utility:'#78a858'}[cat]||'#a08850';
 }
 
+// ── API settings UI ──────────────────────────────────────────────
+function openApiModal() {
+  document.getElementById('apiKeyInput').value = OPENROUTER_API_KEY;
+  document.getElementById('apiStatus').textContent = '';
+  document.getElementById('apiModal').classList.remove('hid');
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (key) {
+    OPENROUTER_API_KEY = key;
+    localStorage.setItem('dd_api_key', key);
+    document.getElementById('apiStatus').textContent = 'Key saved to local storage.';
+    document.getElementById('apiStatus').className = 'mst ok';
+    setTimeout(() => closeMo('apiModal'), 1000);
+  } else {
+    document.getElementById('apiStatus').textContent = 'Please enter a valid key.';
+    document.getElementById('apiStatus').className = 'mst err';
+  }
+}
+
 // ── API ──────────────────────────────────────────────────────────
 async function callFreeAPI(msgs, tok) {
-  if (OPENROUTER_API_KEY === "YOUR_FREE_OPENROUTER_KEY_HERE") {
-    throw new Error("Missing API Key! Get a free key from openrouter.ai");
+  if (!OPENROUTER_API_KEY) {
+    openApiModal();
+    throw new Error("Missing API Key! Please enter your key to continue.");
   }
 
-  // Combine system prompt with history
   const fullMessages = [{ role: "system", content: SP }, ...msgs];
 
   let res;
@@ -314,7 +347,6 @@ async function callFreeAPI(msgs, tok) {
       headers: {
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
-        // OpenRouter requires these headers for ranking
         "HTTP-Referer": window.location.href, 
         "X-Title": "Dust and Darkness RPG"
       },
@@ -324,19 +356,24 @@ async function callFreeAPI(msgs, tok) {
         max_tokens: tok
       })
     });
-  } catch(e) { throw new Error('Network: ' + e.message); }
+  } catch(e) { throw new Error('Network Error: ' + e.message); }
   
   let data;
-  try { data = await res.json(); } catch(e) { throw new Error('Read failed'); }
+  try { data = await res.json(); } catch(e) { throw new Error('Failed to read server response'); }
   
   if (!res.ok) {
+    // If we hit an authorization error, wipe the bad key
+    if (res.status === 401) {
+        OPENROUTER_API_KEY = "";
+        localStorage.removeItem('dd_api_key');
+        openApiModal();
+    }
     throw new Error(data.error?.message || 'HTTP ' + res.status);
   }
   
   const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error('Empty response');
+  if (!content) throw new Error('Empty response from AI engine');
   
-  // Free models sometimes ignore formatting rules and wrap in markdown anyway
   return content.replace(/```json|```/g,'').trim();
 }
 
@@ -392,6 +429,7 @@ function loadCode() {
   } catch(e) { setSt('Invalid save code.','err'); }
 }
 document.getElementById('saveModal').addEventListener('click', function(e){ if(e.target===this) closeMo('saveModal'); });
+document.getElementById('apiModal').addEventListener('click', function(e){ if(e.target===this) closeMo('apiModal'); });
 document.getElementById('invModal').addEventListener('click', function(e){ if(e.target===this) closeMo('invModal'); });
 document.getElementById('perkViewModal').addEventListener('click', function(e){ if(e.target===this) closeMo('perkViewModal'); });
 
@@ -574,6 +612,10 @@ function removeConsumed(list) {
 
 // ── Main action ──────────────────────────────────────────────────
 async function sendAction() {
+  if (!OPENROUTER_API_KEY) {
+    openApiModal();
+    return;
+  }
   const input = document.getElementById('cmdInput');
   const action = input.value.trim();
   if (!action || state.busy) return;
@@ -592,17 +634,17 @@ async function sendAction() {
       const msgs = [...state.history, userMsg];
       raw = await callFreeAPI(msgs, 550);
       
-      // NEW PARSING LOGIC: Hunt for the curly brackets and ignore everything else
+      // Parse robustly to ignore filler text from free AI models
       let firstBrace = raw.indexOf('{');
       let lastBrace = raw.lastIndexOf('}');
       if (firstBrace !== -1 && lastBrace !== -1) {
         let cleanJson = raw.substring(firstBrace, lastBrace + 1);
         p = JSON.parse(cleanJson);
       } else {
-        throw new Error("No JSON found in response");
+        throw new Error("No valid JSON found in response");
       }
-      
-    } catch(e) { p = null; if (e.message.includes('API') || e.message.includes('Network')) throw e; }    
+    } catch(e) { p = null; if (e.message.includes('API') || e.message.includes('Network') || e.message.includes('Missing')) throw e; }
+    
     if (!p) p = {narrative:'The wasteland offers no answer.',hpChange:0,hungerChange:-3,sanityChange:-2,xpGain:2,itemsConsumed:[],options:['Look around','Search for food','Rest']};
     
     state.history.push(userMsg);
@@ -652,6 +694,14 @@ function togglePrompt() { const pb = document.getElementById('promptBox'); pb.st
 async function startGame() {
   setBusy(true);
   
+  if (!OPENROUTER_API_KEY) {
+    addLog('Awaiting System Uplink. Please enter your OpenRouter API Key.', 'sys');
+    setOptions(['Connect API Key']);
+    setBusy(false);
+    openApiModal();
+    return;
+  }
+
   const cachedSave = localStorage.getItem('dd_save_cache');
   if (cachedSave) {
     try {
@@ -679,6 +729,7 @@ async function startGame() {
   try {
     const im = {role:'user', content:'Start the game. The player wakes at dawn in the wasteland, injured and hungry. HP=80, Hunger=70, Sanity=60. Set the scene vividly.'};
     const raw = await callFreeAPI([im], 400);
+    
     let p; 
     try { 
       let first = raw.indexOf('{'); let last = raw.lastIndexOf('}');
@@ -686,6 +737,7 @@ async function startGame() {
     } catch(e) { 
       p = {narrative:'You wake in the ash. The sky is the colour of old blood. Something moved in the ruins to the west, and it was not the wind.',options:['Search the ruins to the west','Scavenge for food','Tend to your wounds']}; 
     }
+    
     state.history.push(im); state.history.push({role:'assistant', content: JSON.stringify(p)});
     addLog(p.narrative, '');
     setOptions(p.options || ['Search the ruins','Scavenge for food','Rest']);
@@ -696,6 +748,15 @@ async function startGame() {
   }
   setBusy(false);
 }
+
+// Special override for the first connect button
+document.getElementById('optArea').addEventListener('click', function(e) {
+    if (e.target.tagName === 'BUTTON' && e.target.textContent.includes('Connect API Key')) {
+        openApiModal();
+    } else if (e.target.tagName === 'BUTTON' && e.target.textContent.includes('Retry')) {
+        startGame();
+    }
+});
 
 updateUI(); startGame();
 </script>
