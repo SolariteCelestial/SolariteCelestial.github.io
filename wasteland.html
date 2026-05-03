@@ -304,20 +304,17 @@ async function callGemini(msgs, tok) {
 
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
   
-  // Map standard roles to Gemini roles and format
   const geminiContents = msgs.map(m => ({
     role: m.role === 'assistant' ? 'model' : m.role,
     parts: [{ text: m.content }]
   }));
 
   const payload = {
-    systemInstruction: {
-      parts: [{ text: SP }]
-    },
+    systemInstruction: { parts: [{ text: SP }] },
     contents: geminiContents,
     generationConfig: {
       maxOutputTokens: tok,
-      responseMimeType: "application/json" // Force strict JSON parsing
+      responseMimeType: "application/json"
     }
   };
 
@@ -342,9 +339,9 @@ async function callGemini(msgs, tok) {
   return content.trim();
 }
 
-// ── Save / Load ──────────────────────────────────────────────────
+// ── Save / Load / Auto-Cache ─────────────────────────────────────
 function genCode() {
-  const snap = { hp:state.hp, hunger:state.hunger, sanity:state.sanity, day:state.day, hour:state.hour, inventory:state.inventory, level:state.level, xp:state.xp, locations:state.locations, perks:state.perks||[], statCaps:state.statCaps, statPoints:state.statPoints||0 };
+  const snap = { hp:state.hp, hunger:state.hunger, sanity:state.sanity, day:state.day, hour:state.hour, inventory:state.inventory, level:state.level, xp:state.xp, locations:state.locations, perks:state.perks||[], statCaps:state.statCaps, statPoints:state.statPoints||0, history:state.history };
   return btoa(unescape(encodeURIComponent(JSON.stringify(snap))));
 }
 function applyCode(c) {
@@ -357,7 +354,15 @@ function applyCode(c) {
   state.perks=Array.isArray(j.perks)?j.perks:[];
   state.statCaps=j.statCaps||{hp:100,hunger:100,sanity:100};
   state.statPoints=j.statPoints||0;
-  state.perkDrawsOwed=0; state.history=[];
+  state.history=Array.isArray(j.history)?j.history:[];
+  state.perkDrawsOwed=0; 
+}
+function autoSave() {
+  if (state.hp > 0) {
+    localStorage.setItem('dd_save_cache', genCode());
+  } else {
+    localStorage.removeItem('dd_save_cache'); // Wipe cache on death
+  }
 }
 function openSaveModal() {
   document.getElementById('saveCodeBox').textContent = genCode();
@@ -530,6 +535,8 @@ function updateUI() {
   document.getElementById('locList').innerHTML = state.locations.length === 0
     ? '<div class="ie">none mapped</div>'
     : state.locations.map(l => `<div class="li ${l.type||'unknown'}"><span class="ln">${LOC[l.type]||'?'} ${l.name}</span>${l.notes?'<span class="lnt">'+l.notes+'</span>':''}</div>`).join('');
+    
+  autoSave(); // Save state to local browser cache whenever UI updates
 }
 
 function addLog(text, type) {
@@ -580,7 +587,6 @@ async function sendAction() {
   const userMsg = { role:'user', content:`HP=${Math.round(state.hp)}, Hunger=${Math.round(state.hunger)}, Sanity=${Math.round(state.sanity)}, Day=${state.day}, Time=${state.isNight?'Night':'Day'}, Inventory=[${state.inventory.join(', ')||'nothing'}], Level=${state.level}, KnownLocations=[${state.locations.map(l=>l.name).join(', ')||'none'}]\nAction: "${action}"${scavHint}` };
   try {
     let raw, p;
-    // Removed the complex retry loop since Gemini's responseMimeType guarantees JSON
     try {
       const msgs = [...state.history, userMsg];
       raw = await callGemini(msgs, 550);
@@ -635,6 +641,34 @@ function togglePrompt() { const pb = document.getElementById('promptBox'); pb.st
 
 async function startGame() {
   setBusy(true);
+  
+  // Try to load cached save from local storage first
+  const cachedSave = localStorage.getItem('dd_save_cache');
+  if (cachedSave) {
+    try {
+      applyCode(cachedSave);
+      updateUI();
+      addLog('Save restored from local memory. The wasteland waits.', 'sys');
+      
+      // Attempt to pull the last set of options from history, or provide defaults
+      let lastOptions = ['Look around','Search for food','Check inventory'];
+      if (state.history.length > 0) {
+        try {
+          const lastResponse = JSON.parse(state.history[state.history.length - 1].content);
+          if (lastResponse.options) lastOptions = lastResponse.options;
+          addLog(lastResponse.narrative || 'You gather your bearings.', '');
+        } catch(e) {}
+      }
+      setOptions(lastOptions);
+      setBusy(false);
+      return;
+    } catch (e) {
+      console.warn("Could not parse cached save.", e);
+      localStorage.removeItem('dd_save_cache');
+    }
+  }
+
+  // If no cache exists, generate a new opening scenario
   try {
     const im = {role:'user', content:'Start the game. The player wakes at dawn in the wasteland, injured and hungry. HP=80, Hunger=70, Sanity=60. Set the scene vividly.'};
     const raw = await callGemini([im], 400);
@@ -651,6 +685,6 @@ async function startGame() {
 }
 
 updateUI(); startGame();
-</script>
+</script>```
 </body>
 </html>
