@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iframe Embed Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #0d0d10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
+      color: #c8d0e0;
+    }
+
+    .label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #555e72;
+      margin-bottom: 14px;
+    }
+
+    .viewer {
+      position: relative;
+      width: 420px;
+      height: 420px;
+    }
+
+    /* Corner accents */
+    .viewer::before, .viewer::after, .corner-bl, .corner-br {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-color: #3a7bfd;
+      border-style: solid;
+      z-index: 2;
+      pointer-events: none;  /* don't block clicks on the iframe */
+    }
+    .viewer::before  { top: -1px;    left: -1px;    border-width: 2px 0 0 2px; }
+    .viewer::after   { top: -1px;    right: -1px;   border-width: 2px 2px 0 0; }
+    .corner-bl       { bottom: -1px; left: -1px;    border-width: 0 0 2px 2px; }
+    .corner-br       { bottom: -1px; right: -1px;   border-width: 0 2px 2px 0; }
+
+    iframe {
+      /*
+       * Points to the LOCAL PROXY, not the real site.
+       * The proxy forwards everything to KoL but strips
+       * the headers that would block this iframe.
+       */
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      border-radius: 2px;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: 11px;
+      color: #555e72;
+    }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #3a7bfd;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+
+  <p class="label">kingdom of loathing — via proxy</p>
+
+  <div class="viewer">
+    <span class="corner-bl" aria-hidden="true"></span>
+    <span class="corner-br" aria-hidden="true"></span>
+
+    <!--
+      src points to localhost:8080 — our local proxy.
+
+      Why this works:
+        1. Browser requests  localhost:8080/login.php
+        2. Proxy forwards it to  kingdomofloathing.com/login.php
+        3. KoL responds with  X-Frame-Options: SAMEORIGIN  (or similar)
+        4. Proxy DELETES that header before passing the response back
+        5. Browser sees a clean response — no restrictions — and renders it
+
+      Login sessions / cookies:
+        The proxy also rewrites Set-Cookie headers to remove the
+        Domain= attribute, so cookies are stored against localhost
+        and automatically re-sent on every subsequent proxied request.
+        Login state is preserved exactly as it would be on the real site.
+    -->
+    <iframe
+      id="frame"
+      src="https://curly-snowflake-bbfb.solaritecelestial.workers.dev/"
+      title="Kingdom of Loathing (proxied)"
+    ></iframe>
+  </div>
+
+  <div class="status-bar">
+    <span class="dot"></span>
+    <span id="status-text">proxied — localhost:8080</span>
+  </div>
+
+</body>
+</html>
