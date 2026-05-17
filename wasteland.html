@@ -34,17 +34,29 @@
             gap: 15px;
         }
 
+        /* --- UPDATED HEADER --- */
         header {
             grid-column: 1 / -1;
             text-align: center;
             background-color: var(--panel);
-            padding: 15px;
+            padding: 15px 25px;
             border-radius: 8px;
             border-bottom: 4px solid var(--danger);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
         }
 
-        h1, h2, h3 { margin: 0 0 10px 0; font-size: 18px; }
-        header h1 { font-size: 24px; color: var(--danger); }
+        header h1 { margin: 0 0 10px 0; font-size: 26px; color: white; text-transform: uppercase; letter-spacing: 1px;}
+        
+        .header-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        h2, h3 { margin: 0 0 10px 0; font-size: 18px; }
 
         .panel {
             background-color: var(--panel);
@@ -82,23 +94,24 @@
 
         .bar-container {
             width: 100%;
-            background-color: #334155;
+            background-color: #050505;
             border-radius: 5px;
             margin-top: 5px;
             margin-bottom: 15px;
-            height: 20px;
+            height: 22px;
             overflow: hidden;
             position: relative;
+            border: 1px solid #334155;
         }
         
-        .bar-fill { height: 100%; transition: width 0.2s; }
+        .bar-fill { height: 100%; transition: width 0.3s ease-in-out, background-color 0.3s; }
         #threat-bar { background-color: var(--danger); width: 0%; }
         #hp-bar { background-color: var(--accent); width: 100%; }
 
         .bar-text {
             position: absolute;
             top: 0; left: 0; width: 100%; text-align: center;
-            font-size: 12px; line-height: 20px; font-weight: bold;
+            font-size: 13px; line-height: 22px; font-weight: bold;
             color: white; text-shadow: 1px 1px 2px black;
         }
 
@@ -131,12 +144,13 @@
         .log-combat { color: var(--danger); font-weight: bold; }
         .log-success { color: var(--shield); }
         .log-tech { color: var(--tech); }
+        .log-warn { color: #facc15; }
 
         /* Game Over Screen */
         #game-over {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 100;
+            background: rgba(0,0,0,0.95); z-index: 100;
             flex-direction: column; align-items: center; justify-content: center;
         }
         #game-over h1 { font-size: 50px; color: var(--danger); text-shadow: 0 0 20px red; margin-bottom: 10px;}
@@ -155,21 +169,20 @@
 
     <div class="dashboard">
         <header>
-            <h1>Exo-Corp: Escalation Protocol</h1>
-            <p>Target: <span id="current-planet" style="color: var(--gold); font-weight: bold;">Tartarus Prime</span> | Swarm Level: <span id="wave-level" class="wave-value">1</span></p>
+            <h1>Exo-Corp: Base Defense</h1>
+            <div class="header-stats">
+                <span>Target: <span id="current-planet" style="color: var(--gold);">Tartarus Prime</span></span>
+                <span>Swarm Level: <span id="wave-level" class="wave-value">1</span></span>
+                <span>Base Integrity: <span id="hp-text-header" style="color: var(--accent);">1000 / 1000</span></span>
+            </div>
+            <div class="bar-container" style="margin-bottom: 0;">
+                <div id="hp-bar" class="bar-fill"></div>
+            </div>
         </header>
 
         <div class="panel">
-            <h2>Operations & Integrity</h2>
+            <h2>Operations</h2>
             
-            <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                <span>Structural Integrity</span>
-                <span id="hp-text" style="color: var(--accent);">1000 / 1000</span>
-            </div>
-            <div class="bar-container">
-                <div id="hp-bar" class="bar-fill"></div>
-            </div>
-
             <div style="display: flex; justify-content: space-between; font-size: 12px;">
                 <span>Swarm Threat Radar</span>
                 <span style="color: var(--danger);">Attack at 100%</span>
@@ -306,28 +319,15 @@
         const threatBar = document.getElementById('threat-bar');
         const threatText = document.getElementById('threat-text');
         const hpBar = document.getElementById('hp-bar');
-        const hpText = document.getElementById('hp-text');
+        const hpTextHeader = document.getElementById('hp-text-header');
         const logContainer = document.getElementById('log-container');
 
         // Math Core
         function getMult(type) { return 1 + (state.upgrades[type] * 0.5); } 
-        
         function getMaxHp() { return Math.floor(1000 * getMult('armor')); }
-
-        function getClickPower() { 
-            const base = 10 + (state.units.mech * 20);
-            return Math.floor(base * getMult('drill'));
-        }
-        
-        function getIncomeRate() { 
-            const base = state.units.scientist * 5;
-            return Math.floor(base * getMult('auto'));
-        }
-        
-        function getDefensePower() {
-            const base = (state.units.drone * 10) + (state.units.mech * 25) + (state.units.turret * 100);
-            return Math.floor(base * getMult('armor'));
-        }
+        function getClickPower() { return Math.floor((10 + (state.units.mech * 20)) * getMult('drill')); }
+        function getIncomeRate() { return Math.floor((state.units.scientist * 5) * getMult('auto')); }
+        function getDefensePower() { return Math.floor(((state.units.drone * 10) + (state.units.mech * 25) + (state.units.turret * 100)) * getMult('armor')); }
 
         // Logging
         function log(message, type = 'normal') {
@@ -336,6 +336,7 @@
             if(type === 'combat') cssClass += 'log-combat';
             if(type === 'success') cssClass += 'log-success';
             if(type === 'tech') cssClass += 'log-tech';
+            if(type === 'warn') cssClass += 'log-warn';
             
             entry.className = cssClass;
             entry.innerText = `> ${message}`;
@@ -354,16 +355,23 @@
             threatBar.style.width = `${Math.min(state.threat, 100)}%`;
             threatText.innerText = `${Math.floor(state.threat)}%`;
 
-            // HP Bar
+            // HP UI in Header
             const maxHp = getMaxHp();
             const hpPercent = (state.hp / maxHp) * 100;
             hpBar.style.width = `${Math.max(hpPercent, 0)}%`;
-            hpText.innerText = `${Math.floor(state.hp)} / ${maxHp}`;
+            hpTextHeader.innerText = `${Math.floor(state.hp)} / ${maxHp}`;
             
-            // HP Bar Color Warning
-            if(hpPercent > 50) hpBar.style.backgroundColor = 'var(--accent)';
-            else if(hpPercent > 20) hpBar.style.backgroundColor = 'var(--gold)';
-            else hpBar.style.backgroundColor = 'var(--danger)';
+            // HP Visual Warning System
+            if(hpPercent > 50) {
+                hpBar.style.backgroundColor = 'var(--accent)';
+                hpTextHeader.style.color = 'var(--accent)';
+            } else if(hpPercent > 30) {
+                hpBar.style.backgroundColor = 'var(--gold)';
+                hpTextHeader.style.color = 'var(--gold)';
+            } else {
+                hpBar.style.backgroundColor = 'var(--danger)';
+                hpTextHeader.style.color = 'var(--danger)';
+            }
 
             // Dynamic Unit Stats
             document.getElementById('stat-inc').innerText = Math.floor(5 * getMult('auto'));
@@ -413,7 +421,7 @@
             const cost = Math.floor(state.baseRepairCost * (state.waveLevel * 0.5 + 0.5));
             if (state.credits >= cost && state.hp < getMaxHp()) {
                 state.credits -= cost;
-                const healAmount = Math.floor(getMaxHp() * 0.25); // Heals 25% of max HP
+                const healAmount = Math.floor(getMaxHp() * 0.25); 
                 state.hp = Math.min(state.hp + healAmount, getMaxHp());
                 log(`Emergency repairs completed. Restored ${healAmount} structural integrity.`, 'success');
                 updateUI();
@@ -436,7 +444,6 @@
                 state.costs[type] = Math.floor(state.costs[type] * 2.5); 
                 
                 if (type === 'armor') {
-                    // Instantly heal the newly added max HP difference
                     const oldMax = Math.floor(1000 * (1 + ((state.upgrades.armor - 1) * 0.5)));
                     const newMax = getMaxHp();
                     state.hp += (newMax - oldMax);
@@ -478,19 +485,16 @@
             log(`Swarm Power: ${enemyStrength} | Base Defense: ${ourDefense}`);
 
             if (ourDefense >= enemyStrength) {
-                // Victory
                 const bounty = Math.floor(enemyStrength * 3);
                 state.credits += bounty;
                 state.waveLevel++; 
                 log(`DEFENSE HOLDING. Swarm repelled. Bounty: +${bounty} CR.`, "success");
             } else {
-                // Defeat - Calculate Hull Damage
                 const damage = enemyStrength - ourDefense;
                 state.hp -= damage;
                 
                 log(`DEFENSE BREACHED! Facility sustained ${damage} structural damage.`, "combat");
                 
-                // Check for Game Over
                 if (state.hp <= 0) {
                     state.hp = 0;
                     updateUI();
@@ -498,15 +502,14 @@
                     return;
                 }
                 
-                // If survived the breach, lose resources
                 const creditLoss = Math.floor(state.credits * 0.2); 
                 state.credits -= creditLoss;
-                log(`Plundered! Lost ${creditLoss} CR during the breach.`, "combat");
+                log(`Plundered! Lost ${creditLoss} CR during the breach.`, "warn");
                 
                 if (state.units.turret > 0 && damage > 500) {
-                    state.units.turret--; log("Casualty: Plasma Battery destroyed.", "combat");
+                    state.units.turret--; log("Casualty: Plasma Battery destroyed.", "warn");
                 } else if (state.units.mech > 0 && damage > 200) {
-                    state.units.mech--; log("Casualty: Aegis Mech disabled.", "combat");
+                    state.units.mech--; log("Casualty: Aegis Mech disabled.", "warn");
                 }
             }
             
