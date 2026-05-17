@@ -1,764 +1,411 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dust &amp; Darkness</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#080806;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Share Tech Mono',monospace}
-.gw{background:#0d0d0b;color:#c8b882;width:700px;max-width:100vw;border-radius:8px;overflow:hidden;border:1px solid #3a3520;display:flex;flex-direction:column;height:96vh;max-height:700px;position:relative}
-.gh{background:#111008;border-bottom:1px solid #3a3520;padding:9px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.gt{font-family:'Special Elite',serif;font-size:17px;color:#d4a843;letter-spacing:3px;text-transform:uppercase}
-.hr2{display:flex;align-items:center;gap:8px}
-.db{font-size:11px;color:#777;background:#1a1a12;border:1px solid #3a3520;padding:3px 12px;border-radius:4px}
-.db span{color:#d4a843}
-.smb{font-size:10px;color:#555;background:#111008;border:1px solid #2a2418;padding:3px 9px;border-radius:3px;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:1px;transition:all 0.15s}
-.smb:hover{color:#d4a843;border-color:#5a4a20}
-.gbod{display:flex;flex:1;min-height:0}
-.sb{width:165px;flex-shrink:0;background:#0b0b08;border-right:1px solid #2a2418;padding:12px 10px;display:flex;flex-direction:column;gap:11px;overflow-y:auto}
-.sl{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase}
-.sbb{background:#1a1a12;height:8px;border-radius:2px;border:1px solid #2a2418;overflow:hidden}
-.sbar{height:100%;border-radius:2px;transition:width 0.4s}
-.sv{font-size:11px;color:#777;text-align:right}
-.sh{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #2a2418;padding-top:10px}
-.sh-label{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase}
-.sh-btn{font-size:9px;color:#444;background:none;border:1px solid #2a2418;padding:2px 6px;border-radius:2px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all 0.15s}
-.sh-btn:hover{color:#d4a843;border-color:#5a4a20}
-.il{display:flex;flex-direction:column;gap:3px;max-height:80px;overflow-y:auto}
-.ii{font-size:11px;color:#a08850;background:#141410;border:1px solid #2a2418;padding:3px 7px;border-radius:2px}
-.ie{font-size:11px;color:#3a3a30;font-style:italic}
-.ll{display:flex;flex-direction:column;gap:3px;max-height:110px;overflow-y:auto}
-.li{font-size:10px;background:#141410;border:1px solid #2a2418;padding:3px 7px;border-radius:2px;line-height:1.4}
-.ln{display:block;font-size:11px}
-.lnt{display:block;color:#555;font-size:9px;margin-top:1px;font-style:italic}
-.li.settlement{border-left:2px solid #3a6b2a}.li.settlement .ln{color:#78a858}
-.li.outpost{border-left:2px solid #6a5a28}.li.outpost .ln{color:#d4a843}
-.li.raider_camp{border-left:2px solid #8b2020}.li.raider_camp .ln{color:#c87070}
-.li.ruin{border-left:2px solid #333}.li.ruin .ln{color:#777}
-.li.danger_zone{border-left:2px solid #7a4a10}.li.danger_zone .ln{color:#d4840a}
-.li.unknown{border-left:2px solid #2a2418}.li.unknown .ln{color:#555}
-.lvb{font-size:10px;color:#8a6828;text-align:center;border:1px solid #2a2418;padding:3px 4px;border-radius:2px;letter-spacing:1px}
-.xbg{background:#1a1a12;height:3px;border-radius:2px;overflow:hidden;margin-top:4px}
-.xb{height:100%;background:#5a3a10;border-radius:2px;transition:width 0.4s}
-.ma{flex:1;display:flex;flex-direction:column;min-width:0}
-.nl{flex:1;padding:14px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:9px}
-.le{border-left:2px solid #3a3520;padding:4px 11px;font-size:13px;line-height:1.65;color:#b8a872;animation:fi 0.35s}
-.le.sys{color:#666;font-size:11px;border-left-color:#222018;font-style:italic}
-.le.danger{border-left-color:#8b2020;color:#c87070}
-.le.good{border-left-color:#3a6b2a;color:#78a858}
-.oa{padding:6px 14px 4px;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
-.ob{background:#111008;border:1px solid #3a3520;color:#c8b882;padding:6px 11px;font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;text-align:left;border-radius:3px;transition:all 0.15s}
-.ob:hover{background:#1e1c10;border-color:#6a5a28;color:#e8d8a2}
-.ob:disabled{opacity:0.35;cursor:not-allowed}
-.ia{border-top:1px solid #2a2418;padding:9px 12px;display:flex;gap:8px;background:#0b0b08;flex-shrink:0}
-.ci{flex:1;background:#111008;border:1px solid #3a3520;color:#c8b882;font-family:'Share Tech Mono',monospace;font-size:13px;padding:7px 11px;border-radius:3px;outline:none}
-.ci:focus{border-color:#6a5a28}
-.ci::placeholder{color:#3a3a30}
-.ab{background:#1e1c10;border:1px solid #5a4a20;color:#d4a843;font-family:'Share Tech Mono',monospace;font-size:12px;padding:7px 16px;cursor:pointer;border-radius:3px;white-space:nowrap}
-.ab:hover:not(:disabled){background:#2a2818;border-color:#8a7030}
-.ab:disabled{opacity:0.4;cursor:not-allowed}
-.mo{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:100;animation:fi 0.2s}
-.mo.hid{display:none}
-.mb{background:#0d0d0b;border:1px solid #3a3520;border-radius:6px;padding:22px 24px;width:440px;max-width:95vw;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow-y:auto}
-.mb.perk-border{border-color:#6a5a28}
-.mb.stat-border{border-color:#3a6b2a}
-.mtt{font-family:'Special Elite',serif;color:#d4a843;font-size:15px;letter-spacing:2px}
-.mtt.green{color:#78a858}
-.md{font-size:11px;color:#666;line-height:1.6}
-.mcode{background:#080807;border:1px solid #2a2418;border-radius:3px;padding:10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:#8a7848;word-break:break-all;min-height:52px;max-height:100px;overflow-y:auto;cursor:text;white-space:pre-wrap;line-height:1.5}
-.mi{background:#111008;border:1px solid #3a3520;color:#c8b882;font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px 10px;border-radius:3px;outline:none;width:100%;resize:none;height:72px}
-.mi:focus{border-color:#6a5a28}
-.mi::placeholder{color:#3a3a30}
-.mr{display:flex;gap:8px}
-.mbtn{flex:1;padding:8px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;border-radius:3px;letter-spacing:1px;transition:all 0.15s}
-.mbtn.p{background:#1e1c10;border:1px solid #5a4a20;color:#d4a843}
-.mbtn.p:hover{background:#2a2818;border-color:#8a7030}
-.mbtn.s{background:#111008;border:1px solid #2a2418;color:#666}
-.mbtn.s:hover{border-color:#3a3520;color:#999}
-.mst{font-size:10px;min-height:14px;text-align:center}
-.mst.ok{color:#78a858}
-.mst.err{color:#c87070}
-.pchoices{display:flex;flex-direction:column;gap:8px}
-.pbtn{background:#111008;border:1px solid #3a3520;color:#c8b882;padding:10px 14px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;text-align:left;border-radius:3px;transition:all 0.15s;display:flex;flex-direction:column;gap:3px}
-.pbtn:hover{background:#1e1c10;border-color:#8a7030}
-.pn{font-size:13px;letter-spacing:1px}
-.pd{color:#666;font-size:10px;line-height:1.5}
-.pbtn.hp .pn{color:#c87070}
-.pbtn.hunger .pn{color:#d4a843}
-.pbtn.sanity .pn{color:#7878d0}
-.pbtn.utility .pn{color:#78a858}
-.pbtn.stat_hp .pn{color:#c87070}
-.pbtn.stat_hunger .pn{color:#d4a843}
-.pbtn.stat_sanity .pn{color:#7878d0}
-.vml{display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1}
-.vmi{color:#a08850;background:#141410;border:1px solid #2a2418;padding:6px 10px;border-radius:2px}
-.vmi-name{font-size:12px}
-.vmi-desc{font-size:10px;color:#555;line-height:1.5;margin-top:3px}
-.pt{font-size:10px;color:#444;cursor:pointer;padding:5px 16px;background:#0a0a08;border-top:1px solid #1a1a10;text-align:center;flex-shrink:0;user-select:none}
-.pt:hover{color:#777}
-.pb{background:#080807;border-top:1px solid #1a1a10;padding:12px 16px;font-size:10px;color:#4a4a38;line-height:1.7;max-height:130px;overflow-y:auto;display:none;font-family:'Share Tech Mono',monospace;flex-shrink:0;white-space:pre-wrap}
-@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exo-Corp: Hostile Extraction</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #e2e8f0;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --gold: #f59e0b;
+            --shield: #3b82f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            background-color: var(--panel);
+            padding: 20px;
+            border-radius: 8px;
+            border-bottom: 4px solid var(--danger);
+        }
+
+        h1, h2, h3 { margin: 0 0 10px 0; }
+
+        .panel {
+            background-color: var(--panel);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background-color: var(--bg);
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--gold);
+            margin-top: 5px;
+        }
+        
+        .defense-value { color: var(--shield); }
+        
+        /* Threat Bar */
+        .threat-container {
+            width: 100%;
+            background-color: #334155;
+            border-radius: 5px;
+            margin-top: 10px;
+            height: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #threat-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--danger);
+            transition: width 0.2s;
+        }
+
+        #threat-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            line-height: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: #334155;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        button:hover:not(:disabled) { filter: brightness(1.2); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-extract { background-color: var(--accent); justify-content: center; font-size: 16px; }
+        .btn-planet { background-color: var(--gold); color: black; justify-content: center; }
+        
+        .unit-info { text-align: left; }
+        .unit-cost { background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; }
+
+        #log-container {
+            grid-column: 1 / -1;
+            background-color: #000;
+            color: #10b981;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            border-radius: 5px;
+            border: 1px solid #334155;
+        }
+
+        .log-entry { margin-bottom: 5px; font-size: 14px; }
+        .log-combat { color: var(--danger); font-weight: bold; }
+        .log-success { color: var(--shield); }
+    </style>
 </head>
 <body>
 
-<div class="mo hid" id="apiModal">
-  <div class="mb">
-    <div class="mtt">&#9881; SYSTEM UPLINK</div>
-    <div class="md">Enter your free OpenRouter API key to connect to the game engine. Your key is saved locally in your browser and is never sent anywhere else.</div>
-    <input type="password" class="ci" id="apiKeyInput" placeholder="sk-or-v1-..." style="width:100%; margin-top:8px; margin-bottom:8px;"/>
-    <div class="mr">
-      <button class="mbtn p" onclick="saveApiKey()">[ SAVE KEY ]</button>
-      <button class="mbtn s" onclick="closeMo('apiModal')">[ CLOSE ]</button>
+    <div class="dashboard">
+        <header>
+            <h1>Exo-Corp: Hostile Extraction</h1>
+            <p>Current Target: <span id="current-planet" style="color: var(--gold); font-weight: bold;">Tartarus Prime</span></p>
+        </header>
+
+        <div class="panel">
+            <h2>Operations & Threat</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div>Corporate Funds</div>
+                    <div class="stat-value">CR <span id="credits">0</span></div>
+                </div>
+                <div class="stat-box">
+                    <div>Base Defense</div>
+                    <div class="stat-value defense-value">PWR <span id="defense-power">0</span></div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                    <span>Native Hostility Tracker</span>
+                    <span style="color: var(--danger);">Imminent Attack at 100%</span>
+                </div>
+                <div class="threat-container">
+                    <div id="threat-bar"></div>
+                    <div id="threat-text">0%</div>
+                </div>
+            </div>
+
+            <button class="btn-extract" onclick="manualExtract()">
+                Harvest Glass-Lotus (+<span id="click-power">10</span> CR)
+            </button>
+            
+            <hr style="border-color: #334155; margin: 20px 0;">
+            
+            <button class="btn-planet" id="btn-planet" onclick="buyPlanet()">
+                Acquire New Planet (Cost: <span id="cost-planet">10000</span> CR)
+            </button>
+        </div>
+
+        <div class="panel">
+            <h2>Personnel & Military</h2>
+            
+            <button id="btn-scientist" onclick="buyUnit('scientist')" style="border-left: 4px solid var(--accent);">
+                <div class="unit-info">
+                    <div>Xenochemist (<span id="count-scientist">0</span>)</div>
+                    <div style="font-size: 11px; font-weight: normal;">+5 CR/sec. Generates threat.</div>
+                </div>
+                <div class="unit-cost"><span id="cost-scientist">50</span> CR</div>
+            </button>
+
+            <button id="btn-drone" onclick="buyUnit('drone')" style="border-left: 4px solid var(--shield);">
+                <div class="unit-info">
+                    <div>Vanguard Drone (<span id="count-drone">0</span>)</div>
+                    <div style="font-size: 11px; font-weight: normal;">Light security. +10 Defense.</div>
+                </div>
+                <div class="unit-cost"><span id="cost-drone">100</span> CR</div>
+            </button>
+
+            <button id="btn-mech" onclick="buyUnit('mech')" style="border-left: 4px solid #a855f7;">
+                <div class="unit-info">
+                    <div>Aegis Mech (<span id="count-mech">0</span>)</div>
+                    <div style="font-size: 11px; font-weight: normal;">Hybrid armor. +20 CR/click, +25 Def.</div>
+                </div>
+                <div class="unit-cost"><span id="cost-mech">350</span> CR</div>
+            </button>
+            
+            <button id="btn-turret" onclick="buyUnit('turret')" style="border-left: 4px solid var(--danger);">
+                <div class="unit-info">
+                    <div>Plasma Battery (<span id="count-turret">0</span>)</div>
+                    <div style="font-size: 11px; font-weight: normal;">Heavy static defense. +100 Defense.</div>
+                </div>
+                <div class="unit-cost"><span id="cost-turret">800</span> CR</div>
+            </button>
+        </div>
+
+        <div class="panel" style="grid-column: 1 / -1; padding: 0; background: none; box-shadow: none;">
+            <h3>Mission Log</h3>
+            <div id="log-container">
+                <div class="log-entry">> Establishing uplink with Tartarus Prime...</div>
+                <div class="log-entry">> Sensors detect massive subterranean movement.</div>
+                <div class="log-entry">> Advise building defenses before heavy extraction.</div>
+            </div>
+        </div>
     </div>
-    <div class="mst" id="apiStatus"></div>
-  </div>
-</div>
 
-<div class="mo hid" id="saveModal">
-  <div class="mb">
-    <div class="mtt">&#9762; SAVE / LOAD</div>
-    <div class="md">Copy this code to preserve your run. Paste it back any time to restore.</div>
-    <div class="mcode" id="saveCodeBox"></div>
-    <div class="mr">
-      <button class="mbtn p" onclick="copyCode()">[ COPY CODE ]</button>
-      <button class="mbtn s" onclick="closeMo('saveModal')">[ CLOSE ]</button>
-    </div>
-    <div style="border-top:1px solid #2a2418;padding-top:12px;display:flex;flex-direction:column;gap:8px">
-      <div class="md">Paste a save code to restore a previous run:</div>
-      <textarea class="mi" id="loadInput" placeholder="paste save code here..."></textarea>
-      <button class="mbtn p" onclick="loadCode()">[ LOAD GAME ]</button>
-    </div>
-    <div class="mst" id="saveStatus"></div>
-  </div>
-</div>
+    <script>
+        // Game State
+        const state = {
+            credits: 0,
+            threat: 0,
+            planetsOwned: 1,
+            units: {
+                scientist: 0,
+                drone: 0,
+                mech: 0,
+                turret: 0
+            },
+            costs: {
+                scientist: 50,
+                drone: 100,
+                mech: 350,
+                turret: 800,
+                planet: 10000
+            }
+        };
 
-<div class="mo hid" id="invModal">
-  <div class="mb">
-    <div class="mtt">&#127976; INVENTORY</div>
-    <div class="vml" id="invModalList"></div>
-    <button class="mbtn s" onclick="closeMo('invModal')">[ CLOSE ]</button>
-  </div>
-</div>
+        const planets = ["Tartarus Prime", "Gliese-8b (Ice World)", "Kepler-22c (Oceanic)"];
 
-<div class="mo hid" id="perkViewModal">
-  <div class="mb">
-    <div class="mtt">&#9650; PERKS</div>
-    <div class="vml" id="perkViewList"></div>
-    <div id="statCapsDisplay" style="margin-top:4px;font-size:10px;color:#5a5a3a;font-style:italic;border-top:1px solid #2a2418;padding-top:10px;display:none"></div>
-    <button class="mbtn s" onclick="closeMo('perkViewModal')">[ CLOSE ]</button>
-  </div>
-</div>
+        // DOM Elements
+        const elCredits = document.getElementById('credits');
+        const elDefense = document.getElementById('defense-power');
+        const elClickPower = document.getElementById('click-power');
+        const threatBar = document.getElementById('threat-bar');
+        const threatText = document.getElementById('threat-text');
+        const logContainer = document.getElementById('log-container');
 
-<div class="mo hid" id="perkChoiceModal" style="z-index:200">
-  <div class="mb perk-border">
-    <div class="mtt">&#9650; LEVEL UP</div>
-    <div class="md" id="perkChoiceSub"></div>
-    <div class="pchoices" id="perkChoices"></div>
-  </div>
-</div>
+        // Functions
+        function log(message, type = 'normal') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type === 'combat' ? 'log-combat' : type === 'success' ? 'log-success' : ''}`;
+            entry.innerText = `> ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
 
-<div class="mo hid" id="statModal" style="z-index:200">
-  <div class="mb stat-border">
-    <div class="mtt green">TRANSCENDENCE</div>
-    <div class="md" id="statModalSub"></div>
-    <div class="pchoices" id="statChoices"></div>
-  </div>
-</div>
+        function getClickPower() { return 10 + (state.units.mech * 20); }
+        function getIncomeRate() { return state.units.scientist * 5; }
+        
+        function getDefensePower() {
+            return (state.units.drone * 10) + (state.units.mech * 25) + (state.units.turret * 100);
+        }
 
-<div class="gw">
-  <div class="gh">
-    <div class="gt">&#9762; Dust &amp; Darkness</div>
-    <div class="hr2">
-      <button class="smb" onclick="openApiModal()">API KEY</button>
-      <button class="smb" onclick="openSaveModal()">SAVE / LOAD</button>
-      <div class="db">Day <span id="dayNum">1</span> &mdash; <span id="timeLabel">Dawn</span></div>
-    </div>
-  </div>
-  <div class="gbod">
-    <div class="sb">
-      <div class="stat-block">
-        <div class="sl">Health</div>
-        <div class="sbb"><div class="sbar" id="hpBar" style="background:#8b2020"></div></div>
-        <div class="sv" id="hpVal">80/100</div>
-      </div>
-      <div class="stat-block">
-        <div class="sl">Hunger</div>
-        <div class="sbb"><div class="sbar" id="hunBar" style="background:#8b5a10"></div></div>
-        <div class="sv" id="hunVal">70/100</div>
-      </div>
-      <div class="stat-block">
-        <div class="sl">Sanity</div>
-        <div class="sbb"><div class="sbar" id="sanBar" style="background:#3a3a8b"></div></div>
-        <div class="sv" id="sanVal">60/100</div>
-      </div>
-      <div>
-        <div class="lvb" id="lvlBadge">LEVEL 1 — SURVIVOR</div>
-        <div class="xbg"><div class="xb" id="xpBar"></div></div>
-      </div>
-      <div class="sh">
-        <div class="sh-label">Inventory</div>
-        <button class="sh-btn" onclick="openInvModal()">&#9776;</button>
-      </div>
-      <div class="il" id="invList"><div class="ie">empty pockets</div></div>
-      <div class="sh">
-        <div class="sh-label">Perks</div>
-        <button class="sh-btn" onclick="openPerkViewModal()">&#9776;</button>
-      </div>
-      <div class="il" id="perkMini"><div class="ie">none yet</div></div>
-      <div class="sh"><div class="sh-label">Locations</div></div>
-      <div class="ll" id="locList"><div class="ie">none mapped</div></div>
-    </div>
-    <div class="ma">
-      <div class="nl" id="log"></div>
-      <div class="oa" id="optArea"></div>
-      <div class="ia">
-        <input class="ci" id="cmdInput" placeholder="what do you do..." maxlength="120"/>
-        <button class="ab" id="sendBtn" onclick="sendAction()">ACT &#8594;</button>
-      </div>
-    </div>
-  </div>
-  <div class="pt" onclick="togglePrompt()">[ view ai system prompt ]</div>
-  <div class="pb" id="promptBox"></div>
-</div>
+        function updateUI() {
+            elCredits.innerText = Math.floor(state.credits);
+            elDefense.innerText = getDefensePower();
+            elClickPower.innerText = getClickPower();
+            
+            threatBar.style.width = `${Math.min(state.threat, 100)}%`;
+            threatText.innerText = `${Math.floor(state.threat)}%`;
 
-<script>
-// Load API key from local browser storage
-let OPENROUTER_API_KEY = localStorage.getItem('dd_api_key') || "";
+            // Update Unit Counts & Costs
+            for (const unit in state.units) {
+                document.getElementById(`count-${unit}`).innerText = state.units[unit];
+                document.getElementById(`cost-${unit}`).innerText = state.costs[unit];
+                document.getElementById(`btn-${unit}`).disabled = state.credits < state.costs[unit];
+            }
 
-const FREE_MODEL = "google/gemma-2-9b-it:free"; 
+            // Planet Logic
+            const btnPlanet = document.getElementById('btn-planet');
+            document.getElementById('cost-planet').innerText = state.costs.planet;
+            if (state.planetsOwned >= planets.length) {
+                btnPlanet.innerText = "Galactic Monopoly Achieved!";
+                btnPlanet.disabled = true;
+            } else {
+                btnPlanet.disabled = state.credits < state.costs.planet;
+            }
+        }
 
-const SP = `You are the narrator of DUST & DARKNESS — a brutal post-apocalyptic survival RPG fusing Fallout's wasteland with Don't Starve's unforgiving mechanics. Nuclear war ended 40 years ago. Mutant creatures stalk irradiated ruins. Night brings shadow beasts.
+        function manualExtract() {
+            state.credits += getClickPower();
+            state.threat += 0.5; // Manual extraction generates a little threat
+            updateUI();
+        }
 
-STATS: hp (0-100+), hunger (0-100+), sanity (0-100+). Hunger below 20 drains hp. Sanity below 20 causes hallucinations. Night raises danger.
+        function buyUnit(unitType) {
+            if (state.credits >= state.costs[unitType]) {
+                state.credits -= state.costs[unitType];
+                state.units[unitType]++;
+                state.costs[unitType] = Math.floor(state.costs[unitType] * 1.6);
+                
+                if(unitType === 'scientist') log("Xenochemist deployed. Automation increased.");
+                if(unitType === 'drone') log("Vanguard Drone online. Perimeter secured.");
+                if(unitType === 'mech') log("Aegis Mech dropped. Extraction efficiency and armor up.");
+                if(unitType === 'turret') log("Plasma Battery constructed. Heavy defense active.");
+                
+                updateUI();
+            }
+        }
 
-TONE: Dark, literary, brutal. Short vivid sentences. No warmth.
+        function buyPlanet() {
+            if (state.credits >= state.costs.planet && state.planetsOwned < planets.length) {
+                state.credits -= state.costs.planet;
+                state.planetsOwned++;
+                state.threat = 0; // Reset threat on new planet
+                
+                const newPlanet = planets[state.planetsOwned - 1];
+                document.getElementById('current-planet').innerText = newPlanet;
+                log(`SUCCESS: Jumped to ${newPlanet}. New native threats detected.`, 'success');
+                updateUI();
+            }
+        }
 
-Respond ONLY with valid JSON (no markdown, no extra text):
-{
-  "narrative": "2-4 tense sentences describing what happens",
-  "hpChange": <int -25 to +15>,
-  "hungerChange": <int -20 to +8>,
-  "sanityChange": <int -15 to +10>,
-  "itemGained": <"item name" or null>,
-  "itemsConsumed": <["exact inventory name",...] or []>,
-  "xpGain": <int 0-30>,
-  "locationDiscovered": <{"name":"...","type":"settlement|outpost|raider_camp|ruin|danger_zone|unknown","notes":"one grim phrase"} or null>,
-  "locationUpdated": <{"name":"exact existing name","type":"...","notes":"..."} or null>,
-  "options": ["option 1","option 2","option 3"]
-}
+        function triggerCombat() {
+            log("ALERT: NATIVE SWARM DETECTED! INITIATING COMBAT PROTOCOLS...", "combat");
+            
+            // Enemy strength scales with planets owned and a random factor
+            const baseEnemyStrength = 50 + (state.planetsOwned * 100);
+            const enemyStrength = baseEnemyStrength + Math.floor(Math.random() * 100);
+            const ourDefense = getDefensePower();
+            
+            log(`Swarm Strength: ${enemyStrength} | Base Defense: ${ourDefense}`);
 
-Rules: Be brutal but fair. Reward smart survival. Punish recklessness. Items are scarce. Danger escalates at night. ITEM TRACKING CRITICAL: list exact inventory names in itemsConsumed when used/eaten/lost. Only consume items currently in inventory. Discover locations when player meaningfully explores new places. Do not repeat known locations.`;
+            if (ourDefense >= enemyStrength) {
+                // Victory
+                const bounty = Math.floor(enemyStrength * 2);
+                state.credits += bounty;
+                log(`DEFENSE SUCCESSFUL. Swarm repelled. Bounty collected: +${bounty} CR.`, "success");
+            } else {
+                // Defeat - Penalties applied
+                const damage = enemyStrength - ourDefense;
+                const creditLoss = Math.floor(state.credits * 0.3); // Lose 30% of funds
+                state.credits -= creditLoss;
+                
+                log(`DEFENSE FAILED. Perimeter breached! Lost ${creditLoss} CR in damages.`, "combat");
+                
+                // Lose a random unit if damage is high enough
+                if (damage > 50 && state.units.drone > 0) {
+                    state.units.drone--;
+                    log("Casualty Report: 1 Vanguard Drone destroyed.", "combat");
+                } else if (damage > 100 && state.units.scientist > 0) {
+                    state.units.scientist--;
+                    log("Casualty Report: 1 Xenochemist killed in action.", "combat");
+                }
+            }
+            
+            // Reset threat after attack
+            state.threat = 0; 
+            updateUI();
+        }
 
-document.getElementById('promptBox').textContent = SP;
+        // Game Loop (runs every 1 second)
+        setInterval(() => {
+            // Add passive income
+            state.credits += getIncomeRate();
+            
+            // Scientists generate passive threat due to noise/machinery
+            if (state.units.scientist > 0) {
+                state.threat += (0.5 + (state.units.scientist * 0.2));
+            }
 
-const PERKS = {
-  tough_skin:  { name:"Tough Skin",      cat:"hp",     desc:"All HP damage reduced by 4. Scar tissue is your armour." },
-  grit:        { name:"Survivor's Grit",  cat:"hp",     desc:"Max HP +15, restored immediately. You refuse to break." },
-  field_medic: { name:"Field Medic",      cat:"hp",     desc:"Eating or drinking also heals +8 HP." },
-  iron_gut:    { name:"Iron Gut",         cat:"hunger", desc:"Hunger drains 30% slower." },
-  scavenger:   { name:"Scavenger's Eye",  cat:"hunger", desc:"Greatly increases chance of finding items." },
-  iron_mind:   { name:"Iron Mind",        cat:"sanity", desc:"Sanity drains 30% slower." },
-  night_eyes:  { name:"Night Eyes",       cat:"sanity", desc:"Sanity damage at night is halved." },
-  hoarder:     { name:"Hoarder",          cat:"utility",desc:"Gain sanity on item pickup: +1 at 3 items, +2 at 7, +3 at 12, +4 at 18... Possessions anchor the self." },
-};
-const ALL_PERK_IDS = Object.keys(PERKS);
-const LT = ['Survivor','Drifter','Scavenger','Raider','Warlord','Ghost'];
-const XPL = 100;
+            // Check for combat trigger
+            if (state.threat >= 100) {
+                state.threat = 100;
+                updateUI();
+                triggerCombat();
+            } else {
+                updateUI();
+            }
+        }, 1000);
 
-let state = {
-  hp:80, hunger:70, sanity:60,
-  day:1, hour:6, isNight:false,
-  inventory:[], level:1, xp:0,
-  busy:false, locations:[], perks:[],
-  perkDrawsOwed:0, statPoints:0,
-  statCaps:{hp:100, hunger:100, sanity:100},
-  history:[]
-};
-
-function fx() {
-  const p = state.perks || [];
-  return {
-    hungerMult: p.includes('iron_gut')   ? 0.7 : 1,
-    sanityMult: p.includes('iron_mind')  ? 0.7 : 1,
-    dmgReduce:  p.includes('tough_skin') ? 4   : 0,
-    maxHp:      state.statCaps.hp,
-    maxHunger:  state.statCaps.hunger,
-    maxSanity:  state.statCaps.sanity,
-    nightEyes:  p.includes('night_eyes'),
-    fieldMedic: p.includes('field_medic'),
-    hoarder:    p.includes('hoarder'),
-    scavenger:  p.includes('scavenger'),
-  };
-}
-
-function hoarderTier(count) {
-  if (count < 3) return 0;
-  let thresh = 3, tier = 1, gap = 4;
-  while (count >= thresh + gap) { thresh += gap; gap++; tier++; }
-  return tier;
-}
-
-function allPerksOwned() {
-  return ALL_PERK_IDS.every(id => (state.perks||[]).includes(id));
-}
-
-function catColor(cat) {
-  return {hp:'#c87070',hunger:'#d4a843',sanity:'#7878d0',utility:'#78a858'}[cat]||'#a08850';
-}
-
-// ── API settings UI ──────────────────────────────────────────────
-function openApiModal() {
-  document.getElementById('apiKeyInput').value = OPENROUTER_API_KEY;
-  document.getElementById('apiStatus').textContent = '';
-  document.getElementById('apiModal').classList.remove('hid');
-}
-
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (key) {
-    OPENROUTER_API_KEY = key;
-    localStorage.setItem('dd_api_key', key);
-    document.getElementById('apiStatus').textContent = 'Key saved to local storage.';
-    document.getElementById('apiStatus').className = 'mst ok';
-    setTimeout(() => closeMo('apiModal'), 1000);
-  } else {
-    document.getElementById('apiStatus').textContent = 'Please enter a valid key.';
-    document.getElementById('apiStatus').className = 'mst err';
-  }
-}
-
-// ── API ──────────────────────────────────────────────────────────
-async function callFreeAPI(msgs, tok) {
-  if (!OPENROUTER_API_KEY) {
-    openApiModal();
-    throw new Error("Missing API Key! Please enter your key to continue.");
-  }
-
-  const fullMessages = [{ role: "system", content: SP }, ...msgs];
-
-  let res;
-  try {
-    res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": window.location.href, 
-        "X-Title": "Dust and Darkness RPG"
-      },
-      body: JSON.stringify({
-        model: FREE_MODEL,
-        messages: fullMessages,
-        max_tokens: tok
-      })
-    });
-  } catch(e) { throw new Error('Network Error: ' + e.message); }
-  
-  let data;
-  try { data = await res.json(); } catch(e) { throw new Error('Failed to read server response'); }
-  
-  if (!res.ok) {
-    // If we hit an authorization error, wipe the bad key
-    if (res.status === 401) {
-        OPENROUTER_API_KEY = "";
-        localStorage.removeItem('dd_api_key');
-        openApiModal();
-    }
-    throw new Error(data.error?.message || 'HTTP ' + res.status);
-  }
-  
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error('Empty response from AI engine');
-  
-  return content.replace(/```json|```/g,'').trim();
-}
-
-// ── Save / Load / Auto-Cache ─────────────────────────────────────
-function genCode() {
-  const snap = { hp:state.hp, hunger:state.hunger, sanity:state.sanity, day:state.day, hour:state.hour, inventory:state.inventory, level:state.level, xp:state.xp, locations:state.locations, perks:state.perks||[], statCaps:state.statCaps, statPoints:state.statPoints||0, history:state.history };
-  return btoa(unescape(encodeURIComponent(JSON.stringify(snap))));
-}
-function applyCode(c) {
-  const j = JSON.parse(decodeURIComponent(escape(atob(c.trim()))));
-  state.hp=j.hp??80; state.hunger=j.hunger??70; state.sanity=j.sanity??60;
-  state.day=j.day??1; state.hour=j.hour??6;
-  state.inventory=Array.isArray(j.inventory)?j.inventory:[];
-  state.level=j.level??1; state.xp=j.xp??0;
-  state.locations=Array.isArray(j.locations)?j.locations:[];
-  state.perks=Array.isArray(j.perks)?j.perks:[];
-  state.statCaps=j.statCaps||{hp:100,hunger:100,sanity:100};
-  state.statPoints=j.statPoints||0;
-  state.history=Array.isArray(j.history)?j.history:[];
-  state.perkDrawsOwed=0; 
-}
-function autoSave() {
-  if (state.hp > 0) {
-    localStorage.setItem('dd_save_cache', genCode());
-  } else {
-    localStorage.removeItem('dd_save_cache'); // Wipe cache on death
-  }
-}
-function openSaveModal() {
-  document.getElementById('saveCodeBox').textContent = genCode();
-  document.getElementById('loadInput').value = '';
-  document.getElementById('saveStatus').textContent = '';
-  document.getElementById('saveStatus').className = 'mst';
-  document.getElementById('saveModal').classList.remove('hid');
-}
-function closeMo(id) { document.getElementById(id).classList.add('hid'); }
-function copyCode() {
-  navigator.clipboard.writeText(document.getElementById('saveCodeBox').textContent)
-    .then(() => setSt('Copied to clipboard.','ok'))
-    .catch(() => setSt('Select and copy the code manually.','err'));
-}
-function setSt(m,t) { const el=document.getElementById('saveStatus'); el.textContent=m; el.className='mst '+(t||''); }
-function loadCode() {
-  const raw = document.getElementById('loadInput').value.trim();
-  if (!raw) { setSt('Paste a save code first.','err'); return; }
-  try {
-    applyCode(raw); updateUI();
-    document.getElementById('log').innerHTML = '';
-    addLog('Save restored. The wasteland remembers you.','good');
-    setOptions(['Look around','Search for food','Check surroundings']);
-    setSt('Game loaded.','ok');
-    setTimeout(() => { closeMo('saveModal'); checkCatchUp(); }, 900);
-  } catch(e) { setSt('Invalid save code.','err'); }
-}
-document.getElementById('saveModal').addEventListener('click', function(e){ if(e.target===this) closeMo('saveModal'); });
-document.getElementById('apiModal').addEventListener('click', function(e){ if(e.target===this) closeMo('apiModal'); });
-document.getElementById('invModal').addEventListener('click', function(e){ if(e.target===this) closeMo('invModal'); });
-document.getElementById('perkViewModal').addEventListener('click', function(e){ if(e.target===this) closeMo('perkViewModal'); });
-
-// ── Inventory / Perk view modals ─────────────────────────────────
-function openInvModal() {
-  const el = document.getElementById('invModalList');
-  el.innerHTML = state.inventory.length === 0
-    ? '<div class="ie" style="padding:6px 0">Your pockets are empty.</div>'
-    : state.inventory.map(i => `<div class="vmi"><div class="vmi-name">&#8226; ${i}</div></div>`).join('');
-  document.getElementById('invModal').classList.remove('hid');
-}
-function openPerkViewModal() {
-  const owned = state.perks || [];
-  const el = document.getElementById('perkViewList');
-  el.innerHTML = owned.length === 0
-    ? '<div class="ie" style="padding:6px 0">No perks acquired yet.</div>'
-    : owned.map(id => { const pk=PERKS[id]; return pk ? `<div class="vmi"><div class="vmi-name" style="color:${catColor(pk.cat)}">${pk.name}</div><div class="vmi-desc">${pk.desc}</div></div>` : ''; }).join('');
-  const caps = state.statCaps;
-  const capEl = document.getElementById('statCapsDisplay');
-  const lines = [];
-  if (caps.hp > 100) lines.push('Max HP: ' + caps.hp);
-  if (caps.hunger > 100) lines.push('Max Hunger: ' + caps.hunger);
-  if (caps.sanity > 100) lines.push('Max Sanity: ' + caps.sanity);
-  if (lines.length) { capEl.textContent = 'Enhanced caps — ' + lines.join(', '); capEl.style.display = 'block'; }
-  else { capEl.style.display = 'none'; }
-  document.getElementById('perkViewModal').classList.remove('hid');
-}
-
-// ── Level-up: Perk choice ────────────────────────────────────────
-function openPerkChoiceModal(level) {
-  const owned = state.perks || [];
-  const avail = ALL_PERK_IDS.filter(id => !owned.includes(id));
-  const picks = avail.sort(() => Math.random()-0.5).slice(0,3);
-  const owed = state.perkDrawsOwed || 0;
-  document.getElementById('perkChoiceSub').textContent =
-    'Level ' + level + ' — ' + LT[Math.min(level-1, LT.length-1)] + '. The wasteland has made you harder. Choose one adaptation.' + (owed > 1 ? ' (' + owed + ' draws remaining)' : '');
-  const cont = document.getElementById('perkChoices');
-  cont.innerHTML = '';
-  if (picks.length === 0) { document.getElementById('perkChoiceModal').classList.add('hid'); return; }
-  picks.forEach(id => {
-    const pk = PERKS[id];
-    const btn = document.createElement('button');
-    btn.className = 'pbtn ' + pk.cat;
-    btn.innerHTML = '<span class="pn">' + pk.name + '</span><span class="pd">' + pk.desc + '</span>';
-    btn.onclick = () => selectPerk(id);
-    cont.appendChild(btn);
-  });
-  document.getElementById('perkChoiceModal').classList.remove('hid');
-}
-function selectPerk(id) {
-  const pk = PERKS[id]; if (!pk) return;
-  state.perks = state.perks || [];
-  state.perks.push(id);
-  if (id === 'grit') { state.statCaps.hp += 15; state.hp = Math.min(state.statCaps.hp, state.hp + 15); }
-  addLog('PERK: ' + pk.name + ' — ' + pk.desc, 'good');
-  closeMo('perkChoiceModal');
-  state.perkDrawsOwed = Math.max(0, (state.perkDrawsOwed||1) - 1);
-  updateUI();
-  if (state.perkDrawsOwed > 0) setTimeout(() => openPerkChoiceModal(state.level), 350);
-}
-
-// ── Level-up: Stat cap buff ──────────────────────────────────────
-function openStatModal() {
-  const pts = state.statPoints || 0;
-  document.getElementById('statModalSub').textContent =
-    'Level ' + state.level + ' — All adaptations mastered. Choose a permanent stat cap increase.' + (pts > 1 ? ' (' + pts + ' points remaining)' : '');
-  const cont = document.getElementById('statChoices');
-  cont.innerHTML = '';
-  [
-    { stat:'hp',     label:'Resilient Body',      desc:'Max HP +10. The flesh grows harder to kill.',      cat:'stat_hp' },
-    { stat:'hunger', label:'Cast Iron Stomach',   desc:'Max Hunger cap +10. Starvation retreats further.', cat:'stat_hunger' },
-    { stat:'sanity', label:'Fortified Mind',       desc:'Max Sanity cap +10. The darkness has less hold.',  cat:'stat_sanity' },
-  ].forEach(o => {
-    const btn = document.createElement('button');
-    btn.className = 'pbtn ' + o.cat;
-    btn.innerHTML = '<span class="pn">' + o.label + '</span><span class="pd">' + o.desc + ' (cap becomes ' + (state.statCaps[o.stat]+10) + ')</span>';
-    btn.onclick = () => selectStat(o.stat);
-    cont.appendChild(btn);
-  });
-  document.getElementById('statModal').classList.remove('hid');
-}
-function selectStat(stat) {
-  state.statCaps[stat] += 10;
-  addLog('Limit broken — ' + stat + ' cap raised to ' + state.statCaps[stat], 'good');
-  closeMo('statModal');
-  state.statPoints = Math.max(0, (state.statPoints||1) - 1);
-  updateUI();
-  if (state.statPoints > 0) setTimeout(() => openStatModal(), 350);
-}
-
-function levelUp() {
-  state.level++;
-  addLog('LEVEL UP \u2192 Level ' + state.level + ' \u2014 ' + LT[Math.min(state.level-1, LT.length-1)], 'good');
-  if (allPerksOwned()) {
-    state.statPoints = (state.statPoints||0) + 1;
-    setTimeout(() => openStatModal(), 400);
-  } else {
-    state.perkDrawsOwed = (state.perkDrawsOwed||0) + 1;
-    setTimeout(() => openPerkChoiceModal(state.level), 400);
-  }
-}
-
-function checkCatchUp() {
-  const drawsEarned = Math.max(0, state.level - 1);
-  const perksOwned = (state.perks||[]).length;
-  const maxPerks = ALL_PERK_IDS.length;
-  const perkOwed = Math.max(0, Math.min(maxPerks, drawsEarned) - perksOwned);
-  if (perkOwed > 0 && !allPerksOwned()) {
-    state.perkDrawsOwed = perkOwed;
-    setTimeout(() => openPerkChoiceModal(state.level), 600);
-  } else if (state.statPoints > 0) {
-    setTimeout(() => openStatModal(), 600);
-  }
-}
-
-// ── UI ───────────────────────────────────────────────────────────
-function updateUI() {
-  const f = fx();
-  document.getElementById('hpBar').style.width = Math.min(100, Math.max(0, state.hp/f.maxHp*100)) + '%';
-  document.getElementById('hpBar').style.background = state.hp > f.maxHp*0.4 ? '#8b2020' : '#dd3030';
-  document.getElementById('hpVal').textContent = Math.max(0,Math.round(state.hp)) + '/' + f.maxHp;
-  document.getElementById('hunBar').style.width = Math.min(100, Math.max(0, state.hunger/f.maxHunger*100)) + '%';
-  document.getElementById('hunBar').style.background = state.hunger > 30 ? '#8b5a10' : '#d4840a';
-  document.getElementById('hunVal').textContent = Math.max(0,Math.round(state.hunger)) + '/' + f.maxHunger;
-  document.getElementById('sanBar').style.width = Math.min(100, Math.max(0, state.sanity/f.maxSanity*100)) + '%';
-  document.getElementById('sanBar').style.background = state.sanity > 30 ? '#3a3a8b' : '#7070d0';
-  document.getElementById('sanVal').textContent = Math.max(0,Math.round(state.sanity)) + '/' + f.maxSanity;
-  document.getElementById('dayNum').textContent = state.day;
-  const h = state.hour;
-  document.getElementById('timeLabel').textContent = h<6?'Night':h<12?'Morning':h<17?'Afternoon':h<20?'Dusk':'Night';
-  state.isNight = h >= 20 || h < 6;
-  document.getElementById('xpBar').style.width = ((state.xp%(state.level*XPL))/(state.level*XPL)*100) + '%';
-  document.getElementById('lvlBadge').textContent = 'LEVEL ' + state.level + ' \u2014 ' + LT[Math.min(state.level-1, LT.length-1)];
-  const owned = state.perks || [];
-  document.getElementById('perkMini').innerHTML = owned.length === 0
-    ? '<div class="ie">none yet</div>'
-    : owned.slice(0,3).map(id => { const pk=PERKS[id]; return pk ? '<div class="ii" style="color:'+catColor(pk.cat)+'">\u2022 '+pk.name+'</div>' : ''; }).join('') + (owned.length > 3 ? '<div class="ie">+' + (owned.length-3) + ' more</div>' : '');
-  document.getElementById('invList').innerHTML = state.inventory.length === 0
-    ? '<div class="ie">empty pockets</div>'
-    : state.inventory.slice(0,4).map(i => '<div class="ii">\u2022 ' + i + '</div>').join('') + (state.inventory.length > 4 ? '<div class="ie">+' + (state.inventory.length-4) + ' more</div>' : '');
-  const LOC = {settlement:'&#8962;',outpost:'&#9873;',raider_camp:'&#9760;',ruin:'&#9747;',danger_zone:'&#9762;',unknown:'?'};
-  document.getElementById('locList').innerHTML = state.locations.length === 0
-    ? '<div class="ie">none mapped</div>'
-    : state.locations.map(l => `<div class="li ${l.type||'unknown'}"><span class="ln">${LOC[l.type]||'?'} ${l.name}</span>${l.notes?'<span class="lnt">'+l.notes+'</span>':''}</div>`).join('');
-    
-  autoSave(); // Save state to local browser cache whenever UI updates
-}
-
-function addLog(text, type) {
-  const log = document.getElementById('log');
-  const div = document.createElement('div');
-  div.className = 'log-entry le' + (type ? ' ' + type : '');
-  div.textContent = text;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-}
-function setOptions(opts) {
-  const area = document.getElementById('optArea'); area.innerHTML = '';
-  (opts||[]).forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'ob'; btn.textContent = '\u25B8 ' + opt; btn.disabled = state.busy;
-    btn.onclick = () => { document.getElementById('cmdInput').value = opt; sendAction(); };
-    area.appendChild(btn);
-  });
-}
-function setBusy(v) {
-  state.busy = v;
-  document.getElementById('sendBtn').disabled = v;
-  document.getElementById('cmdInput').disabled = v;
-  document.getElementById('sendBtn').textContent = v ? '...' : 'ACT \u2192';
-  document.querySelectorAll('.ob').forEach(b => b.disabled = v);
-}
-function removeConsumed(list) {
-  if (!Array.isArray(list)) return;
-  for (const n of list) {
-    const i = state.inventory.findIndex(x => x.toLowerCase() === n.toLowerCase());
-    if (i !== -1) { state.inventory.splice(i, 1); addLog('\u2212 Used: ' + n, 'sys'); }
-  }
-}
-
-// ── Main action ──────────────────────────────────────────────────
-async function sendAction() {
-  if (!OPENROUTER_API_KEY) {
-    openApiModal();
-    return;
-  }
-  const input = document.getElementById('cmdInput');
-  const action = input.value.trim();
-  if (!action || state.busy) return;
-  if (state.hp <= 0) { addLog('You are dead. Refresh to begin again.', 'danger'); return; }
-  input.value = ''; setBusy(true);
-  addLog('> ' + action, 'sys');
-  state.hour = (state.hour + 2) % 24;
-  if (state.hour === 0) { state.day++; addLog('Day ' + state.day + ' dawns. The wasteland does not rest.', 'sys'); }
-  if (state.hour === 20) addLog('Night falls. The shadow beasts stir.', 'danger');
-  const f = fx();
-  const scavHint = f.scavenger ? '\nPERK ACTIVE — Scavenger\'s Eye: strongly prefer setting itemGained this turn.' : '';
-  const userMsg = { role:'user', content:`HP=${Math.round(state.hp)}, Hunger=${Math.round(state.hunger)}, Sanity=${Math.round(state.sanity)}, Day=${state.day}, Time=${state.isNight?'Night':'Day'}, Inventory=[${state.inventory.join(', ')||'nothing'}], Level=${state.level}, KnownLocations=[${state.locations.map(l=>l.name).join(', ')||'none'}]\nAction: "${action}"${scavHint}` };
-  try {
-    let raw, p;
-    try {
-      const msgs = [...state.history, userMsg];
-      raw = await callFreeAPI(msgs, 550);
-      
-      // Parse robustly to ignore filler text from free AI models
-      let firstBrace = raw.indexOf('{');
-      let lastBrace = raw.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        let cleanJson = raw.substring(firstBrace, lastBrace + 1);
-        p = JSON.parse(cleanJson);
-      } else {
-        throw new Error("No valid JSON found in response");
-      }
-    } catch(e) { p = null; if (e.message.includes('API') || e.message.includes('Network') || e.message.includes('Missing')) throw e; }
-    
-    if (!p) p = {narrative:'The wasteland offers no answer.',hpChange:0,hungerChange:-3,sanityChange:-2,xpGain:2,itemsConsumed:[],options:['Look around','Search for food','Rest']};
-    
-    state.history.push(userMsg);
-    state.history.push({role:'assistant', content: JSON.stringify(p)});
-    if (state.history.length > 4) state.history = state.history.slice(-4);
-    
-    let hpD = p.hpChange||0, hunD = p.hungerChange||0, sanD = p.sanityChange||0;
-    if (hpD < 0) hpD = Math.min(0, hpD + f.dmgReduce);
-    if (hunD < 0) hunD = Math.round(hunD * f.hungerMult);
-    if (sanD < 0) { if (state.isNight && f.nightEyes) sanD = Math.round(sanD * 0.5); sanD = Math.round(sanD * f.sanityMult); }
-    state.hp     = Math.min(f.maxHp,     Math.max(0, state.hp     + hpD));
-    state.hunger = Math.min(f.maxHunger, Math.max(0, state.hunger + hunD));
-    state.sanity = Math.min(f.maxSanity, Math.max(0, state.sanity + sanD));
-    state.xp += (p.xpGain || 5);
-    while (state.xp >= state.level * XPL) levelUp();
-    if (state.hunger < 20 && state.hp > 0) { state.hp = Math.max(0, state.hp - 5); addLog('Starvation gnaws. Your vision dims.', 'danger'); }
-    if (state.sanity < 20) addLog('The shadows whisper your name. None of it is real. Probably.', 'danger');
-    removeConsumed(p.itemsConsumed);
-    if (p.itemGained) {
-      state.inventory.push(p.itemGained);
-      addLog('+ Found: ' + p.itemGained, 'good');
-      if (f.hoarder) { const tier = hoarderTier(state.inventory.length); if (tier > 0) { state.sanity = Math.min(f.maxSanity, state.sanity + tier); addLog('The hoard steadies you. (+' + tier + ' sanity)', 'good'); } }
-    }
-    if (hunD > 0 && f.fieldMedic) { state.hp = Math.min(f.maxHp, state.hp + 8); addLog('Nourishment repairs the flesh. (+8 HP)', 'good'); }
-    if (p.locationUpdated?.name) {
-      const ex = state.locations.find(l => l.name.toLowerCase() === p.locationUpdated.name.toLowerCase());
-      if (ex) { const old = ex.type; ex.type = p.locationUpdated.type||ex.type; ex.notes = p.locationUpdated.notes||ex.notes; if (old !== ex.type) addLog('\u25CE ' + ex.name + ' reclassified: ' + ex.type.replace('_',' '), 'good'); }
-    }
-    if (p.locationDiscovered?.name) {
-      const loc = p.locationDiscovered;
-      if (!state.locations.some(l => l.name.toLowerCase() === loc.name.toLowerCase())) {
-        state.locations.push(loc);
-        addLog('\u25CE Mapped: ' + loc.name + ' [' + (loc.type||'unknown').replace('_',' ') + ']', 'good');
-      }
-    }
-    addLog(p.narrative || 'Nothing happens.', hpD < -10 ? 'danger' : (hpD > 0 || hunD > 0) ? 'good' : '');
-    if (state.hp <= 0) { addLog('YOU ARE DEAD. The wasteland claims another soul.', 'danger'); document.getElementById('optArea').innerHTML = ''; }
-    else setOptions(p.options || ['Look around','Search for food','Rest here']);
-    updateUI();
-  } catch(err) { addLog('System Error: ' + (err.message||'unknown'), 'sys'); }
-  setBusy(false);
-}
-
-document.getElementById('cmdInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendAction(); });
-function togglePrompt() { const pb = document.getElementById('promptBox'); pb.style.display = pb.style.display === 'block' ? 'none' : 'block'; }
-
-async function startGame() {
-  setBusy(true);
-  
-  if (!OPENROUTER_API_KEY) {
-    addLog('Awaiting System Uplink. Please enter your OpenRouter API Key.', 'sys');
-    setOptions(['Connect API Key']);
-    setBusy(false);
-    openApiModal();
-    return;
-  }
-
-  const cachedSave = localStorage.getItem('dd_save_cache');
-  if (cachedSave) {
-    try {
-      applyCode(cachedSave);
-      updateUI();
-      addLog('Save restored from local memory. The wasteland waits.', 'sys');
-      
-      let lastOptions = ['Look around','Search for food','Check inventory'];
-      if (state.history.length > 0) {
-        try {
-          const lastResponse = JSON.parse(state.history[state.history.length - 1].content);
-          if (lastResponse.options) lastOptions = lastResponse.options;
-          addLog(lastResponse.narrative || 'You gather your bearings.', '');
-        } catch(e) {}
-      }
-      setOptions(lastOptions);
-      setBusy(false);
-      return;
-    } catch (e) {
-      console.warn("Could not parse cached save.", e);
-      localStorage.removeItem('dd_save_cache');
-    }
-  }
-
-  try {
-    const im = {role:'user', content:'Start the game. The player wakes at dawn in the wasteland, injured and hungry. HP=80, Hunger=70, Sanity=60. Set the scene vividly.'};
-    const raw = await callFreeAPI([im], 400);
-    
-    let p; 
-    try { 
-      let first = raw.indexOf('{'); let last = raw.lastIndexOf('}');
-      p = JSON.parse(raw.substring(first, last + 1)); 
-    } catch(e) { 
-      p = {narrative:'You wake in the ash. The sky is the colour of old blood. Something moved in the ruins to the west, and it was not the wind.',options:['Search the ruins to the west','Scavenge for food','Tend to your wounds']}; 
-    }
-    
-    state.history.push(im); state.history.push({role:'assistant', content: JSON.stringify(p)});
-    addLog(p.narrative, '');
-    setOptions(p.options || ['Search the ruins','Scavenge for food','Rest']);
-    updateUI();
-  } catch(e) {
-    addLog('Initialization Failed. ' + e.message, 'danger');
-    setOptions(['Retry']);
-  }
-  setBusy(false);
-}
-
-// Special override for the first connect button
-document.getElementById('optArea').addEventListener('click', function(e) {
-    if (e.target.tagName === 'BUTTON' && e.target.textContent.includes('Connect API Key')) {
-        openApiModal();
-    } else if (e.target.tagName === 'BUTTON' && e.target.textContent.includes('Retry')) {
-        startGame();
-    }
-});
-
-updateUI(); startGame();
-</script>
+        // Initial setup
+        updateUI();
+    </script>
 </body>
 </html>
+
