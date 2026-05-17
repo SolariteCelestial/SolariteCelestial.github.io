@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exo-Corp: RTS Command V8</title>
+    <title>Exo-Corp: RTS Command V9</title>
     <style>
         :root {
             --bg: #090e17;
@@ -88,6 +88,7 @@
         .unit-cost { background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px; font-size: 12px; display: flex; gap: 5px; align-items: center;}
         .supply-tag { color: #facc15; font-size: 10px; }
         .eco-tag { color: var(--eco); font-size: 10px; }
+        .cooldown-text { color: #facc15; margin-left: 5px; font-weight: bold;}
 
         #log-container {
             grid-column: 1 / -1; background-color: #050505; color: #10b981;
@@ -100,6 +101,7 @@
         .log-success { color: var(--shield); }
         .log-tech { color: var(--tech); }
         .log-warn { color: #facc15; }
+        .log-tactical { color: var(--tactical); }
 
         .toggle-container {
             display: flex; justify-content: space-between; margin-bottom: 10px;
@@ -177,10 +179,10 @@
                 <div class="unit-cost"><span id="cost-supply">200</span> CR</div>
             </button>
 
-            <button onclick="useRepeller()" style="background-color: var(--tactical);">
+            <button id="btn-repel" onclick="useRepeller()" style="background-color: var(--tactical);">
                 <div class="unit-info">
-                    <div>Sonic Repeller</div>
-                    <div style="font-size: 10px; font-weight: normal;">Reduces Threat Bar by 25%</div>
+                    <div>Sonic Repeller <span id="repel-cd" class="cooldown-text"></span></div>
+                    <div style="font-size: 10px; font-weight: normal;">-25% Threat. Cost multiplies by 1.5x.</div>
                 </div>
                 <div class="unit-cost"><span id="cost-repel">300</span> CR</div>
             </button>
@@ -309,7 +311,13 @@
         // RTS State
         const state = {
             credits: 150, threat: 0, waveLevel: 1, hp: 1000, maxHp: 1000,
-            supply: 0, maxSupply: 20, logisticsCost: 200, repelCost: 300,
+            supply: 0, maxSupply: 20, logisticsCost: 200, 
+            
+            // Repeller State
+            repelCost: 300,
+            repelTimer: 0,
+            repelMaxCooldown: 30, // 30 seconds
+
             buyAmount: 1,
             
             // Tech Tree
@@ -399,14 +407,14 @@
             if (state.facilities.mechbay) { document.getElementById('prod-mech').style.display = 'flex'; }
             if (state.facilities.orbitalgrid) { document.getElementById('prod-turret').style.display = 'flex'; document.getElementById('prod-titan').style.display = 'flex'; }
 
-            // Eco Units UI (Scaling Cost, Buy 1x Only)
+            // Eco Units UI
             for (const unit in state.ecoUnits) {
                 document.getElementById(`count-${unit}`).innerText = state.ecoUnits[unit];
                 document.getElementById(`cost-${unit}`).innerText = state.ecoCosts[unit];
                 document.getElementById(`prod-${unit}`).disabled = state.credits < state.ecoCosts[unit];
             }
 
-            // Mil Units UI (Flat Cost, Uses Multiplier)
+            // Mil Units UI
             for (const unit in state.milUnits) {
                 document.getElementById(`count-${unit}`).innerText = state.milUnits[unit];
                 const cost = state.milCosts[unit] * state.buyAmount;
@@ -419,7 +427,19 @@
             // Command UI
             document.getElementById('cost-supply').innerText = state.logisticsCost;
             document.getElementById('btn-supply').disabled = state.credits < state.logisticsCost;
-            document.getElementById('cost-repel').innerText = Math.floor(state.repelCost * (state.waveLevel * 0.8));
+            
+            // Repeller UI Update
+            document.getElementById('cost-repel').innerText = state.repelCost;
+            const btnRepel = document.getElementById('btn-repel');
+            const cdText = document.getElementById('repel-cd');
+            
+            if (state.repelTimer > 0) {
+                btnRepel.disabled = true;
+                cdText.innerText = `[${state.repelTimer}s]`;
+            } else {
+                btnRepel.disabled = state.credits < state.repelCost || state.threat < 10;
+                cdText.innerText = '';
+            }
         }
 
         // Actions
@@ -436,11 +456,16 @@
         }
 
         function useRepeller() {
-            const cost = Math.floor(state.repelCost * (state.waveLevel * 0.8));
-            if (state.credits >= cost && state.threat >= 10) {
-                state.credits -= cost;
+            if (state.credits >= state.repelCost && state.threat >= 10 && state.repelTimer === 0) {
+                state.credits -= state.repelCost;
                 state.threat = Math.max(0, state.threat - 25);
-                log("Sonic Repeller fired. Swarm scattered.", "tactical");
+                log(`Sonic Repeller fired. Swarm scattered. System cooling down.`, "tactical");
+                
+                // Increase cost by 1.5x for the next use
+                state.repelCost = Math.floor(state.repelCost * 1.5);
+                
+                // Activate Cooldown
+                state.repelTimer = state.repelMaxCooldown;
                 updateUI();
             }
         }
@@ -458,7 +483,7 @@
             if (state.credits >= state.ecoCosts[type]) {
                 state.credits -= state.ecoCosts[type];
                 state.ecoUnits[type]++;
-                state.ecoCosts[type] = Math.floor(state.ecoCosts[type] * 1.25); // Scales by 1.25x
+                state.ecoCosts[type] = Math.floor(state.ecoCosts[type] * 1.25); 
                 updateUI();
             }
         }
@@ -514,7 +539,6 @@
                 if (damage > 100) { processMilLoss('fighter', 3); }
                 if (damage > 50) { processMilLoss('drone', 5); }
                 
-                // Economy units can die if the breach is severe
                 if (damage > 400 && state.ecoUnits.drill > 0) { state.ecoUnits.drill--; log("Casualty: Core Drill destroyed.", "warn"); }
                 if (damage > 150 && state.ecoUnits.scientist > 0) { state.ecoUnits.scientist -= 2; log("Casualty: 2x Xenochemist KIA.", "warn"); }
             }
@@ -526,9 +550,14 @@
         function startGameLoop() {
             gameInterval = setInterval(() => {
                 state.credits += getIncomeRate();
-                // Threat scaling based on eco noise and army size
+                
                 const threatGen = 0.5 + (state.ecoUnits.scientist * 0.2) + (state.ecoUnits.drill * 1.5) + (state.supply * 0.02);
                 state.threat += threatGen;
+                
+                // Process Cooldown Timer
+                if (state.repelTimer > 0) {
+                    state.repelTimer--;
+                }
                 
                 if (state.threat >= 100) { state.threat = 100; updateUI(); triggerCombat(); } 
                 else { updateUI(); }
