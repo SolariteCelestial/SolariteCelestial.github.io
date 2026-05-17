@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exo-Corp: Base Defense</title>
+    <title>Exo-Corp: RTS Command V8</title>
     <style>
         :root {
             --bg: #090e17;
@@ -14,94 +14,52 @@
             --gold: #f59e0b;
             --shield: #3b82f6;
             --tech: #8b5cf6;
+            --tactical: #0ea5e9;
+            --eco: #34d399;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            background-color: var(--bg); color: var(--text);
+            margin: 0; padding: 20px; display: flex; justify-content: center;
         }
 
         .dashboard {
-            width: 100%;
-            max-width: 1050px;
-            display: grid;
-            grid-template-columns: 1.2fr 1fr 1fr;
-            gap: 15px;
+            width: 100%; max-width: 1200px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
         }
 
-        /* --- UPDATED HEADER --- */
         header {
-            grid-column: 1 / -1;
-            text-align: center;
-            background-color: var(--panel);
-            padding: 15px 25px;
-            border-radius: 8px;
-            border-bottom: 4px solid var(--danger);
+            grid-column: 1 / -1; text-align: center; background-color: var(--panel);
+            padding: 15px 25px; border-radius: 8px; border-bottom: 4px solid var(--danger);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
         }
 
         header h1 { margin: 0 0 10px 0; font-size: 26px; color: white; text-transform: uppercase; letter-spacing: 1px;}
         
         .header-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 5px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 16px; font-weight: bold; margin-bottom: 5px;
         }
 
-        h2, h3 { margin: 0 0 10px 0; font-size: 18px; }
+        h2, h3 { margin: 0 0 10px 0; font-size: 18px; border-bottom: 1px solid #334155; padding-bottom: 5px;}
 
         .panel {
-            background-color: var(--panel);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-            display: flex;
-            flex-direction: column;
+            background-color: var(--panel); padding: 15px; border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .stat-box {
-            background-color: var(--bg);
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-            border: 1px solid #334155;
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--gold);
-            margin-top: 5px;
-        }
-        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background-color: var(--bg); padding: 10px; border-radius: 5px; text-align: center; border: 1px solid #334155; }
+        .stat-value { font-size: 18px; font-weight: bold; margin-top: 5px; }
         .defense-value { color: var(--shield); }
         .wave-value { color: var(--danger); }
+        .income-value { color: var(--eco); }
 
         .bar-container {
-            width: 100%;
-            background-color: #050505;
-            border-radius: 5px;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            height: 22px;
-            overflow: hidden;
-            position: relative;
-            border: 1px solid #334155;
+            width: 100%; background-color: #050505; border-radius: 5px;
+            margin-top: 5px; margin-bottom: 15px; height: 22px; overflow: hidden;
+            position: relative; border: 1px solid #334155;
         }
         
         .bar-fill { height: 100%; transition: width 0.3s ease-in-out, background-color 0.3s; }
@@ -109,35 +67,32 @@
         #hp-bar { background-color: var(--accent); width: 100%; }
 
         .bar-text {
-            position: absolute;
-            top: 0; left: 0; width: 100%; text-align: center;
-            font-size: 13px; line-height: 22px; font-weight: bold;
-            color: white; text-shadow: 1px 1px 2px black;
+            position: absolute; top: 0; left: 0; width: 100%; text-align: center;
+            font-size: 13px; line-height: 22px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black;
         }
 
         button {
-            width: 100%; padding: 10px; margin-bottom: 8px;
-            border: none; border-radius: 5px;
-            font-size: 13px; font-weight: bold; cursor: pointer;
-            transition: all 0.2s; background-color: #334155; color: white;
-            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; padding: 10px; margin-bottom: 8px; border: none; border-radius: 5px;
+            font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s;
+            background-color: #334155; color: white; display: flex; justify-content: space-between; align-items: center;
         }
 
         button:hover:not(:disabled) { filter: brightness(1.2); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
 
         .btn-extract { background-color: var(--accent); justify-content: center; font-size: 15px; padding: 15px;}
-        .btn-planet { background-color: var(--gold); color: black; justify-content: center; margin-top: auto;}
-        .btn-repair { background-color: #0f766e; }
         .btn-tech { border-left: 4px solid var(--tech); }
+        .btn-locked { display: none; }
         
         .unit-info { text-align: left; }
-        .unit-cost { background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px; font-size: 12px;}
+        .unit-cost { background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px; font-size: 12px; display: flex; gap: 5px; align-items: center;}
+        .supply-tag { color: #facc15; font-size: 10px; }
+        .eco-tag { color: var(--eco); font-size: 10px; }
 
         #log-container {
             grid-column: 1 / -1; background-color: #050505; color: #10b981;
             font-family: 'Courier New', Courier, monospace; padding: 15px;
-            height: 180px; overflow-y: auto; border-radius: 5px; border: 1px solid #334155;
+            height: 150px; overflow-y: auto; border-radius: 5px; border: 1px solid #334155;
         }
 
         .log-entry { margin-bottom: 5px; font-size: 13px; }
@@ -146,12 +101,19 @@
         .log-tech { color: var(--tech); }
         .log-warn { color: #facc15; }
 
-        /* Game Over Screen */
+        .toggle-container {
+            display: flex; justify-content: space-between; margin-bottom: 10px;
+            background: #050505; padding: 5px; border-radius: 5px; border: 1px solid #334155;
+        }
+        .toggle-btn {
+            flex: 1; padding: 5px; text-align: center; cursor: pointer; font-size: 12px; font-weight: bold;
+            border-radius: 3px; transition: 0.2s;
+        }
+        .toggle-active { background: var(--accent); color: white; }
+
         #game-over {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 100;
-            flex-direction: column; align-items: center; justify-content: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center;
         }
         #game-over h1 { font-size: 50px; color: var(--danger); text-shadow: 0 0 20px red; margin-bottom: 10px;}
         #game-over p { font-size: 20px; margin-bottom: 20px; }
@@ -169,10 +131,10 @@
 
     <div class="dashboard">
         <header>
-            <h1>Exo-Corp: Base Defense</h1>
+            <h1>Exo-Corp: Base Command</h1>
             <div class="header-stats">
-                <span>Target: <span id="current-planet" style="color: var(--gold);">Tartarus Prime</span></span>
                 <span>Swarm Level: <span id="wave-level" class="wave-value">1</span></span>
+                <span>Logistics (Supply): <span id="supply-text" style="color: #facc15;">0 / 20</span></span>
                 <span>Base Integrity: <span id="hp-text-header" style="color: var(--accent);">1000 / 1000</span></span>
             </div>
             <div class="bar-container" style="margin-bottom: 0;">
@@ -181,7 +143,7 @@
         </header>
 
         <div class="panel">
-            <h2>Operations</h2>
+            <h2>Command Hub</h2>
             
             <div style="display: flex; justify-content: space-between; font-size: 12px;">
                 <span>Swarm Threat Radar</span>
@@ -195,344 +157,381 @@
             <div class="stats-grid">
                 <div class="stat-box">
                     <div style="font-size: 11px;">Funds</div>
-                    <div class="stat-value">CR <span id="credits">0</span></div>
+                    <div class="stat-value" style="color: var(--gold);">CR <span id="credits">0</span></div>
                 </div>
                 <div class="stat-box">
-                    <div style="font-size: 11px;">Base Defense</div>
+                    <div style="font-size: 11px;">Army Strength</div>
                     <div class="stat-value defense-value">PWR <span id="defense-power">0</span></div>
                 </div>
             </div>
 
             <button class="btn-extract" onclick="manualExtract()">
-                Harvest Asset (+<span id="click-power">10</span> CR)
+                Harvest Asset (+10 CR)
             </button>
 
-            <button class="btn-repair" id="btn-repair" onclick="repairBase()">
+            <button id="btn-supply" onclick="buyLogistics()" style="background-color: #475569; margin-top: auto;">
                 <div class="unit-info">
-                    <div>Emergency Repair</div>
-                    <div style="font-size: 10px; font-weight: normal;">Restores 25% Base HP</div>
+                    <div>Build Logistics Node</div>
+                    <div style="font-size: 10px; font-weight: normal;">Increases Max Supply by 10</div>
                 </div>
-                <div class="unit-cost"><span id="cost-repair">500</span> CR</div>
+                <div class="unit-cost"><span id="cost-supply">200</span> CR</div>
             </button>
 
-            <button class="btn-planet" id="btn-planet" onclick="buyPlanet()">
-                Jump Planet (Cost: <span id="cost-planet">25000</span> CR)
+            <button onclick="useRepeller()" style="background-color: var(--tactical);">
+                <div class="unit-info">
+                    <div>Sonic Repeller</div>
+                    <div style="font-size: 10px; font-weight: normal;">Reduces Threat Bar by 25%</div>
+                </div>
+                <div class="unit-cost"><span id="cost-repel">300</span> CR</div>
             </button>
         </div>
 
         <div class="panel">
-            <h2>Deployment</h2>
+            <h2>Base Infrastructure</h2>
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 0;">Construct facilities to unlock units.</p>
             
-            <button id="btn-scientist" onclick="buyUnit('scientist')" style="border-left: 4px solid var(--accent);">
+            <button class="btn-tech" id="bldg-biolab" onclick="buildFacility('biolab')">
+                <div class="unit-info">
+                    <div>Bio-Research Lab</div>
+                    <div style="font-size: 10px; font-weight: normal;">Unlocks: Xenochemist, Vanguard Drone</div>
+                </div>
+                <div class="unit-cost">250 CR</div>
+            </button>
+
+            <button class="btn-tech" id="bldg-heavyind" onclick="buildFacility('heavyind')">
+                <div class="unit-info">
+                    <div>Heavy Industry</div>
+                    <div style="font-size: 10px; font-weight: normal;">Unlocks: Core Drill, Aero-Fighter</div>
+                </div>
+                <div class="unit-cost">1000 CR</div>
+            </button>
+
+            <button class="btn-tech" id="bldg-mechbay" onclick="buildFacility('mechbay')">
+                <div class="unit-info">
+                    <div>Advanced Mech Bay</div>
+                    <div style="font-size: 10px; font-weight: normal;">Unlocks: Aegis Mech</div>
+                </div>
+                <div class="unit-cost">3000 CR</div>
+            </button>
+            
+            <button class="btn-tech" id="bldg-orbitalgrid" onclick="buildFacility('orbitalgrid')">
+                <div class="unit-info">
+                    <div>Orbital Defense Grid</div>
+                    <div style="font-size: 10px; font-weight: normal;">Unlocks: Plasma Battery, Titan Walker</div>
+                </div>
+                <div class="unit-cost">10000 CR</div>
+            </button>
+        </div>
+
+        <div class="panel">
+            <h2>Economy & Harvesting</h2>
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 0;">Costs increase by 1.25x. Consumes 0 Supply.</p>
+            
+            <div class="stat-box" style="margin-bottom: 15px; padding: 5px;">
+                <div style="font-size: 11px;">Total Passive Income</div>
+                <div class="stat-value income-value">+<span id="income-rate">0</span> CR/sec</div>
+            </div>
+
+            <button id="prod-scientist" class="btn-locked" onclick="buyEcoUnit('scientist')" style="border-left: 4px solid var(--eco);">
                 <div class="unit-info">
                     <div>Xenochemist (<span id="count-scientist">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">+<span id="stat-inc">5</span> CR/sec. Adds Threat.</div>
+                    <div style="font-size: 10px; font-weight: normal;">+5 CR/sec.</div>
                 </div>
-                <div class="unit-cost"><span id="cost-scientist">50</span> CR</div>
+                <div class="unit-cost"><span class="eco-tag">0 SUP</span> <span id="cost-scientist">50</span> CR</div>
             </button>
 
-            <button id="btn-drone" onclick="buyUnit('drone')" style="border-left: 4px solid var(--shield);">
+            <button id="prod-drill" class="btn-locked" onclick="buyEcoUnit('drill')" style="border-left: 4px solid var(--eco);">
                 <div class="unit-info">
-                    <div>Vanguard Drone (<span id="count-drone">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">Light security. +<span id="stat-def-drone">10</span> Def.</div>
+                    <div>Deep Core Drill (<span id="count-drill">0</span>)</div>
+                    <div style="font-size: 10px; font-weight: normal;">+45 CR/sec. Generates heavy threat.</div>
                 </div>
-                <div class="unit-cost"><span id="cost-drone">100</span> CR</div>
-            </button>
-
-            <button id="btn-mech" onclick="buyUnit('mech')" style="border-left: 4px solid var(--gold);">
-                <div class="unit-info">
-                    <div>Aegis Mech (<span id="count-mech">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">+<span id="stat-clk-mech">20</span> CR/click, +<span id="stat-def-mech">25</span> Def.</div>
-                </div>
-                <div class="unit-cost"><span id="cost-mech">400</span> CR</div>
-            </button>
-            
-            <button id="btn-turret" onclick="buyUnit('turret')" style="border-left: 4px solid var(--danger);">
-                <div class="unit-info">
-                    <div>Plasma Battery (<span id="count-turret">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">Heavy static defense. +<span id="stat-def-turret">100</span> Def.</div>
-                </div>
-                <div class="unit-cost"><span id="cost-turret">1000</span> CR</div>
+                <div class="unit-cost"><span class="eco-tag">0 SUP</span> <span id="cost-drill">400</span> CR</div>
             </button>
         </div>
 
         <div class="panel">
-            <h2>Tech & Upgrades</h2>
+            <h2>Military Mass Production</h2>
+            <div class="toggle-container">
+                <div id="buy-1" class="toggle-btn toggle-active" onclick="setMultiplier(1)">Build x1</div>
+                <div id="buy-10" class="toggle-btn" onclick="setMultiplier(10)">Build x10</div>
+            </div>
+
+            <button id="prod-drone" class="btn-locked" onclick="buyMilUnit('drone')" style="border-left: 4px solid var(--shield);">
+                <div class="unit-info">
+                    <div>Vanguard Drone (<span id="count-drone">0</span>)</div>
+                    <div style="font-size: 10px; font-weight: normal;">+10 Defense.</div>
+                </div>
+                <div class="unit-cost"><span class="supply-tag">1 SUP</span> <span id="cost-drone">100</span> CR</div>
+            </button>
+
+            <button id="prod-fighter" class="btn-locked" onclick="buyMilUnit('fighter')" style="border-left: 4px solid #818cf8;">
+                <div class="unit-info">
+                    <div>Aero-Fighter (<span id="count-fighter">0</span>)</div>
+                    <div style="font-size: 10px; font-weight: normal;">+30 Defense. Rapid response.</div>
+                </div>
+                <div class="unit-cost"><span class="supply-tag">1 SUP</span> <span id="cost-fighter">250</span> CR</div>
+            </button>
+
+            <button id="prod-mech" class="btn-locked" onclick="buyMilUnit('mech')" style="border-left: 4px solid var(--gold);">
+                <div class="unit-info">
+                    <div>Aegis Mech (<span id="count-mech">0</span>)</div>
+                    <div style="font-size: 10px; font-weight: normal;">+75 Defense. Solid armor.</div>
+                </div>
+                <div class="unit-cost"><span class="supply-tag">2 SUP</span> <span id="cost-mech">500</span> CR</div>
+            </button>
             
-            <button class="btn-tech" id="btn-upg-drill" onclick="buyUpgrade('drill')">
+            <button id="prod-turret" class="btn-locked" onclick="buyMilUnit('turret')" style="border-left: 4px solid var(--danger);">
                 <div class="unit-info">
-                    <div>Thermal Extractors (<span id="count-upg-drill">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">Multiplier: Manual Harvest</div>
+                    <div>Plasma Battery (<span id="count-turret">0</span>)</div>
+                    <div style="font-size: 10px; font-weight: normal;">+200 Defense. Static structure.</div>
                 </div>
-                <div class="unit-cost"><span id="cost-upg-drill">500</span> CR</div>
+                <div class="unit-cost"><span class="supply-tag">3 SUP</span> <span id="cost-turret">1200</span> CR</div>
             </button>
 
-            <button class="btn-tech" id="btn-upg-auto" onclick="buyUpgrade('auto')">
+            <button id="prod-titan" class="btn-locked" onclick="buyMilUnit('titan')" style="border-left: 4px solid #c026d3;">
                 <div class="unit-info">
-                    <div>Chemo-Synthesizers (<span id="count-upg-auto">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">Multiplier: Scientist Income</div>
+                    <div>Titan Walker (<span id="count-titan">0</span>)</div>
+                    <div style="font-size: 10px; font-weight: normal;">+700 Defense. Apex unit.</div>
                 </div>
-                <div class="unit-cost"><span id="cost-upg-auto">800</span> CR</div>
-            </button>
-
-            <button class="btn-tech" id="btn-upg-armor" onclick="buyUpgrade('armor')">
-                <div class="unit-info">
-                    <div>Tungsten Plating (<span id="count-upg-armor">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">Multiplier: Defense & Max HP</div>
-                </div>
-                <div class="unit-cost"><span id="cost-upg-armor">1500</span> CR</div>
+                <div class="unit-cost"><span class="supply-tag">6 SUP</span> <span id="cost-titan">3500</span> CR</div>
             </button>
         </div>
 
         <div class="panel" style="grid-column: 1 / -1; padding: 0; background: none; box-shadow: none;">
             <div id="log-container">
-                <div class="log-entry">> Establishing uplink with Tartarus Prime...</div>
-                <div class="log-entry">> Base structural integrity at 100%. Defend the facility.</div>
+                <div class="log-entry">> Establishing RTS uplink...</div>
+                <div class="log-entry">> Build Infrastructure to unlock Economy and Military units.</div>
             </div>
         </div>
     </div>
 
     <script>
-        // Deep Game State
+        // RTS State
         const state = {
-            credits: 0,
-            threat: 0,
-            waveLevel: 1, 
-            planetsOwned: 1,
-            hp: 1000,
-            baseRepairCost: 500,
-            units: { scientist: 0, drone: 0, mech: 0, turret: 0 },
-            upgrades: { drill: 0, auto: 0, armor: 0 },
-            costs: {
-                scientist: 50, drone: 100, mech: 400, turret: 1000, 
-                drill: 500, auto: 800, armor: 1500, planet: 25000
-            }
+            credits: 150, threat: 0, waveLevel: 1, hp: 1000, maxHp: 1000,
+            supply: 0, maxSupply: 20, logisticsCost: 200, repelCost: 300,
+            buyAmount: 1,
+            
+            // Tech Tree
+            facilities: { biolab: false, heavyind: false, mechbay: false, orbitalgrid: false },
+            facilityCosts: { biolab: 250, heavyind: 1000, mechbay: 3000, orbitalgrid: 10000 },
+            
+            // Economy (Scaling Costs, 0 Supply)
+            ecoUnits: { scientist: 0, drill: 0 },
+            ecoCosts: { scientist: 50, drill: 400 },
+            
+            // Military (Flat Costs, Uses Supply)
+            milUnits: { drone: 0, fighter: 0, mech: 0, turret: 0, titan: 0 },
+            milCosts: { drone: 100, fighter: 250, mech: 500, turret: 1200, titan: 3500 },
+            milSupply: { drone: 1, fighter: 1, mech: 2, turret: 3, titan: 6 },
+            milDefense: { drone: 10, fighter: 30, mech: 75, turret: 200, titan: 700 }
         };
 
         let gameInterval;
-        const planets = ["Tartarus Prime", "Gliese-8b (Ice World)", "Kepler-22c (Oceanic)"];
-
-        // DOM Elements
         const elCredits = document.getElementById('credits');
         const elDefense = document.getElementById('defense-power');
-        const elClickPower = document.getElementById('click-power');
-        const threatBar = document.getElementById('threat-bar');
-        const threatText = document.getElementById('threat-text');
-        const hpBar = document.getElementById('hp-bar');
-        const hpTextHeader = document.getElementById('hp-text-header');
         const logContainer = document.getElementById('log-container');
 
-        // Math Core
-        function getMult(type) { return 1 + (state.upgrades[type] * 0.5); } 
-        function getMaxHp() { return Math.floor(1000 * getMult('armor')); }
-        function getClickPower() { return Math.floor((10 + (state.units.mech * 20)) * getMult('drill')); }
-        function getIncomeRate() { return Math.floor((state.units.scientist * 5) * getMult('auto')); }
-        function getDefensePower() { return Math.floor(((state.units.drone * 10) + (state.units.mech * 25) + (state.units.turret * 100)) * getMult('armor')); }
+        // Logic Helpers
+        function getDefensePower() {
+            let total = 0;
+            for (const unit in state.milUnits) { total += state.milUnits[unit] * state.milDefense[unit]; }
+            return total;
+        }
+        
+        function getIncomeRate() { 
+            return (state.ecoUnits.scientist * 5) + (state.ecoUnits.drill * 45); 
+        }
 
-        // Logging
+        function calculateSupply() {
+            let total = 0;
+            for (const unit in state.milUnits) { total += state.milUnits[unit] * state.milSupply[unit]; }
+            state.supply = total;
+        }
+
         function log(message, type = 'normal') {
             const entry = document.createElement('div');
-            let cssClass = 'log-entry ';
-            if(type === 'combat') cssClass += 'log-combat';
-            if(type === 'success') cssClass += 'log-success';
-            if(type === 'tech') cssClass += 'log-tech';
-            if(type === 'warn') cssClass += 'log-warn';
-            
-            entry.className = cssClass;
+            entry.className = `log-entry ${type ? 'log-' + type : ''}`;
             entry.innerText = `> ${message}`;
             logContainer.appendChild(entry);
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // UI Updates
-        function updateUI() {
-            elCredits.innerText = Math.floor(state.credits);
-            elDefense.innerText = getDefensePower();
-            elClickPower.innerText = getClickPower();
-            document.getElementById('wave-level').innerText = state.waveLevel;
-            
-            // Threat Bar
-            threatBar.style.width = `${Math.min(state.threat, 100)}%`;
-            threatText.innerText = `${Math.floor(state.threat)}%`;
-
-            // HP UI in Header
-            const maxHp = getMaxHp();
-            const hpPercent = (state.hp / maxHp) * 100;
-            hpBar.style.width = `${Math.max(hpPercent, 0)}%`;
-            hpTextHeader.innerText = `${Math.floor(state.hp)} / ${maxHp}`;
-            
-            // HP Visual Warning System
-            if(hpPercent > 50) {
-                hpBar.style.backgroundColor = 'var(--accent)';
-                hpTextHeader.style.color = 'var(--accent)';
-            } else if(hpPercent > 30) {
-                hpBar.style.backgroundColor = 'var(--gold)';
-                hpTextHeader.style.color = 'var(--gold)';
-            } else {
-                hpBar.style.backgroundColor = 'var(--danger)';
-                hpTextHeader.style.color = 'var(--danger)';
-            }
-
-            // Dynamic Unit Stats
-            document.getElementById('stat-inc').innerText = Math.floor(5 * getMult('auto'));
-            document.getElementById('stat-def-drone').innerText = Math.floor(10 * getMult('armor'));
-            document.getElementById('stat-clk-mech').innerText = Math.floor(20 * getMult('drill'));
-            document.getElementById('stat-def-mech').innerText = Math.floor(25 * getMult('armor'));
-            document.getElementById('stat-def-turret').innerText = Math.floor(100 * getMult('armor'));
-
-            // Unit UI
-            for (const unit in state.units) {
-                document.getElementById(`count-${unit}`).innerText = state.units[unit];
-                document.getElementById(`cost-${unit}`).innerText = state.costs[unit];
-                document.getElementById(`btn-${unit}`).disabled = state.credits < state.costs[unit];
-            }
-
-            // Tech UI
-            for (const upg in state.upgrades) {
-                document.getElementById(`count-upg-${upg}`).innerText = state.upgrades[upg];
-                document.getElementById(`cost-upg-${upg}`).innerText = state.costs[upg];
-                document.getElementById(`btn-upg-${upg}`).disabled = state.credits < state.costs[upg];
-            }
-
-            // Repair UI
-            const currentRepairCost = Math.floor(state.baseRepairCost * (state.waveLevel * 0.5 + 0.5));
-            document.getElementById('cost-repair').innerText = `${currentRepairCost} CR`;
-            document.getElementById('btn-repair').disabled = state.credits < currentRepairCost || state.hp >= maxHp;
-
-            // Planet UI
-            const btnPlanet = document.getElementById('btn-planet');
-            document.getElementById('cost-planet').innerText = state.costs.planet;
-            if (state.planetsOwned >= planets.length) {
-                btnPlanet.innerText = "Monopoly Achieved!";
-                btnPlanet.disabled = true;
-            } else {
-                btnPlanet.disabled = state.credits < state.costs.planet;
-            }
-        }
-
-        // Interactions
-        function manualExtract() {
-            state.credits += getClickPower();
-            state.threat += 0.8; 
+        function setMultiplier(amount) {
+            state.buyAmount = amount;
+            document.getElementById('buy-1').className = `toggle-btn ${amount === 1 ? 'toggle-active' : ''}`;
+            document.getElementById('buy-10').className = `toggle-btn ${amount === 10 ? 'toggle-active' : ''}`;
             updateUI();
         }
 
-        function repairBase() {
-            const cost = Math.floor(state.baseRepairCost * (state.waveLevel * 0.5 + 0.5));
-            if (state.credits >= cost && state.hp < getMaxHp()) {
-                state.credits -= cost;
-                const healAmount = Math.floor(getMaxHp() * 0.25); 
-                state.hp = Math.min(state.hp + healAmount, getMaxHp());
-                log(`Emergency repairs completed. Restored ${healAmount} structural integrity.`, 'success');
-                updateUI();
-            }
-        }
+        function updateUI() {
+            elCredits.innerText = Math.floor(state.credits);
+            elDefense.innerText = getDefensePower();
+            document.getElementById('income-rate').innerText = getIncomeRate();
+            document.getElementById('wave-level').innerText = state.waveLevel;
+            
+            document.getElementById('threat-bar').style.width = `${Math.min(state.threat, 100)}%`;
+            document.getElementById('threat-text').innerText = `${Math.floor(state.threat)}%`;
+            
+            const hpPercent = (state.hp / state.maxHp) * 100;
+            document.getElementById('hp-bar').style.width = `${Math.max(hpPercent, 0)}%`;
+            document.getElementById('hp-text-header').innerText = `${Math.floor(state.hp)} / ${state.maxHp}`;
+            
+            calculateSupply();
+            document.getElementById('supply-text').innerText = `${state.supply} / ${state.maxSupply}`;
+            document.getElementById('supply-text').style.color = state.supply >= state.maxSupply ? 'var(--danger)' : '#facc15';
 
-        function buyUnit(type) {
-            if (state.credits >= state.costs[type]) {
-                state.credits -= state.costs[type];
-                state.units[type]++;
-                state.costs[type] = Math.floor(state.costs[type] * 1.5);
-                updateUI();
-            }
-        }
-
-        function buyUpgrade(type) {
-            if (state.credits >= state.costs[type]) {
-                state.credits -= state.costs[type];
-                state.upgrades[type]++;
-                state.costs[type] = Math.floor(state.costs[type] * 2.5); 
-                
-                if (type === 'armor') {
-                    const oldMax = Math.floor(1000 * (1 + ((state.upgrades.armor - 1) * 0.5)));
-                    const newMax = getMaxHp();
-                    state.hp += (newMax - oldMax);
+            // Facilities UI
+            for (const bldg in state.facilities) {
+                const btn = document.getElementById(`bldg-${bldg}`);
+                if (state.facilities[bldg]) {
+                    btn.style.backgroundColor = 'var(--accent)';
+                    btn.innerHTML = `<div style="text-align: center; width: 100%; font-weight: bold;">ONLINE</div>`;
+                    btn.disabled = true;
+                } else {
+                    btn.disabled = state.credits < state.facilityCosts[bldg];
                 }
+            }
+
+            // Unlocks Visibility
+            if (state.facilities.biolab) { document.getElementById('prod-scientist').style.display = 'flex'; document.getElementById('prod-drone').style.display = 'flex'; }
+            if (state.facilities.heavyind) { document.getElementById('prod-drill').style.display = 'flex'; document.getElementById('prod-fighter').style.display = 'flex'; }
+            if (state.facilities.mechbay) { document.getElementById('prod-mech').style.display = 'flex'; }
+            if (state.facilities.orbitalgrid) { document.getElementById('prod-turret').style.display = 'flex'; document.getElementById('prod-titan').style.display = 'flex'; }
+
+            // Eco Units UI (Scaling Cost, Buy 1x Only)
+            for (const unit in state.ecoUnits) {
+                document.getElementById(`count-${unit}`).innerText = state.ecoUnits[unit];
+                document.getElementById(`cost-${unit}`).innerText = state.ecoCosts[unit];
+                document.getElementById(`prod-${unit}`).disabled = state.credits < state.ecoCosts[unit];
+            }
+
+            // Mil Units UI (Flat Cost, Uses Multiplier)
+            for (const unit in state.milUnits) {
+                document.getElementById(`count-${unit}`).innerText = state.milUnits[unit];
+                const cost = state.milCosts[unit] * state.buyAmount;
+                const reqSupply = state.milSupply[unit] * state.buyAmount;
                 
-                log(`Tech Upgrade Acquired: ${type.toUpperCase()} Protocol Active.`, 'tech');
+                document.getElementById(`cost-${unit}`).innerText = cost;
+                document.getElementById(`prod-${unit}`).disabled = state.credits < cost || (state.supply + reqSupply > state.maxSupply);
+            }
+
+            // Command UI
+            document.getElementById('cost-supply').innerText = state.logisticsCost;
+            document.getElementById('btn-supply').disabled = state.credits < state.logisticsCost;
+            document.getElementById('cost-repel').innerText = Math.floor(state.repelCost * (state.waveLevel * 0.8));
+        }
+
+        // Actions
+        function manualExtract() { state.credits += 10; state.threat += 0.8; updateUI(); }
+
+        function buyLogistics() {
+            if (state.credits >= state.logisticsCost) {
+                state.credits -= state.logisticsCost;
+                state.maxSupply += 10;
+                state.logisticsCost = Math.floor(state.logisticsCost * 1.4); 
+                log("Logistics Node online. Supply cap increased.", "tech");
                 updateUI();
             }
         }
 
-        function buyPlanet() {
-            if (state.credits >= state.costs.planet && state.planetsOwned < planets.length) {
-                state.credits -= state.costs.planet;
-                state.planetsOwned++;
-                state.threat = 0;
-                
-                const newPlanet = planets[state.planetsOwned - 1];
-                document.getElementById('current-planet').innerText = newPlanet;
-                log(`JUMP SUCCESS: Arrived at ${newPlanet}. Prepare for harsher conditions.`, 'success');
+        function useRepeller() {
+            const cost = Math.floor(state.repelCost * (state.waveLevel * 0.8));
+            if (state.credits >= cost && state.threat >= 10) {
+                state.credits -= cost;
+                state.threat = Math.max(0, state.threat - 25);
+                log("Sonic Repeller fired. Swarm scattered.", "tactical");
                 updateUI();
             }
         }
 
+        function buildFacility(type) {
+            if (state.credits >= state.facilityCosts[type] && !state.facilities[type]) {
+                state.credits -= state.facilityCosts[type];
+                state.facilities[type] = true;
+                log(`FACILITY CONSTRUCTED: ${type.toUpperCase()}. Production unlocked.`, "tech");
+                updateUI();
+            }
+        }
+
+        function buyEcoUnit(type) {
+            if (state.credits >= state.ecoCosts[type]) {
+                state.credits -= state.ecoCosts[type];
+                state.ecoUnits[type]++;
+                state.ecoCosts[type] = Math.floor(state.ecoCosts[type] * 1.25); // Scales by 1.25x
+                updateUI();
+            }
+        }
+
+        function buyMilUnit(type) {
+            const cost = state.milCosts[type] * state.buyAmount;
+            const reqSupply = state.milSupply[type] * state.buyAmount;
+            if (state.credits >= cost && (state.supply + reqSupply <= state.maxSupply)) {
+                state.credits -= cost;
+                state.milUnits[type] += state.buyAmount;
+                updateUI();
+            }
+        }
+
+        // Combat Engine
         function triggerGameOver() {
             clearInterval(gameInterval);
             document.getElementById('game-over').style.display = 'flex';
             document.getElementById('final-wave').innerText = state.waveLevel - 1;
         }
 
-        // The Combat Engine
+        function processMilLoss(type, amount) {
+            const actualLoss = Math.min(state.milUnits[type], amount);
+            state.milUnits[type] -= actualLoss;
+            const payout = (state.milCosts[type] * 0.5) * actualLoss;
+            state.credits += payout;
+            if (actualLoss > 0) log(`Lost ${actualLoss}x ${type.toUpperCase()}. Insurance payout: +${payout} CR.`, "warn");
+        }
+
         function triggerCombat() {
-            log(`ALERT: LEVEL ${state.waveLevel} SWARM DETECTED! INITIATING COMBAT...`, "combat");
+            log(`ALERT: LEVEL ${state.waveLevel} SWARM DETECTED!`, "combat");
             
             const waveMult = Math.pow(1.25, state.waveLevel - 1);
-            const baseEnemyStrength = Math.floor(100 * waveMult + (state.waveLevel * 50));
-            const enemyStrength = baseEnemyStrength + Math.floor(Math.random() * (50 * state.waveLevel));
-            
+            const enemyStrength = Math.floor(100 * waveMult + (state.waveLevel * 50)) + Math.floor(Math.random() * (50 * state.waveLevel));
             const ourDefense = getDefensePower();
-            log(`Swarm Power: ${enemyStrength} | Base Defense: ${ourDefense}`);
+            
+            log(`Swarm Power: ${enemyStrength} | Army Power: ${ourDefense}`);
 
             if (ourDefense >= enemyStrength) {
-                const bounty = Math.floor(enemyStrength * 3);
-                state.credits += bounty;
-                state.waveLevel++; 
+                const bounty = Math.floor(enemyStrength * 2);
+                state.credits += bounty; state.waveLevel++; 
                 log(`DEFENSE HOLDING. Swarm repelled. Bounty: +${bounty} CR.`, "success");
             } else {
                 const damage = enemyStrength - ourDefense;
                 state.hp -= damage;
-                
                 log(`DEFENSE BREACHED! Facility sustained ${damage} structural damage.`, "combat");
                 
-                if (state.hp <= 0) {
-                    state.hp = 0;
-                    updateUI();
-                    triggerGameOver();
-                    return;
-                }
+                if (state.hp <= 0) { state.hp = 0; updateUI(); triggerGameOver(); return; }
                 
-                const creditLoss = Math.floor(state.credits * 0.2); 
-                state.credits -= creditLoss;
-                log(`Plundered! Lost ${creditLoss} CR during the breach.`, "warn");
+                if (damage > 1500) { processMilLoss('titan', 1); }
+                if (damage > 600) { processMilLoss('turret', 1); } 
+                if (damage > 300) { processMilLoss('mech', 2); }
+                if (damage > 100) { processMilLoss('fighter', 3); }
+                if (damage > 50) { processMilLoss('drone', 5); }
                 
-                if (state.units.turret > 0 && damage > 500) {
-                    state.units.turret--; log("Casualty: Plasma Battery destroyed.", "warn");
-                } else if (state.units.mech > 0 && damage > 200) {
-                    state.units.mech--; log("Casualty: Aegis Mech disabled.", "warn");
-                }
+                // Economy units can die if the breach is severe
+                if (damage > 400 && state.ecoUnits.drill > 0) { state.ecoUnits.drill--; log("Casualty: Core Drill destroyed.", "warn"); }
+                if (damage > 150 && state.ecoUnits.scientist > 0) { state.ecoUnits.scientist -= 2; log("Casualty: 2x Xenochemist KIA.", "warn"); }
             }
             
-            state.threat = 0; 
-            updateUI();
+            state.threat = 0; updateUI();
         }
 
         // Game Loop
         function startGameLoop() {
             gameInterval = setInterval(() => {
                 state.credits += getIncomeRate();
+                // Threat scaling based on eco noise and army size
+                const threatGen = 0.5 + (state.ecoUnits.scientist * 0.2) + (state.ecoUnits.drill * 1.5) + (state.supply * 0.02);
+                state.threat += threatGen;
                 
-                if (state.units.scientist > 0) {
-                    state.threat += (0.8 + (state.units.scientist * 0.3)); 
-                }
-
-                if (state.threat >= 100) {
-                    state.threat = 100;
-                    updateUI();
-                    triggerCombat();
-                } else {
-                    updateUI();
-                }
+                if (state.threat >= 100) { state.threat = 100; updateUI(); triggerCombat(); } 
+                else { updateUI(); }
             }, 1000);
         }
 
