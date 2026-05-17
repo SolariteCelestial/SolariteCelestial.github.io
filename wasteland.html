@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exo-Corp: Escalation</title>
+    <title>Exo-Corp: Base Defense</title>
     <style>
         :root {
             --bg: #090e17;
@@ -28,9 +28,9 @@
 
         .dashboard {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1050px;
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1.2fr 1fr 1fr;
             gap: 15px;
         }
 
@@ -44,7 +44,7 @@
         }
 
         h1, h2, h3 { margin: 0 0 10px 0; font-size: 18px; }
-        header h1 { font-size: 24px; }
+        header h1 { font-size: 24px; color: var(--danger); }
 
         .panel {
             background-color: var(--panel);
@@ -80,24 +80,22 @@
         .defense-value { color: var(--shield); }
         .wave-value { color: var(--danger); }
 
-        .threat-container {
+        .bar-container {
             width: 100%;
             background-color: #334155;
             border-radius: 5px;
             margin-top: 5px;
+            margin-bottom: 15px;
             height: 20px;
             overflow: hidden;
             position: relative;
         }
         
-        #threat-bar {
-            height: 100%;
-            width: 0%;
-            background-color: var(--danger);
-            transition: width 0.2s;
-        }
+        .bar-fill { height: 100%; transition: width 0.2s; }
+        #threat-bar { background-color: var(--danger); width: 0%; }
+        #hp-bar { background-color: var(--accent); width: 100%; }
 
-        #threat-text {
+        .bar-text {
             position: absolute;
             top: 0; left: 0; width: 100%; text-align: center;
             font-size: 12px; line-height: 20px; font-weight: bold;
@@ -116,7 +114,8 @@
         button:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .btn-extract { background-color: var(--accent); justify-content: center; font-size: 15px; padding: 15px;}
-        .btn-planet { background-color: var(--gold); color: black; justify-content: center; }
+        .btn-planet { background-color: var(--gold); color: black; justify-content: center; margin-top: auto;}
+        .btn-repair { background-color: #0f766e; }
         .btn-tech { border-left: 4px solid var(--tech); }
         
         .unit-info { text-align: left; }
@@ -125,16 +124,34 @@
         #log-container {
             grid-column: 1 / -1; background-color: #050505; color: #10b981;
             font-family: 'Courier New', Courier, monospace; padding: 15px;
-            height: 200px; overflow-y: auto; border-radius: 5px; border: 1px solid #334155;
+            height: 180px; overflow-y: auto; border-radius: 5px; border: 1px solid #334155;
         }
 
         .log-entry { margin-bottom: 5px; font-size: 13px; }
         .log-combat { color: var(--danger); font-weight: bold; }
         .log-success { color: var(--shield); }
         .log-tech { color: var(--tech); }
+
+        /* Game Over Screen */
+        #game-over {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        #game-over h1 { font-size: 50px; color: var(--danger); text-shadow: 0 0 20px red; margin-bottom: 10px;}
+        #game-over p { font-size: 20px; margin-bottom: 20px; }
+        #game-over button { width: 250px; padding: 15px; font-size: 16px; justify-content: center; background: var(--danger); }
     </style>
 </head>
 <body>
+
+    <div id="game-over">
+        <h1>FACILITY DESTROYED</h1>
+        <p>The swarm has overrun operations. You are a total corporate loss.</p>
+        <p>Final Wave Defeated: <span id="final-wave" style="color: var(--gold); font-weight: bold;">0</span></p>
+        <button onclick="location.reload()">Reboot Protocol</button>
+    </div>
 
     <div class="dashboard">
         <header>
@@ -143,7 +160,25 @@
         </header>
 
         <div class="panel">
-            <h2>Operations</h2>
+            <h2>Operations & Integrity</h2>
+            
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                <span>Structural Integrity</span>
+                <span id="hp-text" style="color: var(--accent);">1000 / 1000</span>
+            </div>
+            <div class="bar-container">
+                <div id="hp-bar" class="bar-fill"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                <span>Swarm Threat Radar</span>
+                <span style="color: var(--danger);">Attack at 100%</span>
+            </div>
+            <div class="bar-container">
+                <div id="threat-bar" class="bar-fill"></div>
+                <div id="threat-text" class="bar-text">0%</div>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-box">
                     <div style="font-size: 11px;">Funds</div>
@@ -154,27 +189,22 @@
                     <div class="stat-value defense-value">PWR <span id="defense-power">0</span></div>
                 </div>
             </div>
-            
-            <div style="margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                    <span>Swarm Threat Radar</span>
-                    <span style="color: var(--danger);">Attack at 100%</span>
-                </div>
-                <div class="threat-container">
-                    <div id="threat-bar"></div>
-                    <div id="threat-text">0%</div>
-                </div>
-            </div>
 
             <button class="btn-extract" onclick="manualExtract()">
                 Harvest Asset (+<span id="click-power">10</span> CR)
             </button>
 
-            <div style="margin-top: auto;">
-                <button class="btn-planet" id="btn-planet" onclick="buyPlanet()">
-                    Jump Planet (Cost: <span id="cost-planet">25000</span> CR)
-                </button>
-            </div>
+            <button class="btn-repair" id="btn-repair" onclick="repairBase()">
+                <div class="unit-info">
+                    <div>Emergency Repair</div>
+                    <div style="font-size: 10px; font-weight: normal;">Restores 25% Base HP</div>
+                </div>
+                <div class="unit-cost"><span id="cost-repair">500</span> CR</div>
+            </button>
+
+            <button class="btn-planet" id="btn-planet" onclick="buyPlanet()">
+                Jump Planet (Cost: <span id="cost-planet">25000</span> CR)
+            </button>
         </div>
 
         <div class="panel">
@@ -219,7 +249,7 @@
             <button class="btn-tech" id="btn-upg-drill" onclick="buyUpgrade('drill')">
                 <div class="unit-info">
                     <div>Thermal Extractors (<span id="count-upg-drill">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">Multiplier for Manual Harvest</div>
+                    <div style="font-size: 10px; font-weight: normal;">Multiplier: Manual Harvest</div>
                 </div>
                 <div class="unit-cost"><span id="cost-upg-drill">500</span> CR</div>
             </button>
@@ -227,7 +257,7 @@
             <button class="btn-tech" id="btn-upg-auto" onclick="buyUpgrade('auto')">
                 <div class="unit-info">
                     <div>Chemo-Synthesizers (<span id="count-upg-auto">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">Multiplier for Scientist Income</div>
+                    <div style="font-size: 10px; font-weight: normal;">Multiplier: Scientist Income</div>
                 </div>
                 <div class="unit-cost"><span id="cost-upg-auto">800</span> CR</div>
             </button>
@@ -235,7 +265,7 @@
             <button class="btn-tech" id="btn-upg-armor" onclick="buyUpgrade('armor')">
                 <div class="unit-info">
                     <div>Tungsten Plating (<span id="count-upg-armor">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">Multiplier for Base Defense</div>
+                    <div style="font-size: 10px; font-weight: normal;">Multiplier: Defense & Max HP</div>
                 </div>
                 <div class="unit-cost"><span id="cost-upg-armor">1500</span> CR</div>
             </button>
@@ -244,7 +274,7 @@
         <div class="panel" style="grid-column: 1 / -1; padding: 0; background: none; box-shadow: none;">
             <div id="log-container">
                 <div class="log-entry">> Establishing uplink with Tartarus Prime...</div>
-                <div class="log-entry">> Warning: Native lifeforms detected. They will adapt.</div>
+                <div class="log-entry">> Base structural integrity at 100%. Defend the facility.</div>
             </div>
         </div>
     </div>
@@ -256,6 +286,8 @@
             threat: 0,
             waveLevel: 1, 
             planetsOwned: 1,
+            hp: 1000,
+            baseRepairCost: 500,
             units: { scientist: 0, drone: 0, mech: 0, turret: 0 },
             upgrades: { drill: 0, auto: 0, armor: 0 },
             costs: {
@@ -264,6 +296,7 @@
             }
         };
 
+        let gameInterval;
         const planets = ["Tartarus Prime", "Gliese-8b (Ice World)", "Kepler-22c (Oceanic)"];
 
         // DOM Elements
@@ -272,11 +305,15 @@
         const elClickPower = document.getElementById('click-power');
         const threatBar = document.getElementById('threat-bar');
         const threatText = document.getElementById('threat-text');
+        const hpBar = document.getElementById('hp-bar');
+        const hpText = document.getElementById('hp-text');
         const logContainer = document.getElementById('log-container');
 
         // Math Core
-        function getMult(type) { return 1 + (state.upgrades[type] * 0.5); } // 50% boost per upgrade level
+        function getMult(type) { return 1 + (state.upgrades[type] * 0.5); } 
         
+        function getMaxHp() { return Math.floor(1000 * getMult('armor')); }
+
         function getClickPower() { 
             const base = 10 + (state.units.mech * 20);
             return Math.floor(base * getMult('drill'));
@@ -313,8 +350,20 @@
             elClickPower.innerText = getClickPower();
             document.getElementById('wave-level').innerText = state.waveLevel;
             
+            // Threat Bar
             threatBar.style.width = `${Math.min(state.threat, 100)}%`;
             threatText.innerText = `${Math.floor(state.threat)}%`;
+
+            // HP Bar
+            const maxHp = getMaxHp();
+            const hpPercent = (state.hp / maxHp) * 100;
+            hpBar.style.width = `${Math.max(hpPercent, 0)}%`;
+            hpText.innerText = `${Math.floor(state.hp)} / ${maxHp}`;
+            
+            // HP Bar Color Warning
+            if(hpPercent > 50) hpBar.style.backgroundColor = 'var(--accent)';
+            else if(hpPercent > 20) hpBar.style.backgroundColor = 'var(--gold)';
+            else hpBar.style.backgroundColor = 'var(--danger)';
 
             // Dynamic Unit Stats
             document.getElementById('stat-inc').innerText = Math.floor(5 * getMult('auto'));
@@ -337,7 +386,12 @@
                 document.getElementById(`btn-upg-${upg}`).disabled = state.credits < state.costs[upg];
             }
 
-            // Planet Logic
+            // Repair UI
+            const currentRepairCost = Math.floor(state.baseRepairCost * (state.waveLevel * 0.5 + 0.5));
+            document.getElementById('cost-repair').innerText = `${currentRepairCost} CR`;
+            document.getElementById('btn-repair').disabled = state.credits < currentRepairCost || state.hp >= maxHp;
+
+            // Planet UI
             const btnPlanet = document.getElementById('btn-planet');
             document.getElementById('cost-planet').innerText = state.costs.planet;
             if (state.planetsOwned >= planets.length) {
@@ -351,8 +405,19 @@
         // Interactions
         function manualExtract() {
             state.credits += getClickPower();
-            state.threat += 0.8; // Faster threat gen
+            state.threat += 0.8; 
             updateUI();
+        }
+
+        function repairBase() {
+            const cost = Math.floor(state.baseRepairCost * (state.waveLevel * 0.5 + 0.5));
+            if (state.credits >= cost && state.hp < getMaxHp()) {
+                state.credits -= cost;
+                const healAmount = Math.floor(getMaxHp() * 0.25); // Heals 25% of max HP
+                state.hp = Math.min(state.hp + healAmount, getMaxHp());
+                log(`Emergency repairs completed. Restored ${healAmount} structural integrity.`, 'success');
+                updateUI();
+            }
         }
 
         function buyUnit(type) {
@@ -368,7 +433,15 @@
             if (state.credits >= state.costs[type]) {
                 state.credits -= state.costs[type];
                 state.upgrades[type]++;
-                state.costs[type] = Math.floor(state.costs[type] * 2.5); // Tech gets expensive fast
+                state.costs[type] = Math.floor(state.costs[type] * 2.5); 
+                
+                if (type === 'armor') {
+                    // Instantly heal the newly added max HP difference
+                    const oldMax = Math.floor(1000 * (1 + ((state.upgrades.armor - 1) * 0.5)));
+                    const newMax = getMaxHp();
+                    state.hp += (newMax - oldMax);
+                }
+                
                 log(`Tech Upgrade Acquired: ${type.toUpperCase()} Protocol Active.`, 'tech');
                 updateUI();
             }
@@ -387,11 +460,16 @@
             }
         }
 
-        // The Combat Engine (Exponential Scaling)
+        function triggerGameOver() {
+            clearInterval(gameInterval);
+            document.getElementById('game-over').style.display = 'flex';
+            document.getElementById('final-wave').innerText = state.waveLevel - 1;
+        }
+
+        // The Combat Engine
         function triggerCombat() {
             log(`ALERT: LEVEL ${state.waveLevel} SWARM DETECTED! INITIATING COMBAT...`, "combat");
             
-            // Exponential scaling: Horde gets terrifying late game
             const waveMult = Math.pow(1.25, state.waveLevel - 1);
             const baseEnemyStrength = Math.floor(100 * waveMult + (state.waveLevel * 50));
             const enemyStrength = baseEnemyStrength + Math.floor(Math.random() * (50 * state.waveLevel));
@@ -400,27 +478,35 @@
             log(`Swarm Power: ${enemyStrength} | Base Defense: ${ourDefense}`);
 
             if (ourDefense >= enemyStrength) {
-                // Victory: Advance wave level
+                // Victory
                 const bounty = Math.floor(enemyStrength * 3);
                 state.credits += bounty;
                 state.waveLevel++; 
                 log(`DEFENSE HOLDING. Swarm repelled. Bounty: +${bounty} CR.`, "success");
-                log(`WARNING: Surviving natives are mutating. Next wave will be stronger.`, "combat");
             } else {
-                // Defeat: Penalties applied, wave level stays the same so you can recover
+                // Defeat - Calculate Hull Damage
                 const damage = enemyStrength - ourDefense;
-                const creditLoss = Math.floor(state.credits * 0.4); // 40% loss
+                state.hp -= damage;
+                
+                log(`DEFENSE BREACHED! Facility sustained ${damage} structural damage.`, "combat");
+                
+                // Check for Game Over
+                if (state.hp <= 0) {
+                    state.hp = 0;
+                    updateUI();
+                    triggerGameOver();
+                    return;
+                }
+                
+                // If survived the breach, lose resources
+                const creditLoss = Math.floor(state.credits * 0.2); 
                 state.credits -= creditLoss;
+                log(`Plundered! Lost ${creditLoss} CR during the breach.`, "combat");
                 
-                log(`DEFENSE BREACHED! Critical damage. Lost ${creditLoss} CR.`, "combat");
-                
-                // Severe unit losses
                 if (state.units.turret > 0 && damage > 500) {
                     state.units.turret--; log("Casualty: Plasma Battery destroyed.", "combat");
                 } else if (state.units.mech > 0 && damage > 200) {
                     state.units.mech--; log("Casualty: Aegis Mech disabled.", "combat");
-                } else if (state.units.drone > 0) {
-                    state.units.drone--; log("Casualty: Vanguard Drone destroyed.", "combat");
                 }
             }
             
@@ -429,23 +515,26 @@
         }
 
         // Game Loop
-        setInterval(() => {
-            state.credits += getIncomeRate();
-            
-            if (state.units.scientist > 0) {
-                state.threat += (0.8 + (state.units.scientist * 0.3)); // Fills faster the more scientists you have
-            }
+        function startGameLoop() {
+            gameInterval = setInterval(() => {
+                state.credits += getIncomeRate();
+                
+                if (state.units.scientist > 0) {
+                    state.threat += (0.8 + (state.units.scientist * 0.3)); 
+                }
 
-            if (state.threat >= 100) {
-                state.threat = 100;
-                updateUI();
-                triggerCombat();
-            } else {
-                updateUI();
-            }
-        }, 1000);
+                if (state.threat >= 100) {
+                    state.threat = 100;
+                    updateUI();
+                    triggerCombat();
+                } else {
+                    updateUI();
+                }
+            }, 1000);
+        }
 
         updateUI();
+        startGameLoop();
     </script>
 </body>
 </html>
