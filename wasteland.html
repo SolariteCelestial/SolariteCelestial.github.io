@@ -1,571 +1,1203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exo-Corp: RTS Command V9</title>
-    <style>
-        :root {
-            --bg: #090e17;
-            --panel: #162032;
-            --text: #e2e8f0;
-            --accent: #10b981;
-            --danger: #ef4444;
-            --gold: #f59e0b;
-            --shield: #3b82f6;
-            --tech: #8b5cf6;
-            --tactical: #0ea5e9;
-            --eco: #34d399;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHELTER 13</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070600;--bg2:#0d0b04;--bg3:#12100a;
+  --amber:#c8960c;--amber-dim:#5a420a;--amber-glow:#f0b820;
+  --green:#3a7a3a;--red:#9a2020;--red-bright:#c84040;
+  --text:#a87808;--text-dim:#5a4010;--text-bright:#d4a020;
+  --border:#1a1508;--panel:#0d0b04cc;
+  --purple:#6a3a9a;--blue:#203a7a;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.5;overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9999}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.6) 100%);pointer-events:none;z-index:9998}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg); color: var(--text);
-            margin: 0; padding: 20px; display: flex; justify-content: center;
-        }
+#game{display:flex;height:100vh;max-width:1100px;margin:0 auto}
+#header{position:absolute;top:0;left:0;right:0;max-width:1100px;margin:0 auto;padding:6px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;z-index:100;background:var(--bg)}
+#title{font-size:15px;letter-spacing:5px;color:var(--amber-glow);text-shadow:0 0 12px var(--amber),0 0 30px rgba(200,150,12,.3);animation:titleFlicker 12s infinite}
+#hud-right{color:var(--text-dim);font-size:10px;letter-spacing:2px;text-align:right;line-height:1.8}
 
-        .dashboard {
-            width: 100%; max-width: 1200px;
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-        }
+#left-panel{flex:1;margin-top:38px;padding:14px 16px;overflow-y:auto;border-right:1px solid var(--border);display:flex;flex-direction:column-reverse;scroll-behavior:smooth}
+#right-panel{width:272px;margin-top:38px;overflow-y:auto;padding:10px 12px;border-left:1px solid var(--border)}
 
-        header {
-            grid-column: 1 / -1; text-align: center; background-color: var(--panel);
-            padding: 15px 25px; border-radius: 8px; border-bottom: 4px solid var(--danger);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-        }
+#log{display:flex;flex-direction:column;gap:5px}
+.log-entry{opacity:0;animation:fadeIn .6s ease forwards;line-height:1.65;padding:1px 0}
+.log-entry.system{color:var(--text-dim);font-size:11px}
+.log-entry.lore{color:#7a6a48;font-style:italic}
+.log-entry.danger{color:var(--red-bright)}
+.log-entry.good{color:#4a8a4a}
+.log-entry.important{color:var(--amber-glow)}
+.log-entry.combat{color:#c07030}
+.log-entry.haunt{color:var(--purple);font-style:italic}
+.log-entry.dark{color:#4a2a6a;font-style:italic}
+.log-sep{border:none;border-top:1px solid var(--border);margin:4px 0;opacity:.35;width:100%}
 
-        header h1 { margin: 0 0 10px 0; font-size: 26px; color: white; text-transform: uppercase; letter-spacing: 1px;}
-        
-        .header-stats {
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 16px; font-weight: bold; margin-bottom: 5px;
-        }
+@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+@keyframes titleFlicker{0%,96%,100%{opacity:1}97%{opacity:.7}98%{opacity:1}99%{opacity:.5}}
+@keyframes barPulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes modalIn{from{opacity:0;transform:translate(-50%,-48%)}to{opacity:1;transform:translate(-50%,-50%)}}
 
-        h2, h3 { margin: 0 0 10px 0; font-size: 18px; border-bottom: 1px solid #334155; padding-bottom: 5px;}
+.s-header{color:var(--amber-dim);font-size:9px;letter-spacing:3px;text-transform:uppercase;margin:10px 0 5px;border-bottom:1px solid var(--border);padding-bottom:2px}
+.stat-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.stat-label{width:72px;font-size:10px;color:var(--text-dim)}
+.stat-outer{flex:1;height:7px;background:rgba(255,255,255,.03);border:1px solid var(--amber-dim);border-opacity:.2;overflow:hidden;position:relative}
+.stat-fill{height:100%;transition:width .4s ease}
+.stat-fill.hunger{background:linear-gradient(90deg,#6a3a10,#c06020)}
+.stat-fill.thirst{background:linear-gradient(90deg,#102060,#2060c0)}
+.stat-fill.sanity{background:linear-gradient(90deg,#3a1060,#8040c0)}
+.stat-fill.radiation{background:linear-gradient(90deg,#204010,#60c020)}
+.stat-fill.hp{background:linear-gradient(90deg,#601010,#c02020)}
+.stat-fill.crit{animation:barPulse .8s infinite}
+.stat-num{width:28px;text-align:right;font-size:10px;color:var(--text-dim)}
 
-        .panel {
-            background-color: var(--panel); padding: 15px; border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column;
-        }
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px}
+.res-row{display:flex;justify-content:space-between;font-size:10px;padding:1px 0}
+.res-name{color:var(--text-dim)}
+.res-val{color:var(--text)}
+.res-val.zero{color:var(--border)}
+.res-val.low{color:var(--red-bright)}
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-box { background-color: var(--bg); padding: 10px; border-radius: 5px; text-align: center; border: 1px solid #334155; }
-        .stat-value { font-size: 18px; font-weight: bold; margin-top: 5px; }
-        .defense-value { color: var(--shield); }
-        .wave-value { color: var(--danger); }
-        .income-value { color: var(--eco); }
+.act-btn{display:block;width:100%;padding:5px 9px;background:transparent;border:1px solid var(--amber-dim);color:var(--text);font-family:inherit;font-size:10px;letter-spacing:1px;cursor:pointer;text-align:left;position:relative;overflow:hidden;transition:color .15s,border-color .15s,background .15s;margin-bottom:3px}
+.act-btn:hover:not(:disabled){border-color:var(--amber);color:var(--amber-glow);background:rgba(200,150,12,.04)}
+.act-btn:disabled{color:var(--text-dim);border-color:var(--border);cursor:default}
+.act-btn.danger-btn{border-color:#5a1010}
+.act-btn.danger-btn:hover:not(:disabled){border-color:var(--red-bright);color:var(--red-bright);background:rgba(200,40,40,.04)}
+.act-btn.special-btn{border-color:#3a1060;color:#8040c0;animation:barPulse 2s infinite}
+.act-btn.special-btn:hover:not(:disabled){border-color:#8040c0;color:#b060f0;background:rgba(100,40,180,.06)}
+.act-btn .cost{float:right;font-size:9px;color:var(--text-dim);opacity:.7}
+.cd-bar{position:absolute;bottom:0;left:0;height:2px;background:var(--amber)}
 
-        .bar-container {
-            width: 100%; background-color: #050505; border-radius: 5px;
-            margin-top: 5px; margin-bottom: 15px; height: 22px; overflow: hidden;
-            position: relative; border: 1px solid #334155;
-        }
-        
-        .bar-fill { height: 100%; transition: width 0.3s ease-in-out, background-color 0.3s; }
-        #threat-bar { background-color: var(--danger); width: 0%; }
-        #hp-bar { background-color: var(--accent); width: 100%; }
+#combat-box{display:none;background:rgba(100,0,0,.08);border:1px solid var(--red);padding:10px;margin-bottom:10px}
+#combat-box.on{display:block}
+.enemy-name{color:var(--red-bright);font-size:12px;letter-spacing:2px;margin-bottom:5px}
+.ehp-outer{height:7px;background:rgba(255,255,255,.03);border:1px solid var(--red);margin-bottom:8px}
+.ehp-fill{height:100%;background:var(--red);transition:width .25s}
 
-        .bar-text {
-            position: absolute; top: 0; left: 0; width: 100%; text-align: center;
-            font-size: 13px; line-height: 22px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black;
-        }
+#base-info{font-size:10px;color:var(--text-dim);line-height:1.8}
 
-        button {
-            width: 100%; padding: 10px; margin-bottom: 8px; border: none; border-radius: 5px;
-            font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s;
-            background-color: #334155; color: white; display: flex; justify-content: space-between; align-items: center;
-        }
+#modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--amber-dim);padding:22px;max-width:480px;width:90vw;z-index:500;animation:modalIn .25s ease}
+#modal .modal-title{color:var(--amber-glow);letter-spacing:2px;margin-bottom:10px;font-size:11px}
+#modal .modal-body{color:#7a6a48;line-height:1.8;font-style:italic;margin-bottom:14px;white-space:pre-wrap;font-size:11px}
+#modal .modal-close{background:transparent;border:1px solid var(--amber-dim);color:var(--text);padding:5px 14px;font-family:inherit;cursor:pointer;font-size:10px;letter-spacing:1px}
 
-        button:hover:not(:disabled) { filter: brightness(1.2); }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
+#end-screen{display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:600;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px}
+#end-screen.on{display:flex}
+#end-title{font-size:22px;letter-spacing:8px;color:var(--amber-glow);margin-bottom:18px;text-shadow:0 0 20px var(--amber)}
+#end-body{max-width:520px;color:#7a6a48;line-height:1.9;font-style:italic;margin-bottom:28px;white-space:pre-wrap;font-size:12px}
+#end-restart{background:transparent;border:1px solid var(--amber);color:var(--amber);padding:9px 28px;font-family:inherit;font-size:12px;letter-spacing:3px;cursor:pointer}
+#end-restart:hover{background:rgba(200,150,12,.08)}
 
-        .btn-extract { background-color: var(--accent); justify-content: center; font-size: 15px; padding: 15px;}
-        .btn-tech { border-left: 4px solid var(--tech); }
-        .btn-locked { display: none; }
-        
-        .unit-info { text-align: left; }
-        .unit-cost { background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px; font-size: 12px; display: flex; gap: 5px; align-items: center;}
-        .supply-tag { color: #facc15; font-size: 10px; }
-        .eco-tag { color: var(--eco); font-size: 10px; }
-        .cooldown-text { color: #facc15; margin-left: 5px; font-weight: bold;}
+#night-veil{position:fixed;inset:0;background:transparent;pointer-events:none;transition:background 8s ease;z-index:10}
+#night-veil.on{background:rgba(0,0,8,.45)}
 
-        #log-container {
-            grid-column: 1 / -1; background-color: #050505; color: #10b981;
-            font-family: 'Courier New', Courier, monospace; padding: 15px;
-            height: 150px; overflow-y: auto; border-radius: 5px; border: 1px solid #334155;
-        }
-
-        .log-entry { margin-bottom: 5px; font-size: 13px; }
-        .log-combat { color: var(--danger); font-weight: bold; }
-        .log-success { color: var(--shield); }
-        .log-tech { color: var(--tech); }
-        .log-warn { color: #facc15; }
-        .log-tactical { color: var(--tactical); }
-
-        .toggle-container {
-            display: flex; justify-content: space-between; margin-bottom: 10px;
-            background: #050505; padding: 5px; border-radius: 5px; border: 1px solid #334155;
-        }
-        .toggle-btn {
-            flex: 1; padding: 5px; text-align: center; cursor: pointer; font-size: 12px; font-weight: bold;
-            border-radius: 3px; transition: 0.2s;
-        }
-        .toggle-active { background: var(--accent); color: white; }
-
-        #game-over {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center;
-        }
-        #game-over h1 { font-size: 50px; color: var(--danger); text-shadow: 0 0 20px red; margin-bottom: 10px;}
-        #game-over p { font-size: 20px; margin-bottom: 20px; }
-        #game-over button { width: 250px; padding: 15px; font-size: 16px; justify-content: center; background: var(--danger); }
-    </style>
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--amber-dim)}
+</style>
 </head>
 <body>
-
-    <div id="game-over">
-        <h1>FACILITY DESTROYED</h1>
-        <p>The swarm has overrun operations. You are a total corporate loss.</p>
-        <p>Final Wave Defeated: <span id="final-wave" style="color: var(--gold); font-weight: bold;">0</span></p>
-        <button onclick="location.reload()">Reboot Protocol</button>
+<div id="night-veil"></div>
+<div id="game">
+  <div id="header">
+    <div id="title">◈ SHELTER 13 ◈</div>
+    <div id="hud-right">
+      <div id="time-line">DAY 1 — 08:00</div>
+      <div id="special-line">LUCK 5 · PER 5</div>
     </div>
-
-    <div class="dashboard">
-        <header>
-            <h1>Exo-Corp: Base Command</h1>
-            <div class="header-stats">
-                <span>Swarm Level: <span id="wave-level" class="wave-value">1</span></span>
-                <span>Logistics (Supply): <span id="supply-text" style="color: #facc15;">0 / 20</span></span>
-                <span>Base Integrity: <span id="hp-text-header" style="color: var(--accent);">1000 / 1000</span></span>
-            </div>
-            <div class="bar-container" style="margin-bottom: 0;">
-                <div id="hp-bar" class="bar-fill"></div>
-            </div>
-        </header>
-
-        <div class="panel">
-            <h2>Command Hub</h2>
-            
-            <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                <span>Swarm Threat Radar</span>
-                <span style="color: var(--danger);">Attack at 100%</span>
-            </div>
-            <div class="bar-container">
-                <div id="threat-bar" class="bar-fill"></div>
-                <div id="threat-text" class="bar-text">0%</div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div style="font-size: 11px;">Funds</div>
-                    <div class="stat-value" style="color: var(--gold);">CR <span id="credits">0</span></div>
-                </div>
-                <div class="stat-box">
-                    <div style="font-size: 11px;">Army Strength</div>
-                    <div class="stat-value defense-value">PWR <span id="defense-power">0</span></div>
-                </div>
-            </div>
-
-            <button class="btn-extract" onclick="manualExtract()">
-                Harvest Asset (+10 CR)
-            </button>
-
-            <button id="btn-supply" onclick="buyLogistics()" style="background-color: #475569; margin-top: auto;">
-                <div class="unit-info">
-                    <div>Build Logistics Node</div>
-                    <div style="font-size: 10px; font-weight: normal;">Increases Max Supply by 10</div>
-                </div>
-                <div class="unit-cost"><span id="cost-supply">200</span> CR</div>
-            </button>
-
-            <button id="btn-repel" onclick="useRepeller()" style="background-color: var(--tactical);">
-                <div class="unit-info">
-                    <div>Sonic Repeller <span id="repel-cd" class="cooldown-text"></span></div>
-                    <div style="font-size: 10px; font-weight: normal;">-25% Threat. Cost multiplies by 1.5x.</div>
-                </div>
-                <div class="unit-cost"><span id="cost-repel">300</span> CR</div>
-            </button>
-        </div>
-
-        <div class="panel">
-            <h2>Base Infrastructure</h2>
-            <p style="font-size: 12px; color: #94a3b8; margin-top: 0;">Construct facilities to unlock units.</p>
-            
-            <button class="btn-tech" id="bldg-biolab" onclick="buildFacility('biolab')">
-                <div class="unit-info">
-                    <div>Bio-Research Lab</div>
-                    <div style="font-size: 10px; font-weight: normal;">Unlocks: Xenochemist, Vanguard Drone</div>
-                </div>
-                <div class="unit-cost">250 CR</div>
-            </button>
-
-            <button class="btn-tech" id="bldg-heavyind" onclick="buildFacility('heavyind')">
-                <div class="unit-info">
-                    <div>Heavy Industry</div>
-                    <div style="font-size: 10px; font-weight: normal;">Unlocks: Core Drill, Aero-Fighter</div>
-                </div>
-                <div class="unit-cost">1000 CR</div>
-            </button>
-
-            <button class="btn-tech" id="bldg-mechbay" onclick="buildFacility('mechbay')">
-                <div class="unit-info">
-                    <div>Advanced Mech Bay</div>
-                    <div style="font-size: 10px; font-weight: normal;">Unlocks: Aegis Mech</div>
-                </div>
-                <div class="unit-cost">3000 CR</div>
-            </button>
-            
-            <button class="btn-tech" id="bldg-orbitalgrid" onclick="buildFacility('orbitalgrid')">
-                <div class="unit-info">
-                    <div>Orbital Defense Grid</div>
-                    <div style="font-size: 10px; font-weight: normal;">Unlocks: Plasma Battery, Titan Walker</div>
-                </div>
-                <div class="unit-cost">10000 CR</div>
-            </button>
-        </div>
-
-        <div class="panel">
-            <h2>Economy & Harvesting</h2>
-            <p style="font-size: 12px; color: #94a3b8; margin-top: 0;">Costs increase by 1.25x. Consumes 0 Supply.</p>
-            
-            <div class="stat-box" style="margin-bottom: 15px; padding: 5px;">
-                <div style="font-size: 11px;">Total Passive Income</div>
-                <div class="stat-value income-value">+<span id="income-rate">0</span> CR/sec</div>
-            </div>
-
-            <button id="prod-scientist" class="btn-locked" onclick="buyEcoUnit('scientist')" style="border-left: 4px solid var(--eco);">
-                <div class="unit-info">
-                    <div>Xenochemist (<span id="count-scientist">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">+5 CR/sec.</div>
-                </div>
-                <div class="unit-cost"><span class="eco-tag">0 SUP</span> <span id="cost-scientist">50</span> CR</div>
-            </button>
-
-            <button id="prod-drill" class="btn-locked" onclick="buyEcoUnit('drill')" style="border-left: 4px solid var(--eco);">
-                <div class="unit-info">
-                    <div>Deep Core Drill (<span id="count-drill">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">+45 CR/sec. Generates heavy threat.</div>
-                </div>
-                <div class="unit-cost"><span class="eco-tag">0 SUP</span> <span id="cost-drill">400</span> CR</div>
-            </button>
-        </div>
-
-        <div class="panel">
-            <h2>Military Mass Production</h2>
-            <div class="toggle-container">
-                <div id="buy-1" class="toggle-btn toggle-active" onclick="setMultiplier(1)">Build x1</div>
-                <div id="buy-10" class="toggle-btn" onclick="setMultiplier(10)">Build x10</div>
-            </div>
-
-            <button id="prod-drone" class="btn-locked" onclick="buyMilUnit('drone')" style="border-left: 4px solid var(--shield);">
-                <div class="unit-info">
-                    <div>Vanguard Drone (<span id="count-drone">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">+10 Defense.</div>
-                </div>
-                <div class="unit-cost"><span class="supply-tag">1 SUP</span> <span id="cost-drone">100</span> CR</div>
-            </button>
-
-            <button id="prod-fighter" class="btn-locked" onclick="buyMilUnit('fighter')" style="border-left: 4px solid #818cf8;">
-                <div class="unit-info">
-                    <div>Aero-Fighter (<span id="count-fighter">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">+30 Defense. Rapid response.</div>
-                </div>
-                <div class="unit-cost"><span class="supply-tag">1 SUP</span> <span id="cost-fighter">250</span> CR</div>
-            </button>
-
-            <button id="prod-mech" class="btn-locked" onclick="buyMilUnit('mech')" style="border-left: 4px solid var(--gold);">
-                <div class="unit-info">
-                    <div>Aegis Mech (<span id="count-mech">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">+75 Defense. Solid armor.</div>
-                </div>
-                <div class="unit-cost"><span class="supply-tag">2 SUP</span> <span id="cost-mech">500</span> CR</div>
-            </button>
-            
-            <button id="prod-turret" class="btn-locked" onclick="buyMilUnit('turret')" style="border-left: 4px solid var(--danger);">
-                <div class="unit-info">
-                    <div>Plasma Battery (<span id="count-turret">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">+200 Defense. Static structure.</div>
-                </div>
-                <div class="unit-cost"><span class="supply-tag">3 SUP</span> <span id="cost-turret">1200</span> CR</div>
-            </button>
-
-            <button id="prod-titan" class="btn-locked" onclick="buyMilUnit('titan')" style="border-left: 4px solid #c026d3;">
-                <div class="unit-info">
-                    <div>Titan Walker (<span id="count-titan">0</span>)</div>
-                    <div style="font-size: 10px; font-weight: normal;">+700 Defense. Apex unit.</div>
-                </div>
-                <div class="unit-cost"><span class="supply-tag">6 SUP</span> <span id="cost-titan">3500</span> CR</div>
-            </button>
-        </div>
-
-        <div class="panel" style="grid-column: 1 / -1; padding: 0; background: none; box-shadow: none;">
-            <div id="log-container">
-                <div class="log-entry">> Establishing RTS uplink...</div>
-                <div class="log-entry">> Build Infrastructure to unlock Economy and Military units.</div>
-            </div>
-        </div>
+  </div>
+  <div id="left-panel"><div id="log"></div></div>
+  <div id="right-panel">
+    <div id="combat-box">
+      <div class="enemy-name" id="ename">ENEMY</div>
+      <div style="font-size:9px;color:var(--text-dim);margin-bottom:3px">HEALTH</div>
+      <div class="ehp-outer"><div class="ehp-fill" id="ehp" style="width:100%"></div></div>
     </div>
+    <div class="s-header">VITALS</div>
+    <div class="stat-row"><div class="stat-label">HP</div><div class="stat-outer"><div class="stat-fill hp" id="bHP"></div></div><div class="stat-num" id="vHP">100</div></div>
+    <div class="stat-row"><div class="stat-label">HUNGER</div><div class="stat-outer"><div class="stat-fill hunger" id="bHU"></div></div><div class="stat-num" id="vHU">80</div></div>
+    <div class="stat-row"><div class="stat-label">THIRST</div><div class="stat-outer"><div class="stat-fill thirst" id="bTH"></div></div><div class="stat-num" id="vTH">80</div></div>
+    <div class="stat-row"><div class="stat-label">SANITY</div><div class="stat-outer"><div class="stat-fill sanity" id="bSA"></div></div><div class="stat-num" id="vSA">100</div></div>
+    <div class="stat-row"><div class="stat-label">RADIATION</div><div class="stat-outer"><div class="stat-fill radiation" id="bRA"></div></div><div class="stat-num" id="vRA">0</div></div>
+    <div class="s-header">RESOURCES</div>
+    <div class="res-grid" id="res-display"></div>
+    <div class="s-header">INVENTORY</div>
+    <div class="res-grid" id="inv-display"></div>
+    <div class="s-header">ACTIONS</div>
+    <div id="actions"></div>
+    <div class="s-header">BASE</div>
+    <div id="base-info"></div>
+  </div>
+</div>
 
-    <script>
-        // RTS State
-        const state = {
-            credits: 150, threat: 0, waveLevel: 1, hp: 1000, maxHp: 1000,
-            supply: 0, maxSupply: 20, logisticsCost: 200, 
-            
-            // Repeller State
-            repelCost: 300,
-            repelTimer: 0,
-            repelMaxCooldown: 30, // 30 seconds
+<div id="modal">
+  <div class="modal-title" id="modal-title">RECOVERED ITEM</div>
+  <div class="modal-body" id="modal-body"></div>
+  <button class="modal-close" id="modal-close">[ CLOSE ]</button>
+</div>
 
-            buyAmount: 1,
-            
-            // Tech Tree
-            facilities: { biolab: false, heavyind: false, mechbay: false, orbitalgrid: false },
-            facilityCosts: { biolab: 250, heavyind: 1000, mechbay: 3000, orbitalgrid: 10000 },
-            
-            // Economy (Scaling Costs, 0 Supply)
-            ecoUnits: { scientist: 0, drill: 0 },
-            ecoCosts: { scientist: 50, drill: 400 },
-            
-            // Military (Flat Costs, Uses Supply)
-            milUnits: { drone: 0, fighter: 0, mech: 0, turret: 0, titan: 0 },
-            milCosts: { drone: 100, fighter: 250, mech: 500, turret: 1200, titan: 3500 },
-            milSupply: { drone: 1, fighter: 1, mech: 2, turret: 3, titan: 6 },
-            milDefense: { drone: 10, fighter: 30, mech: 75, turret: 200, titan: 700 }
-        };
+<div id="end-screen">
+  <div id="end-title">DEAD</div>
+  <div id="end-body"></div>
+  <button id="end-restart">[ NEW RUN ]</button>
+</div>
 
-        let gameInterval;
-        const elCredits = document.getElementById('credits');
-        const elDefense = document.getElementById('defense-power');
-        const logContainer = document.getElementById('log-container');
+<script>
+// ══════════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════════
 
-        // Logic Helpers
-        function getDefensePower() {
-            let total = 0;
-            for (const unit in state.milUnits) { total += state.milUnits[unit] * state.milDefense[unit]; }
-            return total;
+const LORE_DB = [
+  { id:'log001', title:'HOLOTAPE — Personal Log, Entry 1',
+    body:`Day 1 inside. I convinced twenty-three people to come with me. They thought I was paranoid.\n\nThe bombs fell this morning.\n\nI was right. I wish I wasn't.\n\n— D. Reyes, Shelter 13 Overseer` },
+  { id:'log089', title:'HOLOTAPE — Personal Log, Entry 89',
+    body:`Three people dead in the first week. Martinez went first. He was never stable, but the sealed vault finished whatever was left.\n\nWe don't talk about how the others went.\n\nWater rations are now 200ml per person. The purifier is "almost fixed." It has been almost fixed for two months.\n\n— D. Reyes` },
+  { id:'note_socks', title:'SCRAWLED NOTE — found near the generator',
+    body:`Someone stole my socks. IN THE APOCALYPSE. I am documenting this formally.\n\nAlso: Devers says the purifier is almost fixed.\n\n(It is not almost fixed. Nothing is almost fixed. We are all living in the "almost fixed" of things.)` },
+  { id:'med_log', title:'MEDICAL LOG — Dr. Abiodun Chen',
+    body:`Subject exhibits advanced dermal necrosis, loss of pigmentation, heightened aggression, and what I can only describe as luminescence.\n\nThe old books had a word for it. I won't write it here.\n\nI administered our last anti-rad dose to myself. I didn't tell the others. I'm a doctor. It was a medical decision.` },
+  { id:'yr5', title:'HOLOTAPE — Shelter Log, Day 1826',
+    body:`Five years. Twelve of us remain.\n\nWe've been sending scouts to the surface. The radiation readings are dropping in the north sector.\n\nThe scouts haven't come back.\n\nWe've stopped sending scouts.` },
+  { id:'exodus', title:'HOLOTAPE — Emergency Broadcast',
+    body:`If you find this — we left. Six of us. Heading north.\n\nThere are supplies in the lower storage. Code: 1-3-1-3. Take them. Use them.\n\nIf you're a raider: congratulations. There are seventeen cans of pre-war green beans. Enjoy.\n\nIf you're a survivor: Shelter 13 is yours now. Build something.\n\n— Last of Shelter 13` },
+  { id:'wall_warning', title:'NOTE — scratched directly into the concrete',
+    body:`SOMETHING LIVES IN THE EAST CORRIDOR AFTER DARK.\n\nI'm serious.\n\nI know you think I'm not serious.\n\nI AM EXTREMELY SERIOUS.\n\n(The handwriting gets shakier toward the end.)` },
+  { id:'lore_north', title:'FRAGMENT — torn from a hand-drawn map',
+    body:`The northern settlement — people say it's real. Past the Ashfields, beyond the Dead River, where the radiation has cleared.\n\nI've heard this before. Everyone has heard this before.\n\nBut Carla spoke to someone who came FROM there. Who walked all the way south just to tell us it exists.\n\nMaybe. Maybe.` },
+  { id:'lore_rebuild', title:'HOLOTAPE — "Dream Recording," unknown date',
+    body:`I keep dreaming of the shelter full of people. Arguing over rations. Martinez doing bad impressions. Even the worst days feel warm in the dream.\n\nWhat if someone stayed? What if someone turned this place into something real?\n\nJust a dream. But sometimes a dream is an instruction.` },
+  { id:'lore_dark', title:'NOTE — written in something that isn\'t ink',
+    body:`I've spoken to the thing in the east corridor.\n\nIt spoke back.\n\nIt said: the waste takes everything, eventually. Why fight it? Become the wasteland. Become what remains.\n\nI declined. I'm writing this note, not becoming a creature of ancient dark.\n\nI thought about it, though.` },
+];
+
+const ENEMIES = {
+  raider:{name:'RAIDER',maxHp:30,atk:[5,12],desc:'A desperate survivor with a rusty pipe and worse prospects.',loot:{caps:[5,15],scrap:[1,3],food:[0,2]},msg:"The raider falls. You search the body without feeling much about it."},
+  ghoul:{name:'FERAL GHOUL',maxHp:22,atk:[4,9],desc:'What two centuries of radiation does to a person, given motivation.',loot:{medicine:[0,1],scrap:[1,2]},msg:"The ghoul collapses. Pockets empty. Ghouls stopped shopping long ago."},
+  glowing:{name:'GLOWING ONE',maxHp:45,atk:[8,15],desc:'A ghoul so irradiated it emits light. Your dosimeter disagrees with this.',loot:{medicine:[1,3],caps:[8,18]},msg:"The glowing one dims and falls. You feel the radiation in your fillings.",rad:12},
+  mutant:{name:'SUPER MUTANT',maxHp:80,atk:[14,24],desc:'Eight feet of green fury that is somehow angrier than it looks.',loot:{scrap:[3,6],caps:[10,25],fuel:[0,2]},msg:"The super mutant hits the floor like a building collapsing. Impressive haul."},
+  robot:{name:'PROTECTRON',maxHp:55,atk:[10,18],desc:'Please stand by while your safety is being eliminated. Have a nice day.',loot:{scrap:[5,10],fuel:[1,3]},msg:"The robot sparks and goes dark. Its parts will be more useful than it was."},
+  raidBoss:{name:'RAID BOSS',maxHp:100,atk:[18,28],desc:'The one who organized the raid. Has a name. It doesn\'t matter.',loot:{caps:[20,40],scrap:[3,8],medicine:[2,4],fuel:[1,3]},msg:"The raid boss is dead. Word will spread. Maybe they\'ll leave you alone for a while."},
+};
+
+const HALLUCINATIONS = [
+  'something moves in the corner of your vision. when you look, nothing. there is never nothing.',
+  'you hear your name. nobody knows your name. you barely remember your name.',
+  'the walls are closer than they were this morning. you measure them. you are not certain.',
+  'a radio plays in a room with no radio. the song is familiar. you cannot place it.',
+  'you find a photograph in your pocket. three smiling people. one of them is definitely you.',
+  'the label on the canned beans says something different today. you put the can down. you don\'t read it again.',
+  'the shadow on the east wall is shaped like a person. the person is waving. you wave back.',
+  'you have been humming a song for six hours. you have never heard this song before.',
+  'the water from the purifier tastes like rust and old apologies.',
+  'you wake up and the fire has been tended. nobody tended the fire.',
+  'you count the resources. the numbers are the same as before. you count again.',
+  'there is writing on the floor. when you look directly at it, it disappears.',
+];
+
+const DARK_VOICES = [
+  'the dark says: you are already what you are becoming.',
+  'from the east corridor: "stay. the waste keeps everyone, eventually."',
+  'the dark says: everyone who left is gone. you are what remains.',
+  'from somewhere in the walls: "stop fighting it. the wasteland always wins."',
+  'the dark says: you could stop being afraid. you could just be.',
+];
+
+const ZONES = {
+  ruins:{name:'NEARBY RUINS',dist:1,risk:.2,days:1,desc:'Collapsed dwellings just outside the shelter. Picked over. Not empty.'},
+  town:{name:'DEAD TOWN',dist:2,risk:.35,days:3,desc:'What used to be a small town. Now a museum of stopped clocks.'},
+  bunker:{name:'MILITARY BUNKER',dist:3,risk:.6,days:7,desc:'Pre-war military installation. High radiation. High reward. High body count.'},
+};
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+
+let G, TICK_ID, CD = {};
+
+function freshState() {
+  return {
+    // Vitals
+    hp:100, maxHp:100,
+    hunger:75, thirst:75, sanity:100, radiation:0,
+    // Resources
+    res:{food:3,dirtyWater:2,cleanWater:0,scrap:5,medicine:1,fuel:0,caps:10},
+    // Inventory
+    inv:{knife:0,pipeRifle:0,molotov:0,stimpak:0,radAway:0},
+    // Base
+    base:{fire:false,generator:false,purifier:false,bench:false,storage:0,defenses:0},
+    // Time
+    day:1, hour:8, ticks:0,
+    // Phase: shelter | expedition | combat | dead | ending
+    phase:'shelter',
+    // Expedition state
+    exp:null,
+    // Combat state
+    foe:null,
+    // SPECIAL
+    luck: ri(4,7), per: ri(4,7),
+    // Flags & choices
+    flags:{
+      vehicleFound:false, strangerMet:false, strangerHelped:false,
+      settlersHere:false, darkListened:0, darkOffered:false,
+      showEscape:false, showRebuild:false,
+    },
+    lore:[],
+    choices:{threat:0, help:0, dark:0},
+    // Event timers (in ticks)
+    nextRaid: ri(600,1000),
+    nextHalluc: ri(80,160),
+    nextStranger: ri(500,800),
+    // Resource cap
+    resCap:20,
+    // Days survived
+    dayCount:0,
+  };
+}
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function rc(a,b){return Math.random()*(b-a)+a;}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function capRes(r){G.res[r]=Math.min(G.resCap,Math.max(0,G.res[r]));}
+
+// ══════════════════════════════════════════════════════════════
+// LOGGING
+// ══════════════════════════════════════════════════════════════
+
+function log(text,cls=''){
+  const el=document.createElement('div');
+  el.className=`log-entry${cls?' '+cls:''}`;
+  el.textContent=text;
+  const L=document.getElementById('log');
+  L.prepend(el);
+  // Trim
+  const entries=L.querySelectorAll('.log-entry,.log-sep');
+  if(entries.length>200){for(let i=180;i<entries.length;i++)entries[i].remove();}
+}
+function logSep(){
+  const hr=document.createElement('hr');
+  hr.className='log-sep';
+  document.getElementById('log').prepend(hr);
+}
+
+// ══════════════════════════════════════════════════════════════
+// UI
+// ══════════════════════════════════════════════════════════════
+
+function setBar(id,val,max){
+  const pct=clamp((val/max)*100,0,100);
+  const b=document.getElementById('b'+id);
+  const v=document.getElementById('v'+id);
+  if(b){b.style.width=pct+'%';if(pct<20)b.classList.add('crit');else b.classList.remove('crit');}
+  if(v)v.textContent=Math.floor(val);
+}
+
+function updateStats(){
+  setBar('HP',G.hp,G.maxHp);
+  setBar('HU',G.hunger,100);
+  setBar('TH',G.thirst,100);
+  setBar('SA',G.sanity,100);
+  setBar('RA',G.radiation,100);
+
+  // Resources
+  const RN={food:'Food',dirtyWater:'Dirty H₂O',cleanWater:'Clean H₂O',scrap:'Scrap',medicine:'Med',fuel:'Fuel',caps:'Caps'};
+  const rd=document.getElementById('res-display');
+  rd.innerHTML='';
+  for(const[k,n] of Object.entries(RN)){
+    const v=G.res[k]||0;
+    const r=document.createElement('div');r.className='res-row';
+    const isLow=(k==='food'&&v<2)||(k==='dirtyWater'&&v<2)||(k==='cleanWater'&&v===0&&G.base.purifier);
+    r.innerHTML=`<span class="res-name">${n}</span><span class="res-val${v===0?' zero':isLow?' low':''}">${v}</span>`;
+    rd.appendChild(r);
+  }
+
+  // Inventory
+  const IN={knife:'Knife',pipeRifle:'Pipe Rifle',molotov:'Molotov',stimpak:'Stimpak',radAway:'Rad-Away'};
+  const id2=document.getElementById('inv-display');
+  id2.innerHTML='';
+  for(const[k,n] of Object.entries(IN)){
+    const v=G.inv[k]||0;
+    const r=document.createElement('div');r.className='res-row';
+    r.innerHTML=`<span class="res-name">${n}</span><span class="res-val${v===0?' zero':''}">${v}</span>`;
+    id2.appendChild(r);
+  }
+
+  // Base
+  const bi=document.getElementById('base-info');
+  const parts=[];
+  if(G.base.generator)parts.push('⚡ Generator');
+  else if(G.base.fire)parts.push('🔥 Fire');
+  if(G.base.purifier)parts.push('💧 Purifier');
+  if(G.base.bench)parts.push('🔧 Workbench');
+  if(G.base.storage>0)parts.push(`📦 Storage Lv${G.base.storage}`);
+  if(G.base.defenses>0)parts.push(`🛡 Defenses Lv${G.base.defenses}`);
+  bi.innerHTML=parts.length?parts.join('<br>'):'<span style="color:var(--border)">bare concrete walls</span>';
+
+  // Time / hud
+  const ampm=G.hour<12?'AM':'PM';
+  const h12=G.hour===0?12:G.hour>12?G.hour-12:G.hour;
+  document.getElementById('time-line').textContent=`DAY ${G.day} — ${String(h12).padStart(2,'0')}:00 ${ampm}`;
+  document.getElementById('special-line').textContent=`LUCK ${G.luck} · PER ${G.per}`;
+
+  // Night
+  const night=G.hour<6||G.hour>=20;
+  document.getElementById('night-veil').className=night?'on':'';
+
+  // Combat box
+  if(G.phase==='combat'&&G.foe){
+    document.getElementById('combat-box').className='on';
+    document.getElementById('ename').textContent=G.foe.name;
+    const pct=Math.max(0,(G.foe.hp/G.foe.maxHp)*100);
+    document.getElementById('ehp').style.width=pct+'%';
+  } else {
+    document.getElementById('combat-box').className='';
+  }
+
+  renderActions();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ACTION SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+function mkBtn(id,label,cost,cls,cb){
+  const btn=document.createElement('button');
+  btn.className=`act-btn${cls?' '+cls:''}`;
+  btn.id='AB_'+id;
+  btn.innerHTML=label+(cost?` <span class="cost">${cost}</span>`:'');
+
+  const bar=document.createElement('div');
+  bar.className='cd-bar';
+  bar.id='CD_'+id;
+  bar.style.width='0%';
+  btn.appendChild(bar);
+
+  const cd=CD[id];
+  if(cd&&cd.end>Date.now()){
+    btn.disabled=true;
+    const rem=cd.end-Date.now();
+    const pct=(rem/cd.dur)*100;
+    bar.style.width=pct+'%';
+    bar.style.transition=`width ${rem}ms linear`;
+    setTimeout(()=>{bar.style.width='0%';},20);
+  }
+
+  btn.addEventListener('click',()=>{
+    if(btn.disabled)return;
+    const c=CD[id];
+    if(c&&c.end>Date.now())return;
+    cb();
+    updateStats();
+  });
+
+  return btn;
+}
+
+function addBtn(container,id,label,cost,dur,disabled,cls,cb){
+  const btn=mkBtn(id,label,cost,cls,()=>{
+    cb();
+    if(dur>0){
+      CD[id]={end:Date.now()+dur,dur};
+      btn.disabled=true;
+      const bar=document.getElementById('CD_'+id);
+      if(bar){
+        bar.style.transition='none';
+        bar.style.width='100%';
+        setTimeout(()=>{bar.style.transition=`width ${dur}ms linear`;bar.style.width='0%';},30);
+      }
+      setTimeout(()=>{delete CD[id];updateStats();},dur);
+    }
+  });
+  if(disabled)btn.disabled=true;
+  container.appendChild(btn);
+}
+
+function section(container,label){
+  const h=document.createElement('div');
+  h.className='s-header';
+  h.style.marginTop='8px';
+  h.textContent=label;
+  container.appendChild(h);
+}
+
+function renderActions(){
+  const A=document.getElementById('actions');
+  A.innerHTML='';
+
+  if(G.phase==='dead'||G.phase==='ending')return;
+
+  if(G.phase==='combat'){renderCombat(A);return;}
+  if(G.phase==='expedition'){renderExpedition(A);return;}
+
+  const r=G.res, inv=G.inv, b=G.base;
+
+  // ─── SURVIVE
+  section(A,'SURVIVE');
+  addBtn(A,'eat','Eat Food','food:1',5000,r.food<1,'',()=>{
+    r.food--;G.hunger=clamp(G.hunger+ri(18,28),0,100);G.sanity=clamp(G.sanity+2,0,100);
+    log('you eat. the beans are cold. they are always cold. it is enough.','system');
+  });
+  addBtn(A,'drink','Drink Water','water:1',4000,r.dirtyWater<1&&r.cleanWater<1,'',()=>{
+    if(r.cleanWater>0){
+      r.cleanWater--;G.thirst=clamp(G.thirst+ri(30,40),0,100);G.sanity=clamp(G.sanity+2,0,100);
+      log('clean water. you almost forgot. almost.','system');
+    } else {
+      r.dirtyWater--;G.thirst=clamp(G.thirst+ri(22,30),0,100);
+      const rg=ri(3,8);G.radiation=clamp(G.radiation+rg,0,100);
+      log(`dirty water. it keeps you alive. the radiation is the price. (+${rg} rad)`,'system');
+    }
+  });
+  if(inv.stimpak>0)addBtn(A,'stimpak','Use Stimpak','stimpak:1',8000,inv.stimpak<1||G.hp>=G.maxHp,'',()=>{
+    inv.stimpak--;const h=ri(25,45);G.hp=clamp(G.hp+h,0,G.maxHp);
+    log(`stimpak administered. the needle is familiar now. (+${h} hp)`,'good');
+  });
+  if(inv.radAway>0)addBtn(A,'radaway','Use Rad-Away','radaway:1',10000,inv.radAway<1||G.radiation<5,'',()=>{
+    inv.radAway--;const rr=ri(20,35);G.radiation=clamp(G.radiation-rr,0,100);
+    log(`rad-away taken. you feel slightly less like you're glowing. (-${rr} rad)`,'good');
+  });
+
+  // ─── SCAVENGE
+  section(A,'SCAVENGE');
+  addBtn(A,'scav','Search Shelter','30s',30000,false,'',doScavenge);
+
+  // ─── EXPLORE
+  section(A,'EXPLORE');
+  addBtn(A,'exp_ruins','→ Nearby Ruins','~2 min',0,false,'',()=>startExp('ruins'));
+  if(G.day>=3)addBtn(A,'exp_town','→ Dead Town','~4 min',0,false,'',()=>startExp('town'));
+  if(G.day>=7)addBtn(A,'exp_bunker','→ Military Bunker','~6 min',0,false,'',()=>startExp('bunker'));
+
+  // ─── BUILD
+  const buildActs=[];
+  if(!b.fire)buildActs.push(['build_fire','Build a Fire','scrap:3',15000,r.scrap<3,'',()=>build('fire')]);
+  if(b.fire&&!b.generator)buildActs.push(['build_gen','Build Generator','scrap:8 fuel:2',20000,r.scrap<8||r.fuel<2,'',()=>build('generator')]);
+  if(!b.purifier)buildActs.push(['build_pur','Water Purifier','scrap:6',20000,r.scrap<6,'',()=>build('purifier')]);
+  if(b.fire&&!b.bench)buildActs.push(['build_bench','Workbench','scrap:5',18000,r.scrap<5,'',()=>build('bench')]);
+  if(b.storage<3)buildActs.push([`build_stor`,'Upgrade Storage Lv'+(b.storage+1),`scrap:${4+b.storage*2}`,18000,r.scrap<4+b.storage*2,'',()=>build('storage')]);
+  if(b.defenses<3)buildActs.push([`build_def`,'Reinforce Defenses Lv'+(b.defenses+1),`scrap:${5+b.defenses*3}`,18000,r.scrap<5+b.defenses*3,'',()=>build('defenses')]);
+  if(buildActs.length){section(A,'BUILD');buildActs.forEach(a=>addBtn(A,...a));}
+
+  // ─── PURIFY (manual)
+  if(b.purifier&&r.dirtyWater>=1){
+    section(A,'PURIFY');
+    addBtn(A,'purify','Run Purifier','dirty:1→clean:2',20000,r.dirtyWater<1,'',()=>{
+      r.dirtyWater--;r.cleanWater=Math.min(G.resCap,(r.cleanWater||0)+2);
+      log('the purifier hums. dirty water in, clean water out.','good');
+    });
+  }
+
+  // ─── CRAFT
+  if(b.bench){
+    section(A,'CRAFT');
+    if(!b.purifier||r.dirtyWater>=2)addBtn(A,'cr_water','Purify Water x1','dirty:2',8000,r.dirtyWater<2,'',()=>{
+      r.dirtyWater-=2;r.cleanWater=Math.min(G.resCap,(r.cleanWater||0)+1);
+      log('water filtered through salvaged charcoal. good enough.','good');
+    });
+    addBtn(A,'cr_stim','Craft Stimpak','med:2 scrap:1',14000,r.medicine<2||r.scrap<1,'',()=>{
+      r.medicine-=2;r.scrap--;inv.stimpak++;
+      log('stimpak assembled. medically questionable. practically necessary.','good');
+    });
+    addBtn(A,'cr_rad','Craft Rad-Away','med:3',14000,r.medicine<3,'',()=>{
+      r.medicine-=3;inv.radAway++;
+      log('rad-away mixed. it smells like industrial solvent and hope.','good');
+    });
+    if(!inv.knife)addBtn(A,'cr_knife','Craft Knife','scrap:3',10000,r.scrap<3,'',()=>{
+      r.scrap-=3;inv.knife++;
+      log('a blade shaped from scrap metal. crude. efficient.','good');
+    });
+    if(!inv.pipeRifle)addBtn(A,'cr_rifle','Craft Pipe Rifle','scrap:5 fuel:2',22000,r.scrap<5||r.fuel<2,'',()=>{
+      r.scrap-=5;r.fuel-=2;inv.pipeRifle++;
+      log('the pipe rifle is ugly and dangerous. mostly dangerous.','good');
+    });
+    addBtn(A,'cr_molo','Craft Molotov','fuel:2 scrap:1',8000,r.fuel<2||r.scrap<1,'',()=>{
+      r.fuel-=2;r.scrap--;inv.molotov++;
+      log('fire in a bottle. nothing solves problems like fire.','good');
+    });
+  }
+
+  // ─── DARK (sanity < 20)
+  if(G.sanity<20&&G.radiation>40){
+    section(A,'THE DARK');
+    addBtn(A,'dark_listen','Listen to the Walls','...',0,false,'special-btn',()=>darkAction());
+  }
+
+  // ─── ENDINGS
+  if(G.flags.showEscape){
+    section(A,'ESCAPE NORTH');
+    addBtn(A,'end_north','★ FLEE NORTH','fuel:5 caps:20',0,G.res.fuel<5||G.res.caps<20,'',doEscapeEnd);
+  }
+  if(G.flags.showRebuild){
+    section(A,'REBUILD');
+    addBtn(A,'end_rebuild','★ FOUND SETTLEMENT','',0,false,'',doRebuildEnd);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// GAMEPLAY ACTIONS
+// ══════════════════════════════════════════════════════════════
+
+function doScavenge(){
+  const roll=Math.random()+(G.per-5)*0.04;
+  const found=[];
+  if(roll>0.25){const n=ri(1,2+(roll>0.6?1:0));G.res.food=Math.min(G.resCap,G.res.food+n);found.push(`${n} food`);}
+  if(roll>0.35){const n=ri(1,2);G.res.dirtyWater=Math.min(G.resCap,G.res.dirtyWater+n);found.push(`${n} dirty water`);}
+  if(roll>0.45){const n=ri(1,3);G.res.scrap=Math.min(G.resCap,G.res.scrap+n);found.push(`${n} scrap`);}
+  if(roll>0.65&&Math.random()>.5){G.res.medicine=Math.min(G.resCap,G.res.medicine+1);found.push('1 medicine');}
+  if(roll>0.75&&Math.random()>.6){G.res.caps+=ri(2,5);found.push(`${ri(2,5)} caps`);}
+  G.sanity=clamp(G.sanity-1.5,0,100);
+  if(found.length)log(`rummaging through the dark — found: ${found.join(', ')}.`,'good');
+  else log('you search. the shelter has given everything it has.','system');
+  // Chance to reveal lore
+  if(Math.random()>.65)tryRevealLore(['log001','log089','note_socks','med_log','yr5','wall_warning']);
+}
+
+function build(name){
+  const costs={fire:{scrap:3},generator:{scrap:8,fuel:2},purifier:{scrap:6},bench:{scrap:5},storage:{scrap:4+G.base.storage*2},defenses:{scrap:5+G.base.defenses*3}};
+  const cost=costs[name];
+  for(const[k,v] of Object.entries(cost)){if((G.res[k]||0)<v){log(`not enough ${k}.`,'danger');return;}}
+  for(const[k,v] of Object.entries(cost))G.res[k]-=v;
+
+  const msgs={
+    fire:'you build a fire in the center of the shelter. the light is small. it is enough.',
+    generator:'the generator coughs to life. you have electricity now. you feel almost human.',
+    purifier:'the water purifier hums. purified water. a luxury in the end of everything.',
+    bench:'a workbench from salvaged parts. crafting unlocked.',
+    storage:'storage expanded. more room for more things.',
+    defenses:'defenses reinforced. the wasteland will have to work harder.',
+  };
+
+  if(name==='fire')G.base.fire=true;
+  else if(name==='generator'){G.base.generator=true;G.base.fire=true;}
+  else if(name==='purifier')G.base.purifier=true;
+  else if(name==='bench')G.base.bench=true;
+  else if(name==='storage'){G.base.storage++;G.resCap=20+G.base.storage*10;}
+  else if(name==='defenses')G.base.defenses++;
+
+  log(msgs[name],'good');
+  checkEndings();
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPEDITIONS
+// ══════════════════════════════════════════════════════════════
+
+function startExp(zone){
+  G.phase='expedition';
+  const expId=Date.now();
+  G.exp={zone,id:expId};
+  const z=ZONES[zone];
+
+  logSep();
+  log(`you leave the shelter. the wasteland exhales. it was waiting.`,'important');
+  log(`heading: ${z.name}.`,'system');
+
+  const numEvt=ri(2,4)+(zone==='bunker'?2:0);
+  const baseDel=z.dist*2500;
+  const evtInt=3000+ri(0,2000);
+
+  for(let i=0;i<numEvt;i++){
+    const delay=baseDel+i*evtInt;
+    setTimeout(()=>{
+      if(!G.exp||G.exp.id!==expId)return;
+      if(G.phase==='dead'||G.phase==='ending')return;
+      if(G.phase==='combat'){
+        // wait for combat
+        const wait=setInterval(()=>{
+          if(G.phase!=='combat'){clearInterval(wait);
+            if(!G.exp||G.exp.id!==expId)return;
+            runExpEvt(zone,expId);
+          }
+        },500);
+      } else {
+        runExpEvt(zone,expId);
+      }
+    },delay);
+  }
+
+  const retDel=baseDel+numEvt*evtInt+3000;
+  setTimeout(()=>{
+    if(!G.exp||G.exp.id!==expId)return;
+    if(G.phase==='combat'){
+      const wait=setInterval(()=>{
+        if(G.phase!=='combat'){clearInterval(wait);
+          if(!G.exp||G.exp.id!==expId)return;
+          returnExp(expId);}
+      },500);
+    } else {
+      returnExp(expId);
+    }
+  },retDel);
+}
+
+function runExpEvt(zone,expId){
+  if(!G.exp||G.exp.id!==expId)return;
+  G.phase='expedition';
+  const z=ZONES[zone];
+  const risk=z.risk-(G.luck-5)*0.04;
+
+  if(Math.random()<risk){
+    const pools={
+      ruins:['raider','ghoul'],
+      town:['raider','ghoul','glowing','mutant'],
+      bunker:['glowing','mutant','robot'],
+    };
+    const pool=pools[zone];
+    const eid=pool[Math.floor(Math.random()*pool.length)];
+    const e=ENEMIES[eid];
+    startCombat({...e,hp:e.maxHp},expId);
+    return;
+  }
+
+  // Loot / story events
+  const evts={
+    ruins:[
+      ()=>{const f=ri(1,3),s=ri(1,3);G.res.food+=f;G.res.scrap+=s;['food','scrap'].forEach(capRes);log(`a collapsed home yields: ${f} food, ${s} scrap.`,'good');},
+      ()=>{const w=ri(1,2);G.res.dirtyWater+=w;capRes('dirtyWater');log(`cracked water jugs. still wet. (+${w} dirty water)`,'good');},
+      ()=>{const c=ri(3,10);G.res.caps+=c;log(`caps scattered like dropped hope. (+${c} caps)`,'good');},
+      ()=>{G.res.medicine=Math.min(G.resCap,G.res.medicine+1);log('a medicine cabinet, mostly empty. one bottle survives. (+1 medicine)','good');},
+      ()=>{G.sanity=clamp(G.sanity-6,0,100);log('a child\'s drawing on the wall. you study it for too long. you put nothing in your pack.','lore');},
+      ()=>{G.sanity=clamp(G.sanity-4,0,100);log('a skeleton at a desk, pen still in hand, paper blank. they had something to say.','lore');},
+      ()=>{tryRevealLore(['log001','log089','wall_warning']);log('papers scattered across a table. you read while the wind watches.','lore');},
+    ],
+    town:[
+      ()=>{const f=ri(2,5),s=ri(2,5),c=ri(5,15);G.res.food+=f;G.res.scrap+=s;G.res.caps+=c;['food','scrap'].forEach(capRes);log(`a general store, picked over but not empty. (+${f} food, +${s} scrap, +${c} caps)`,'good');},
+      ()=>{const fu=ri(1,3);G.res.fuel+=fu;capRes('fuel');log(`gas station. pumps dry. back room had containers. (+${fu} fuel)`,'good');},
+      ()=>{G.sanity=clamp(G.sanity+10,0,100);log('a radio, somehow functional. you listen to one pre-war song before leaving. (+10 sanity)','good');},
+      ()=>tryRevealVehicle(),
+      ()=>tryMeetStranger(expId),
+      ()=>{const m=ri(1,2);G.res.medicine+=m;capRes('medicine');log(`a clinic, ransacked. still yielded something. (+${m} medicine)`,'good');},
+      ()=>{G.sanity=clamp(G.sanity-5,0,100);log('the town square has a monument. someone scratched "WHAT FOR" into the base. you have no answer.','lore');},
+      ()=>{tryRevealLore(['log089','yr5','exodus','lore_north']);},
+    ],
+    bunker:[
+      ()=>{const s=ri(5,10),fu=ri(1,3);G.res.scrap+=s;G.res.fuel+=fu;['scrap','fuel'].forEach(capRes);log(`military locker. rust and treasure. (+${s} scrap, +${fu} fuel)`,'good');},
+      ()=>{const m=ri(2,5);G.res.medicine+=m;capRes('medicine');log(`military medkits. expired 2085. better than nothing by a century. (+${m} medicine)`,'good');},
+      ()=>{const rg=ri(10,25);G.radiation=clamp(G.radiation+rg,0,100);log(`a hot room in the bunker. you learn this the hard way. (+${rg} rad)`,'danger');},
+      ()=>{const c=ri(20,50);G.res.caps+=c;log(`paymaster's lockbox. the army paid in caps to the end. (+${c} caps)`,'good');},
+      ()=>{tryRevealLore(['yr5','exodus','lore_north','lore_dark']);log('a terminal on emergency power. you read what\'s there.','lore');},
+      ()=>{const s=ri(3,7);G.res.scrap+=s;capRes('scrap');log(`armory remnants. picked over but useful. (+${s} scrap)`,'good');},
+    ],
+  };
+  const pool=evts[zone];
+  pool[Math.floor(Math.random()*pool.length)]();
+  updateStats();
+}
+
+function tryRevealVehicle(){
+  if(!G.flags.vehicleFound){
+    G.flags.vehicleFound=true;
+    log('a vehicle. battered, possibly functional. your mind starts calculating.','important');
+    log('with enough fuel and caps, you could leave this place entirely. head north.','lore');
+    tryRevealLore(['lore_north']);
+  } else {
+    const fu=ri(1,2);G.res.fuel+=fu;capRes('fuel');
+    log(`scavenging the vehicle bay. still something left. (+${fu} fuel)`,'good');
+  }
+}
+
+function tryMeetStranger(expId){
+  if(G.flags.strangerMet||G.flags.settlersHere)return;
+  G.flags.strangerMet=true;
+  log('a figure in the road. hands raised.','important');
+  log('"we\'re not a threat," they say. this is exactly what a threat says. they mention a group — looking for shelter.','lore');
+
+  G.phase='shelter'; // pause expedition
+  setTimeout(()=>showStrangerChoice(expId),400);
+}
+
+function showStrangerChoice(expId){
+  const A=document.getElementById('actions');
+  A.innerHTML='';
+  const h=document.createElement('div');h.className='s-header';h.textContent='THE STRANGER';A.appendChild(h);
+  const p=document.createElement('div');p.style.cssText='font-size:10px;color:var(--text-dim);padding:6px 0;line-height:1.7';
+  p.textContent='"six of us. we have skills. we can help you rebuild this shelter into something real. or we can go."';A.appendChild(p);
+
+  const choices=[
+    {l:'Welcome them inside',cls:'',fn:()=>{
+      G.flags.strangerHelped=true;G.flags.settlersHere=true;G.choices.help++;
+      G.res.food=Math.min(G.resCap,G.res.food+4);G.res.medicine=Math.min(G.resCap,G.res.medicine+2);
+      G.sanity=clamp(G.sanity+15,0,100);
+      log('you step aside. six people file in — eyes suspicious and grateful in equal measure.','good');
+      log('settlers have arrived at shelter 13. they bring what they have.','important');
+      tryRevealLore(['lore_rebuild']);
+      resumeExp(expId);checkEndings();
+    }},
+    {l:'Turn them away',cls:'',fn:()=>{
+      G.sanity=clamp(G.sanity-5,0,100);
+      log('you shake your head. they leave without argument. you watch until dark takes them.','system');
+      log('the shelter feels emptier than it did. you didn\'t think that was possible.','lore');
+      resumeExp(expId);
+    }},
+    {l:'Drive them off (threaten)',cls:'danger-btn',fn:()=>{
+      G.choices.threat++;
+      log('you raise whatever you have. they scatter into the dark.','danger');
+      log('they dropped something in their panic.','system');
+      G.res.food=Math.min(G.resCap,G.res.food+2);
+      tryRevealLore(['lore_dark']);
+      resumeExp(expId);
+    }},
+  ];
+
+  choices.forEach(c=>{
+    const btn=document.createElement('button');btn.className=`act-btn ${c.cls}`;btn.textContent=c.l;
+    btn.addEventListener('click',()=>{c.fn();updateStats();});A.appendChild(btn);
+  });
+}
+
+function resumeExp(expId){
+  if(G.exp&&G.exp.id===expId)G.phase='expedition';
+}
+
+function returnExp(expId){
+  if(!G.exp||G.exp.id!==expId)return;
+  const zone=G.exp.zone;
+  G.exp=null;
+  G.phase='shelter';
+  logSep();
+  log('you return to the shelter. the familiar dark wraps around you.','system');
+  const dist=ZONES[zone].dist;
+  G.hunger=clamp(G.hunger-10*dist,0,100);
+  G.thirst=clamp(G.thirst-14*dist,0,100);
+  G.sanity=clamp(G.sanity-5*dist,0,100);
+  if(zone==='bunker'){const rg=ri(5,12);G.radiation=clamp(G.radiation+rg,0,100);log(`the bunker leaves its mark. (+${rg} rad)`,'danger');}
+  checkEndings();updateStats();
+}
+
+function renderExpedition(A){
+  const h=document.createElement('div');h.className='s-header';h.textContent='ON EXPEDITION';A.appendChild(h);
+  const zone=G.exp?.zone;
+  if(zone){const p=document.createElement('div');p.style.cssText='font-size:10px;color:var(--amber-dim);padding:4px 0';p.textContent=`→ ${ZONES[zone].name}`;A.appendChild(p);}
+  const p=document.createElement('div');p.style.cssText='font-size:10px;color:var(--text-dim);padding:4px 0';p.textContent='events unfold automatically. stay alive.';A.appendChild(p);
+  const btn=document.createElement('button');btn.className='act-btn danger-btn';btn.innerHTML='← EMERGENCY RETREAT <span class="cost">-25 hp</span>';
+  btn.addEventListener('click',()=>{
+    G.hp=Math.max(1,G.hp-25);
+    log('you run. the wasteland lets you go this time. (-25 hp)','danger');
+    const id=G.exp?.id;G.exp=null;G.phase='shelter';updateStats();
+  });
+  A.appendChild(btn);
+}
+
+// ══════════════════════════════════════════════════════════════
+// COMBAT
+// ══════════════════════════════════════════════════════════════
+
+function startCombat(enemy,expId){
+  G.phase='combat';
+  G.foe={...enemy,expId};
+  logSep();
+  log(`⚠ ${enemy.name}`,  'danger');
+  log(enemy.desc,'lore');
+  updateStats();
+}
+
+function renderCombat(A){
+  const h=document.createElement('div');h.className='s-header';h.style.color='var(--red-bright)';h.textContent='⚠ COMBAT';A.appendChild(h);
+
+  const weapons=[
+    {id:'w_fist',l:'Attack: Fists',dmg:[3,8],ok:true,consume:null},
+    {id:'w_knife',l:'Attack: Knife',dmg:[8,16],ok:G.inv.knife>0,consume:null},
+    {id:'w_rifle',l:'Attack: Pipe Rifle',dmg:[15,25],ok:G.inv.pipeRifle>0,consume:null},
+    {id:'w_molo',l:'Throw Molotov',dmg:[22,38],ok:G.inv.molotov>0,consume:'molotov'},
+  ];
+  const utils=[
+    {id:'c_stim',l:'Use Stimpak',ok:G.inv.stimpak>0,isHeal:true},
+    {id:'c_flee',l:'Flee',ok:true,isFlee:true},
+  ];
+
+  const CD_COMBAT='combat_swing';
+  const onCooldown=CD[CD_COMBAT]&&CD[CD_COMBAT].end>Date.now();
+
+  [...weapons,...utils].forEach(w=>{
+    if(!w.ok)return;
+    const btn=document.createElement('button');
+    btn.className='act-btn'+(w.isFlee?' danger-btn':'');
+    btn.textContent=w.l;
+    if(onCooldown)btn.disabled=true;
+    btn.addEventListener('click',()=>{
+      if(CD[CD_COMBAT]&&CD[CD_COMBAT].end>Date.now())return;
+      CD[CD_COMBAT]={end:Date.now()+1400,dur:1400};
+      setTimeout(()=>{delete CD[CD_COMBAT];updateStats();},1400);
+
+      if(w.isHeal){
+        G.inv.stimpak--;const h=ri(25,45);G.hp=clamp(G.hp+h,0,G.maxHp);
+        log(`stimpak used. (+${h} hp)`,'good');enemyTurn();
+      } else if(w.isFlee){
+        const chance=.45+(G.luck-5)*.05;
+        if(Math.random()<chance){
+          G.hp=Math.max(1,G.hp-15);log('you run. this time the wasteland lets you. (-15 hp)','system');
+          endCombat(false);
+        } else {
+          log('you try to flee. fail.','danger');G.hp=Math.max(1,G.hp-10);enemyTurn();
         }
-        
-        function getIncomeRate() { 
-            return (state.ecoUnits.scientist * 5) + (state.ecoUnits.drill * 45); 
-        }
+      } else {
+        if(w.consume)G.inv[w.consume]--;
+        let dmg=ri(w.dmg[0],w.dmg[1]);
+        dmg=Math.round(dmg*(1+(G.luck-5)*.05));
+        G.foe.hp=Math.max(0,G.foe.hp-dmg);
+        const atks=['you hit','you connect','you strike','you land a blow'];
+        log(`${atks[Math.floor(Math.random()*atks.length)]}. ${G.foe.name} takes ${dmg} damage.`,'combat');
+        if(G.foe.hp<=0){endCombat(true);return;}
+        enemyTurn();
+      }
+      updateStats();
+    });
+    A.appendChild(btn);
+  });
+}
 
-        function calculateSupply() {
-            let total = 0;
-            for (const unit in state.milUnits) { total += state.milUnits[unit] * state.milSupply[unit]; }
-            state.supply = total;
-        }
+function enemyTurn(){
+  if(!G.foe)return;
+  let dmg=ri(G.foe.atk[0],G.foe.atk[1]);
+  if(G.base.defenses>0&&G.phase==='shelter')dmg=Math.floor(dmg*(1-G.base.defenses*.12));
+  G.hp=clamp(G.hp-dmg,0,G.maxHp);
+  if(G.foe.rad){G.radiation=clamp(G.radiation+G.foe.rad,0,100);log(`intense radiation. (+${G.foe.rad} rad)`,'danger');}
+  const atks=[`${G.foe.name} strikes back.`,`${G.foe.name} attacks.`,`${G.foe.name} retaliates.`];
+  log(`${atks[Math.floor(Math.random()*atks.length)]} -${dmg} hp`,'danger');
+  if(G.hp<=0)die(`you fall to the ${G.foe.name.toLowerCase()}. the wasteland was not impressed.`);
+}
 
-        function log(message, type = 'normal') {
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type ? 'log-' + type : ''}`;
-            entry.innerText = `> ${message}`;
-            logContainer.appendChild(entry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
+function endCombat(won){
+  if(!G.foe)return;
+  const foe=G.foe;
+  if(won){
+    log(foe.msg,'good');
+    for(const[k,range] of Object.entries(foe.loot)){
+      const amt=ri(range[0],range[1]);
+      if(amt<=0)continue;
+      if(k in G.res){G.res[k]=Math.min(G.resCap,G.res[k]+amt);}
+      else if(k in G.inv){G.inv[k]+=amt;}
+    }
+    G.sanity=clamp(G.sanity-8,0,100);
+    log('killing takes something. it always does.','system');
+  }
+  G.foe=null;
+  G.phase=G.exp?'expedition':'shelter';
+  updateStats();
+}
 
-        function setMultiplier(amount) {
-            state.buyAmount = amount;
-            document.getElementById('buy-1').className = `toggle-btn ${amount === 1 ? 'toggle-active' : ''}`;
-            document.getElementById('buy-10').className = `toggle-btn ${amount === 10 ? 'toggle-active' : ''}`;
-            updateUI();
-        }
+// ══════════════════════════════════════════════════════════════
+// TICK SYSTEM
+// ══════════════════════════════════════════════════════════════
 
-        function updateUI() {
-            elCredits.innerText = Math.floor(state.credits);
-            elDefense.innerText = getDefensePower();
-            document.getElementById('income-rate').innerText = getIncomeRate();
-            document.getElementById('wave-level').innerText = state.waveLevel;
-            
-            document.getElementById('threat-bar').style.width = `${Math.min(state.threat, 100)}%`;
-            document.getElementById('threat-text').innerText = `${Math.floor(state.threat)}%`;
-            
-            const hpPercent = (state.hp / state.maxHp) * 100;
-            document.getElementById('hp-bar').style.width = `${Math.max(hpPercent, 0)}%`;
-            document.getElementById('hp-text-header').innerText = `${Math.floor(state.hp)} / ${state.maxHp}`;
-            
-            calculateSupply();
-            document.getElementById('supply-text').innerText = `${state.supply} / ${state.maxSupply}`;
-            document.getElementById('supply-text').style.color = state.supply >= state.maxSupply ? 'var(--danger)' : '#facc15';
+function tick(){
+  G.ticks++;
+  if(G.phase==='dead'||G.phase==='ending')return;
 
-            // Facilities UI
-            for (const bldg in state.facilities) {
-                const btn = document.getElementById(`bldg-${bldg}`);
-                if (state.facilities[bldg]) {
-                    btn.style.backgroundColor = 'var(--accent)';
-                    btn.innerHTML = `<div style="text-align: center; width: 100%; font-weight: bold;">ONLINE</div>`;
-                    btn.disabled = true;
-                } else {
-                    btn.disabled = state.credits < state.facilityCosts[bldg];
-                }
-            }
+  // Time: 1 in-game hour = 15 ticks
+  if(G.ticks%15===0){
+    G.hour++;
+    if(G.hour>=24){G.hour=0;G.day++;G.dayCount++;dailyEvent();}
+    updateStats();
+  }
 
-            // Unlocks Visibility
-            if (state.facilities.biolab) { document.getElementById('prod-scientist').style.display = 'flex'; document.getElementById('prod-drone').style.display = 'flex'; }
-            if (state.facilities.heavyind) { document.getElementById('prod-drill').style.display = 'flex'; document.getElementById('prod-fighter').style.display = 'flex'; }
-            if (state.facilities.mechbay) { document.getElementById('prod-mech').style.display = 'flex'; }
-            if (state.facilities.orbitalgrid) { document.getElementById('prod-turret').style.display = 'flex'; document.getElementById('prod-titan').style.display = 'flex'; }
+  // Stat decay every 5 ticks
+  if(G.ticks%5===0){
+    const night=G.hour<6||G.hour>=20;
+    const lit=G.base.fire||G.base.generator;
 
-            // Eco Units UI
-            for (const unit in state.ecoUnits) {
-                document.getElementById(`count-${unit}`).innerText = state.ecoUnits[unit];
-                document.getElementById(`cost-${unit}`).innerText = state.ecoCosts[unit];
-                document.getElementById(`prod-${unit}`).disabled = state.credits < state.ecoCosts[unit];
-            }
+    G.hunger=clamp(G.hunger-1,0,100);
+    G.thirst=clamp(G.thirst-1.5,0,100);
 
-            // Mil Units UI
-            for (const unit in state.milUnits) {
-                document.getElementById(`count-${unit}`).innerText = state.milUnits[unit];
-                const cost = state.milCosts[unit] * state.buyAmount;
-                const reqSupply = state.milSupply[unit] * state.buyAmount;
-                
-                document.getElementById(`cost-${unit}`).innerText = cost;
-                document.getElementById(`prod-${unit}`).disabled = state.credits < cost || (state.supply + reqSupply > state.maxSupply);
-            }
+    let sd=0.4;
+    if(night&&!lit)sd+=0.6;
+    if(G.radiation>60)sd+=0.4;
+    if(G.phase==='expedition')sd+=0.3;
+    if(G.choices.dark>0)sd+=0.2;
+    G.sanity=clamp(G.sanity-sd,0,100);
 
-            // Command UI
-            document.getElementById('cost-supply').innerText = state.logisticsCost;
-            document.getElementById('btn-supply').disabled = state.credits < state.logisticsCost;
-            
-            // Repeller UI Update
-            document.getElementById('cost-repel').innerText = state.repelCost;
-            const btnRepel = document.getElementById('btn-repel');
-            const cdText = document.getElementById('repel-cd');
-            
-            if (state.repelTimer > 0) {
-                btnRepel.disabled = true;
-                cdText.innerText = `[${state.repelTimer}s]`;
-            } else {
-                btnRepel.disabled = state.credits < state.repelCost || state.threat < 10;
-                cdText.innerText = '';
-            }
-        }
+    // HP damage
+    if(G.hunger<=0){G.hp=clamp(G.hp-0.8,0,G.maxHp);if(G.ticks%25===0)log('starvation.','danger');}
+    if(G.thirst<=0){G.hp=clamp(G.hp-1.2,0,G.maxHp);if(G.ticks%20===0)log('dehydration.','danger');}
 
-        // Actions
-        function manualExtract() { state.credits += 10; state.threat += 0.8; updateUI(); }
+    // Radiation caps maxHp
+    G.maxHp=Math.max(15,100-Math.floor(G.radiation/3));
+    if(G.hp>G.maxHp)G.hp=G.maxHp;
 
-        function buyLogistics() {
-            if (state.credits >= state.logisticsCost) {
-                state.credits -= state.logisticsCost;
-                state.maxSupply += 10;
-                state.logisticsCost = Math.floor(state.logisticsCost * 1.4); 
-                log("Logistics Node online. Supply cap increased.", "tech");
-                updateUI();
-            }
-        }
+    if(G.hp<=0){
+      const r=G.hunger<=0?'starvation':G.thirst<=0?'thirst':G.radiation>=100?'radiation poisoning':'wounds';
+      die(`you die of ${r}.`);return;
+    }
 
-        function useRepeller() {
-            if (state.credits >= state.repelCost && state.threat >= 10 && state.repelTimer === 0) {
-                state.credits -= state.repelCost;
-                state.threat = Math.max(0, state.threat - 25);
-                log(`Sonic Repeller fired. Swarm scattered. System cooling down.`, "tactical");
-                
-                // Increase cost by 1.5x for the next use
-                state.repelCost = Math.floor(state.repelCost * 1.5);
-                
-                // Activate Cooldown
-                state.repelTimer = state.repelMaxCooldown;
-                updateUI();
-            }
-        }
+    // Warnings (every 20 ticks)
+    if(G.ticks%20===0){
+      if(G.hunger<20)log('hunger gnaws. you need to eat.','danger');
+      if(G.thirst<20)log('your throat is ash. you need water.','danger');
+      if(G.sanity<25)log('the edges of things are getting softer.','haunt');
+      if(G.radiation>75&&G.ticks%40===0)log('your hair is starting to reconsider its commitment.','danger');
+    }
 
-        function buildFacility(type) {
-            if (state.credits >= state.facilityCosts[type] && !state.facilities[type]) {
-                state.credits -= state.facilityCosts[type];
-                state.facilities[type] = true;
-                log(`FACILITY CONSTRUCTED: ${type.toUpperCase()}. Production unlocked.`, "tech");
-                updateUI();
-            }
-        }
+    updateStats();
+  }
 
-        function buyEcoUnit(type) {
-            if (state.credits >= state.ecoCosts[type]) {
-                state.credits -= state.ecoCosts[type];
-                state.ecoUnits[type]++;
-                state.ecoCosts[type] = Math.floor(state.ecoCosts[type] * 1.25); 
-                updateUI();
-            }
-        }
+  // Hallucinations
+  if(G.sanity<40&&G.ticks>=G.nextHalluc){
+    G.nextHalluc=G.ticks+ri(40,100);
+    const h=HALLUCINATIONS[Math.floor(Math.random()*HALLUCINATIONS.length)];
+    log(h,'haunt');
+    if(G.sanity<15&&G.radiation>40){
+      const dv=DARK_VOICES[Math.floor(Math.random()*DARK_VOICES.length)];
+      setTimeout(()=>log(dv,'dark'),1500);
+    }
+  }
 
-        function buyMilUnit(type) {
-            const cost = state.milCosts[type] * state.buyAmount;
-            const reqSupply = state.milSupply[type] * state.buyAmount;
-            if (state.credits >= cost && (state.supply + reqSupply <= state.maxSupply)) {
-                state.credits -= cost;
-                state.milUnits[type] += state.buyAmount;
-                updateUI();
-            }
-        }
+  // Night raids
+  if(G.ticks>=G.nextRaid&&G.phase==='shelter'&&(G.hour<5||G.hour>=21)){
+    G.nextRaid=G.ticks+ri(600,1200);
+    nightRaid();
+  }
 
-        // Combat Engine
-        function triggerGameOver() {
-            clearInterval(gameInterval);
-            document.getElementById('game-over').style.display = 'flex';
-            document.getElementById('final-wave').innerText = state.waveLevel - 1;
-        }
+  // Passive purifier
+  if(G.base.purifier&&G.ticks%90===0&&G.res.dirtyWater>0){
+    G.res.dirtyWater--;G.res.cleanWater=Math.min(G.resCap,(G.res.cleanWater||0)+1);
+    log('the purifier runs quietly. one more clean water.','system');
+  }
+}
 
-        function processMilLoss(type, amount) {
-            const actualLoss = Math.min(state.milUnits[type], amount);
-            state.milUnits[type] -= actualLoss;
-            const payout = (state.milCosts[type] * 0.5) * actualLoss;
-            state.credits += payout;
-            if (actualLoss > 0) log(`Lost ${actualLoss}x ${type.toUpperCase()}. Insurance payout: +${payout} CR.`, "warn");
-        }
+function dailyEvent(){
+  const evts=[
+    ()=>log(`day ${G.day}. the sun rises over the ashfields.`,'system'),
+    ()=>log(`day ${G.day}. distant gunfire. close enough to hear, far enough to not care about.`,'system'),
+    ()=>{G.res.dirtyWater=Math.min(G.resCap,G.res.dirtyWater+1);log(`day ${G.day}. light rain. you set out containers. (+1 dirty water)`,'good');},
+    ()=>log(`day ${G.day}. a radio signal, fragmentary. voices, then static.`,'lore'),
+    ()=>{G.sanity=clamp(G.sanity+5,0,100);log(`day ${G.day}. a good night's rest. these are rare. (+5 sanity)`,'good');},
+    ()=>log(`day ${G.day}. something large moved past the shelter last night. it didn't come in.`,'lore'),
+    ()=>{G.res.scrap=Math.min(G.resCap,G.res.scrap+1);log(`day ${G.day}. debris from a collapsed wall. (+1 scrap)`,'good');},
+    ()=>log(`day ${G.day}. quiet. you're not sure if quiet is good or bad anymore.`,'system'),
+  ];
+  evts[Math.floor(Math.random()*evts.length)]();
+  checkEndings();
+}
 
-        function triggerCombat() {
-            log(`ALERT: LEVEL ${state.waveLevel} SWARM DETECTED!`, "combat");
-            
-            const waveMult = Math.pow(1.25, state.waveLevel - 1);
-            const enemyStrength = Math.floor(100 * waveMult + (state.waveLevel * 50)) + Math.floor(Math.random() * (50 * state.waveLevel));
-            const ourDefense = getDefensePower();
-            
-            log(`Swarm Power: ${enemyStrength} | Army Power: ${ourDefense}`);
+function nightRaid(){
+  logSep();
+  log('sounds at the perimeter. they\'ve found the shelter.','danger');
+  const defMod=G.base.defenses*0.25+(G.luck-5)*0.05;
+  if(Math.random()<defMod){
+    log('your defenses hold. you hear them leave.','good');return;
+  }
+  const eid=G.day>7?'raidBoss':'raider';
+  const e=ENEMIES[eid];
+  startCombat({...e,hp:e.maxHp},null);
+}
 
-            if (ourDefense >= enemyStrength) {
-                const bounty = Math.floor(enemyStrength * 2);
-                state.credits += bounty; state.waveLevel++; 
-                log(`DEFENSE HOLDING. Swarm repelled. Bounty: +${bounty} CR.`, "success");
-            } else {
-                const damage = enemyStrength - ourDefense;
-                state.hp -= damage;
-                log(`DEFENSE BREACHED! Facility sustained ${damage} structural damage.`, "combat");
-                
-                if (state.hp <= 0) { state.hp = 0; updateUI(); triggerGameOver(); return; }
-                
-                if (damage > 1500) { processMilLoss('titan', 1); }
-                if (damage > 600) { processMilLoss('turret', 1); } 
-                if (damage > 300) { processMilLoss('mech', 2); }
-                if (damage > 100) { processMilLoss('fighter', 3); }
-                if (damage > 50) { processMilLoss('drone', 5); }
-                
-                if (damage > 400 && state.ecoUnits.drill > 0) { state.ecoUnits.drill--; log("Casualty: Core Drill destroyed.", "warn"); }
-                if (damage > 150 && state.ecoUnits.scientist > 0) { state.ecoUnits.scientist -= 2; log("Casualty: 2x Xenochemist KIA.", "warn"); }
-            }
-            
-            state.threat = 0; updateUI();
-        }
+// ══════════════════════════════════════════════════════════════
+// THE DARK (ending 3 path)
+// ══════════════════════════════════════════════════════════════
 
-        // Game Loop
-        function startGameLoop() {
-            gameInterval = setInterval(() => {
-                state.credits += getIncomeRate();
-                
-                const threatGen = 0.5 + (state.ecoUnits.scientist * 0.2) + (state.ecoUnits.drill * 1.5) + (state.supply * 0.02);
-                state.threat += threatGen;
-                
-                // Process Cooldown Timer
-                if (state.repelTimer > 0) {
-                    state.repelTimer--;
-                }
-                
-                if (state.threat >= 100) { state.threat = 100; updateUI(); triggerCombat(); } 
-                else { updateUI(); }
-            }, 1000);
-        }
+function darkAction(){
+  G.flags.darkListened++;
+  G.choices.dark++;
 
-        updateUI();
-        startGameLoop();
-    </script>
+  if(G.flags.darkListened===1){
+    log('you press your ear to the east wall. something breathes on the other side.','dark');
+    log('"you\'re still fighting," it says. "you don\'t have to."','dark');
+  } else if(G.flags.darkListened===2){
+    log('the voice again. "the shelter is the wasteland. you are the wasteland. stop pretending otherwise."','dark');
+    log('you feel something loosen inside you. it isn\'t bad, exactly.','haunt');
+  } else if(G.flags.darkListened>=3&&!G.flags.darkOffered){
+    G.flags.darkOffered=true;
+    setTimeout(()=>showDarkChoice(),500);
+  }
+}
+
+function showDarkChoice(){
+  const A=document.getElementById('actions');A.innerHTML='';
+  const h=document.createElement('div');h.className='s-header';h.style.color='#6a3a9a';h.textContent='THE OFFER';A.appendChild(h);
+  const p=document.createElement('div');p.style.cssText='font-size:10px;color:#4a2a6a;padding:6px 0;line-height:1.8;font-style:italic';
+  p.textContent='"stop being afraid. stop surviving. just become. the waste takes everything anyway. why not choose it?"';A.appendChild(p);
+
+  const choices=[
+    {l:'Refuse. Survive.',cls:'',fn:()=>{
+      log('you pull back from the wall. you choose survival. the voice goes quiet.','good');
+      G.sanity=clamp(G.sanity+20,0,100);log('+20 sanity. clarity has a cost.','good');
+      updateStats();
+    }},
+    {l:'Accept. Become.',cls:'special-btn',fn:()=>doDarkEnd()},
+  ];
+
+  choices.forEach(c=>{
+    const btn=document.createElement('button');btn.className=`act-btn ${c.cls}`;btn.textContent=c.l;
+    btn.addEventListener('click',()=>{c.fn();updateStats();});A.appendChild(btn);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// LORE
+// ══════════════════════════════════════════════════════════════
+
+function tryRevealLore(ids){
+  const candidates=ids.filter(id=>!G.lore.includes(id));
+  if(!candidates.length)return;
+  const id=candidates[Math.floor(Math.random()*candidates.length)];
+  const lore=LORE_DB.find(l=>l.id===id);
+  if(!lore)return;
+  G.lore.push(id);
+  setTimeout(()=>showModal(lore.title,lore.body),300);
+}
+
+function showModal(title,body){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').textContent=body;
+  document.getElementById('modal').style.display='block';
+}
+
+document.getElementById('modal-close').addEventListener('click',()=>{
+  document.getElementById('modal').style.display='none';
+});
+
+// ══════════════════════════════════════════════════════════════
+// ENDINGS
+// ══════════════════════════════════════════════════════════════
+
+function checkEndings(){
+  if(G.flags.vehicleFound&&G.res.fuel>=5&&G.res.caps>=20){
+    if(!G.flags.showEscape){G.flags.showEscape=true;log('the vehicle. the fuel. the caps. you have everything you need to leave.','important');}
+  }
+  if(G.flags.settlersHere&&G.base.defenses>=2&&G.base.storage>=2&&G.base.bench){
+    if(!G.flags.showRebuild){G.flags.showRebuild=true;log('shelter 13 is becoming something. you can feel it.','important');}
+  }
+}
+
+function doEscapeEnd(){
+  if(G.res.fuel<5||G.res.caps<20)return;
+  G.res.fuel-=5;G.res.caps-=20;
+  G.phase='ending';clearInterval(TICK_ID);
+  setTimeout(()=>showEnd('EXODUS',
+`You fix the vehicle. It takes three days and everything you have left.
+
+Then it runs.
+
+You drive north. The ashfields give way to grey soil, then to something you hesitantly call grass. The dosimeter reading drops for the first time in weeks.
+
+You don't look back at Shelter 13.
+
+Three weeks later you reach the northern settlement. It's real. It's small. It's warm and loud and alive.
+
+"We didn't think anyone else was left," someone says.
+
+You survived. That's the whole story. That's enough.
+
+─────────────────────────
+DAYS SURVIVED: ${G.day}
+LUCK: ${G.luck} · PERCEPTION: ${G.per}
+─────────────────────────`
+  ),500);
+}
+
+function doRebuildEnd(){
+  G.phase='ending';clearInterval(TICK_ID);
+  setTimeout(()=>showEnd('HOME',
+`You hold a vote. Your first vote in the new Shelter 13.
+
+Everyone gets a say. The settlers are surprised. They weren't expecting democracy.
+
+Neither were you, honestly.
+
+The shelter grows. More people come — ones who heard a settlement existed. You build walls, then a water system, then an argument about whether to plant a garden, then a garden.
+
+You name it. Not Shelter 13 anymore. Something new.
+
+It's not paradise. The wasteland doesn't do paradise. But it's warm, and it's yours, and people are laughing in it.
+
+That's more than anyone had any right to expect.
+
+─────────────────────────
+DAYS SURVIVED: ${G.day}
+LUCK: ${G.luck} · PERCEPTION: ${G.per}
+─────────────────────────`
+  ),500);
+}
+
+function doDarkEnd(){
+  G.phase='ending';clearInterval(TICK_ID);
+  setTimeout(()=>showEnd('THE WASTE',
+`You stop fighting.
+
+It's not dramatic. You just stop. The voice from the east corridor comes through the wall — or maybe it was never in the wall at all. Maybe it was in you.
+
+You remain in Shelter 13. 
+
+Travelers who come looking for shelter find something there. They don't stay long. They don't come back. But they tell stories.
+
+There's something in the old shelter, they say. Not exactly dangerous. Not exactly safe.
+
+A remnant. A thing that used to be a survivor, that chose to be something the wasteland made instead.
+
+You are what remains. You are what the waste made. You are the last lesson of Shelter 13.
+
+─────────────────────────
+DAYS SURVIVED: ${G.day}
+ENDING: THE DARK
+─────────────────────────`
+  ),500);
+}
+
+function die(reason){
+  G.phase='dead';clearInterval(TICK_ID);
+  log(`✗ ${reason}`,'danger');
+  setTimeout(()=>showEnd('DEAD',
+`${reason}
+
+Shelter 13 goes quiet. Whatever fire you built burns down to nothing. The wasteland reclaims what was always the wasteland's.
+
+Somewhere, a machine records the fact of your existence and then forgets it.
+
+─────────────────────────
+DAYS SURVIVED: ${G.day}
+LUCK: ${G.luck} · PERCEPTION: ${G.per}
+─────────────────────────`
+  ),1800);
+}
+
+function showEnd(title,body){
+  document.getElementById('end-title').textContent=title;
+  document.getElementById('end-body').textContent=body;
+  document.getElementById('end-screen').classList.add('on');
+}
+
+document.getElementById('end-restart').addEventListener('click',()=>{
+  document.getElementById('end-screen').classList.remove('on');
+  document.getElementById('log').innerHTML='';
+  clearInterval(TICK_ID);CD={};
+  init();
+});
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+
+function init(){
+  G=freshState();
+  const intro=[
+    [200,'you wake up.','important'],
+    [900,'you don\'t remember falling asleep.','system'],
+    [1700,'concrete walls. the smell of rust and old air. a shelter.','lore'],
+    [2500,'you don\'t remember coming here either.','system'],
+    [3300,'there are supplies. not many. enough to not die immediately.','system'],
+    [4100,'for now, that\'s the whole plan.','lore'],
+    [5000,'—','system'],
+    [5300,`luck: ${0}. perception: ${0}. some things are decided before you wake up.`,'system'],
+  ];
+  intro.forEach(([t,txt,cls])=>{
+    if(txt==='—'){setTimeout(()=>logSep(),t);return;}
+    if(txt.includes('luck:')){
+      setTimeout(()=>log(`luck: ${G.luck}. perception: ${G.per}. some things are decided before you wake up.`,cls),t);return;
+    }
+    setTimeout(()=>log(txt,cls),t);
+  });
+
+  TICK_ID=setInterval(tick,1000);
+  setTimeout(updateStats,200);
+}
+
+init();
+</script>
 </body>
 </html>
