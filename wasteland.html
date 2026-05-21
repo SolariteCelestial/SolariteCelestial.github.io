@@ -7,25 +7,26 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#070600;--bg2:#0d0b04;--bg3:#12100a;
+  --bg:#070600;--bg2:#0d0b04;
   --amber:#c8960c;--amber-dim:#5a420a;--amber-glow:#f0b820;
-  --green:#3a7a3a;--red:#9a2020;--red-bright:#c84040;
-  --text:#a87808;--text-dim:#5a4010;--text-bright:#d4a020;
+  --red:#9a2020;--red-bright:#c84040;
+  --text:#a87808;--text-dim:#5a4010;
   --border:#1a1508;--purple:#6a3a9a;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.5;overflow:hidden}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9999}
-body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.55) 100%);pointer-events:none;z-index:9998}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%);pointer-events:none;z-index:9998}
 
-#game{display:flex;height:100vh;max-width:1160px;margin:0 auto;position:relative}
-#header{position:absolute;top:0;left:0;right:0;padding:6px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;z-index:100;background:var(--bg)}
-#title{font-size:15px;letter-spacing:5px;color:var(--amber-glow);text-shadow:0 0 12px var(--amber),0 0 28px rgba(200,150,12,.25);animation:flicker 14s infinite}
+/* ── LAYOUT ── */
+#game{display:flex;height:100vh;max-width:1280px;margin:0 auto;position:relative}
+#header{position:absolute;top:0;left:0;right:0;padding:6px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;z-index:100;background:var(--bg);max-width:1280px;margin:0 auto}
+#title{font-size:15px;letter-spacing:5px;color:var(--amber-glow);text-shadow:0 0 12px var(--amber),0 0 28px rgba(200,150,12,.2);animation:flicker 14s infinite}
 #hud-r{color:var(--text-dim);font-size:10px;letter-spacing:2px;text-align:right;line-height:1.9}
 
-/* ── LEFT: LOG ── */
-#left-panel{flex:1;margin-top:37px;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column}
+/* LOG — 25% */
+#log-panel{flex:0 0 22%;margin-top:37px;overflow-y:auto;padding:10px 12px;border-right:1px solid var(--border)}
 #log{display:flex;flex-direction:column;gap:4px}
-.log-entry{opacity:0;animation:fadeIn .5s ease forwards;line-height:1.6;font-size:11px;padding:1px 0}
+.log-entry{opacity:0;animation:fadeIn .45s ease forwards;line-height:1.55;font-size:10.5px;padding:1px 0}
 .log-entry.sys{color:var(--text-dim)}
 .log-entry.lore{color:#7a6a48;font-style:italic}
 .log-entry.danger{color:var(--red-bright)}
@@ -34,16 +35,23 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .log-entry.combat{color:#c07030}
 .log-entry.haunt{color:var(--purple);font-style:italic}
 .log-entry.dark{color:#4a2a6a;font-style:italic}
-.log-sep{border:none;border-top:1px solid var(--border);margin:4px 0;opacity:.3;width:100%}
+.log-sep{border:none;border-top:1px solid var(--border);margin:5px 0;opacity:.3;width:100%}
 
-/* ── RIGHT: PANEL ── */
-#right-panel{width:310px;margin-top:37px;overflow-y:auto;padding:8px 12px;border-left:1px solid var(--border)}
+/* MAIN — 78%: info col + actions col */
+#main-panel{flex:1;margin-top:37px;display:flex;overflow:hidden}
 
-.s-hdr{color:var(--amber-dim);font-size:9px;letter-spacing:3px;text-transform:uppercase;margin:12px 0 5px;border-bottom:1px solid var(--border);padding-bottom:2px}
+/* INFO COL — fixed width, scrollable */
+#info-col{flex:0 0 260px;overflow-y:auto;padding:8px 12px;border-right:1px solid var(--border)}
+
+/* ACTIONS COL — fills remaining, scrollable */
+#act-col{flex:1;overflow-y:auto;padding:8px 16px}
+
+/* ── SHARED COMPONENTS ── */
+.s-hdr{color:var(--amber-dim);font-size:9px;letter-spacing:3px;text-transform:uppercase;margin:12px 0 6px;border-bottom:1px solid var(--border);padding-bottom:2px}
 .s-hdr:first-child{margin-top:4px}
 
 /* stat bars */
-.stat-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.stat-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
 .stat-lbl{width:72px;font-size:10px;color:var(--text-dim)}
 .stat-outer{flex:1;height:8px;background:rgba(255,255,255,.03);border:1px solid rgba(90,66,10,.4);overflow:hidden}
 .stat-fill{height:100%;transition:width .35s ease}
@@ -55,42 +63,52 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .stat-fill.crit  {animation:pulse .8s infinite}
 .stat-num{width:28px;text-align:right;font-size:10px;color:var(--text-dim)}
 
-/* resources */
-.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
-.res-row{display:flex;justify-content:space-between;font-size:10px;padding:2px 0}
+/* resources — single col */
+.res-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;padding:2px 0}
 .res-name{color:var(--text-dim)}
 .res-val{color:var(--text)}.res-val.z{color:var(--border)}.res-val.lo{color:var(--red-bright)}
 
 /* equipment */
-.equip-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:10px}
-.equip-lbl{width:56px;color:var(--text-dim)}
-.equip-val{flex:1;color:var(--amber-glow)}
-.equip-empty{flex:1;color:var(--border)}
-.equip-x{background:transparent;border:1px solid #5a1010;color:#7a3030;font-family:inherit;font-size:9px;cursor:pointer;padding:1px 5px}
-.equip-x:hover{border-color:var(--red-bright);color:var(--red-bright)}
-.equip-btn-small{background:transparent;border:1px solid var(--amber-dim);color:var(--text-dim);font-family:inherit;font-size:9px;cursor:pointer;padding:1px 6px;margin-left:4px}
-.equip-btn-small:hover{border-color:var(--amber);color:var(--amber)}
+.eq-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:10px}
+.eq-lbl{width:54px;color:var(--text-dim);flex-shrink:0}
+.eq-val{flex:1;color:var(--amber-glow)}
+.eq-empty{flex:1;color:var(--border)}
+.eq-x{background:transparent;border:1px solid #5a1010;color:#7a3030;font-family:inherit;font-size:9px;cursor:pointer;padding:2px 6px;flex-shrink:0}
+.eq-x:hover{border-color:var(--red-bright);color:var(--red-bright)}
 
-/* action buttons — BIGGER */
-.act-btn{display:block;width:100%;padding:8px 12px;background:transparent;border:1px solid var(--amber-dim);color:var(--text);font-family:inherit;font-size:12px;letter-spacing:.5px;cursor:pointer;text-align:left;position:relative;overflow:hidden;transition:color .12s,border-color .12s,background .12s;margin-bottom:4px}
+/* inventory weapon rows */
+.inv-weapon{display:flex;align-items:center;padding:3px 0;font-size:10px;gap:6px}
+.inv-weapon .wname{flex:1;color:var(--text-dim)}
+.inv-weapon .wcount{width:18px;text-align:right;color:var(--text)}
+.inv-weapon .wcount.z{color:var(--border)}
+.inv-weapon .weq{background:transparent;border:1px solid var(--amber-dim);color:var(--text-dim);font-family:inherit;font-size:9px;cursor:pointer;padding:2px 7px;flex-shrink:0;letter-spacing:.5px}
+.inv-weapon .weq:hover{border-color:var(--amber);color:var(--amber-glow)}
+
+/* base info */
+#base-info{font-size:10px;color:var(--text-dim);line-height:1.9}
+
+/* combat box — in info col */
+#combat-box{display:none;background:rgba(100,0,0,.1);border:1px solid #5a1010;padding:10px;margin-bottom:8px}
+#combat-box.on{display:block}
+.ename{color:var(--red-bright);font-size:12px;letter-spacing:2px;margin-bottom:4px}
+.ehp-outer{height:8px;background:rgba(255,255,255,.03);border:1px solid var(--red)}
+.ehp-fill{height:100%;background:var(--red);transition:width .2s}
+
+/* ── ACTION BUTTONS — big ── */
+.act-btn{display:block;width:100%;padding:9px 14px;background:transparent;border:1px solid var(--amber-dim);color:var(--text);font-family:inherit;font-size:12px;letter-spacing:.4px;cursor:pointer;text-align:left;position:relative;overflow:hidden;transition:color .12s,border-color .12s,background .12s;margin-bottom:5px}
 .act-btn:hover:not(:disabled){border-color:var(--amber);color:var(--amber-glow);background:rgba(200,150,12,.05)}
 .act-btn:disabled{color:var(--text-dim);border-color:var(--border);cursor:default}
 .act-btn.red{border-color:#5a1010}
 .act-btn.red:hover:not(:disabled){border-color:var(--red-bright);color:var(--red-bright);background:rgba(200,40,40,.05)}
 .act-btn.special{border-color:#3a1060;color:#7030b0;animation:pulse 2.5s infinite}
-.act-btn.special:hover:not(:disabled){border-color:#8040c0;color:#b060f0;background:rgba(100,40,180,.06)}
-.act-btn .cost{float:right;font-size:10px;color:var(--text-dim)}
-.cd-bar{position:absolute;bottom:0;left:0;height:2px;background:var(--amber)}
+.act-btn.special:hover:not(:disabled){border-color:#8040c0;color:#b060f0}
+.act-btn .cost{float:right;font-size:10px;color:var(--text-dim);opacity:.8}
+.act-btn .sub{display:block;font-size:9px;color:var(--text-dim);margin-top:2px;letter-spacing:0}
+.cd-bar{position:absolute;bottom:0;left:0;height:2px;background:var(--amber);width:0%}
 
-/* combat box */
-#combat-box{display:none;background:rgba(100,0,0,.08);border:1px solid #5a1010;padding:10px;margin-bottom:8px}
-#combat-box.on{display:block}
-.ename{color:var(--red-bright);font-size:12px;letter-spacing:2px;margin-bottom:5px}
-.ehp-outer{height:8px;background:rgba(255,255,255,.03);border:1px solid var(--red)}
-.ehp-fill{height:100%;background:var(--red);transition:width .2s}
-
-/* base info */
-#base-info{font-size:10px;color:var(--text-dim);line-height:1.9}
+/* section subheader inside actions */
+.act-section{color:var(--amber-dim);font-size:9px;letter-spacing:3px;text-transform:uppercase;margin:14px 0 6px;border-bottom:1px solid var(--border);padding-bottom:2px}
+.act-section:first-child{margin-top:2px}
 
 /* modal */
 #modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--amber-dim);padding:24px;max-width:480px;width:90vw;z-index:500;animation:modalIn .2s ease}
@@ -121,48 +139,51 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 <div id="game">
   <div id="header">
     <div id="title">◈ SHELTER 13 ◈</div>
-    <div id="hud-r"><div id="time-line">DAY 1 — 08:00</div><div id="sp-line">LUCK 5 · PER 5</div></div>
+    <div id="hud-r"><div id="time-line">DAY 1 · MORNING</div><div id="sp-line">LUCK 5 · PER 5</div></div>
   </div>
 
-  <div id="left-panel"><div id="log"></div></div>
+  <!-- LOG (22%) -->
+  <div id="log-panel"><div id="log"></div></div>
 
-  <div id="right-panel">
-    <div id="combat-box">
-      <div class="ename" id="ename">ENEMY</div>
-      <div style="font-size:9px;color:var(--text-dim);margin-bottom:3px">HEALTH</div>
-      <div class="ehp-outer"><div class="ehp-fill" id="ehp" style="width:100%"></div></div>
+  <!-- MAIN (78%) -->
+  <div id="main-panel">
+
+    <!-- INFO COL: stats, resources, equip, inventory, base -->
+    <div id="info-col">
+      <div id="combat-box">
+        <div class="ename" id="ename">ENEMY</div>
+        <div style="font-size:9px;color:var(--text-dim);margin-bottom:3px">HEALTH</div>
+        <div class="ehp-outer"><div class="ehp-fill" id="ehp" style="width:100%"></div></div>
+      </div>
+      <div class="s-hdr">VITALS</div>
+      <div class="stat-row"><div class="stat-lbl">HP</div><div class="stat-outer"><div class="stat-fill hp" id="bHP"></div></div><div class="stat-num" id="vHP">100</div></div>
+      <div class="stat-row"><div class="stat-lbl">HUNGER</div><div class="stat-outer"><div class="stat-fill hunger" id="bHU"></div></div><div class="stat-num" id="vHU">75</div></div>
+      <div class="stat-row"><div class="stat-lbl">THIRST</div><div class="stat-outer"><div class="stat-fill thirst" id="bTH"></div></div><div class="stat-num" id="vTH">75</div></div>
+      <div class="stat-row"><div class="stat-lbl">SANITY</div><div class="stat-outer"><div class="stat-fill sanity" id="bSA"></div></div><div class="stat-num" id="vSA">100</div></div>
+      <div class="stat-row"><div class="stat-lbl">RADIATION</div><div class="stat-outer"><div class="stat-fill rad" id="bRA"></div></div><div class="stat-num" id="vRA">0</div></div>
+      <div class="s-hdr">RESOURCES</div>
+      <div id="res-display"></div>
+      <div class="s-hdr">EQUIPMENT</div>
+      <div id="equip-display"></div>
+      <div class="s-hdr">INVENTORY</div>
+      <div id="inv-display"></div>
+      <div class="s-hdr">BASE</div>
+      <div id="base-info"></div>
     </div>
 
-    <div class="s-hdr">VITALS</div>
-    <div class="stat-row"><div class="stat-lbl">HP</div><div class="stat-outer"><div class="stat-fill hp" id="bHP"></div></div><div class="stat-num" id="vHP">100</div></div>
-    <div class="stat-row"><div class="stat-lbl">HUNGER</div><div class="stat-outer"><div class="stat-fill hunger" id="bHU"></div></div><div class="stat-num" id="vHU">75</div></div>
-    <div class="stat-row"><div class="stat-lbl">THIRST</div><div class="stat-outer"><div class="stat-fill thirst" id="bTH"></div></div><div class="stat-num" id="vTH">75</div></div>
-    <div class="stat-row"><div class="stat-lbl">SANITY</div><div class="stat-outer"><div class="stat-fill sanity" id="bSA"></div></div><div class="stat-num" id="vSA">100</div></div>
-    <div class="stat-row"><div class="stat-lbl">RADIATION</div><div class="stat-outer"><div class="stat-fill rad" id="bRA"></div></div><div class="stat-num" id="vRA">0</div></div>
+    <!-- ACTIONS COL -->
+    <div id="act-col">
+      <div id="actions"></div>
+    </div>
 
-    <div class="s-hdr">RESOURCES</div>
-    <div class="res-grid" id="res-display"></div>
-
-    <div class="s-hdr">EQUIPMENT</div>
-    <div id="equip-display"></div>
-
-    <div class="s-hdr">INVENTORY</div>
-    <div id="inv-display"></div>
-
-    <div class="s-hdr">BASE</div>
-    <div id="base-info"></div>
-
-    <div class="s-hdr">ACTIONS</div>
-    <div id="actions"></div>
-  </div>
-</div>
+  </div><!-- /main-panel -->
+</div><!-- /game -->
 
 <div id="modal">
   <div class="mtitle" id="modal-title">RECOVERED</div>
   <div class="mbody" id="modal-body"></div>
   <button class="mclose" id="modal-close">[ CLOSE ]</button>
 </div>
-
 <div id="end-screen">
   <div id="end-title">DEAD</div>
   <div id="end-body"></div>
@@ -177,68 +198,69 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 // ═══════════════════════════════════════════════════════════
 
 const WEAPON_DEFS = {
-  knife:     { name:'Knife',        dmg:[9,17],  hands:1, desc:'1H — fast.' },
-  machete:   { name:'Machete',      dmg:[13,23], hands:1, desc:'1H — solid reach.' },
-  pipeRifle: { name:'Pipe Rifle',   dmg:[22,36], hands:2, desc:'2H — keep distance.' },
-  shotgun:   { name:'Pipe Shotgun', dmg:[28,46], hands:2, desc:'2H — brutal close range.' },
+  knife:     { name:'Knife',         dmg:[9,17],  hands:1, desc:'1H · fast and quiet' },
+  machete:   { name:'Machete',       dmg:[13,23], hands:1, desc:'1H · solid reach' },
+  pipeRifle: { name:'Pipe Rifle',    dmg:[22,36], hands:2, desc:'2H · keep distance' },
+  shotgun:   { name:'Pipe Shotgun',  dmg:[28,46], hands:2, desc:'2H · brutal, close range' },
 };
+
+const TIME_LABELS = ['MIDNIGHT','MIDNIGHT','MIDNIGHT','MIDNIGHT','MIDNIGHT','DAWN','DAWN','DAWN','MORNING','MORNING','MORNING','MORNING','NOON','NOON','AFTERNOON','AFTERNOON','AFTERNOON','EVENING','EVENING','DUSK','DUSK','NIGHT','NIGHT','NIGHT'];
 
 const LORE_DB = [
   { id:'L01', title:'HOLOTAPE — Personal Log, Entry 1',
     body:`Day 1 inside. I convinced twenty-three people to come with me. They thought I was paranoid.\n\nThe bombs fell this morning.\n\nI was right. I wish I wasn't.\n\n— D. Reyes, Shelter 13 Overseer` },
   { id:'L02', title:'HOLOTAPE — Personal Log, Entry 89',
-    body:`Three people dead in the first week. Martinez went first — he was never stable, but the sealed shelter finished whatever was left.\n\nWater rations: 200ml per person. The purifier is "almost fixed." It has been almost fixed for two months.\n\n— D. Reyes` },
+    body:`Three people dead in the first week. Martinez went first — the sealed shelter finished what was left.\n\nWater rations: 200ml. The purifier is "almost fixed." It has been almost fixed for two months.\n\n— D. Reyes` },
   { id:'L03', title:'SCRAWLED NOTE — near the generator',
-    body:`Someone stole my socks. IN THE APOCALYPSE. I am documenting this formally.\n\nAlso: Devers says the purifier is almost fixed.\n\n(It is not almost fixed. Nothing is almost fixed. We are all living in the "almost fixed" of things.)` },
+    body:`Someone stole my socks. IN THE APOCALYPSE.\n\nAlso: Devers says the purifier is almost fixed.\n\n(It is not almost fixed. We are all living in the "almost fixed" of things.)` },
   { id:'L04', title:'MEDICAL LOG — Dr. Abiodun Chen',
-    body:`Subject exhibits advanced dermal necrosis, loss of pigmentation, heightened aggression, and what I can only describe as luminescence.\n\nThe old books had a word for it. I won't write it here.\n\nI administered our last anti-rad dose to myself. I didn't tell the others. I'm a doctor. It was a medical decision.` },
+    body:`Subject exhibits dermal necrosis, loss of pigmentation, heightened aggression, and what I can only describe as luminescence.\n\nThe old books had a word for it.\n\nI administered our last anti-rad dose to myself. I'm a doctor. It was a medical decision.` },
   { id:'L05', title:'HOLOTAPE — Day 1826',
     body:`Five years. Twelve of us remain.\n\nWe've been sending scouts to the surface. Readings drop in the north sector.\n\nThe scouts haven't come back.\n\nWe've stopped sending scouts.` },
   { id:'L06', title:'HOLOTAPE — Emergency Broadcast',
-    body:`If you find this — we left. Six of us. Heading north.\n\nSupplies in lower storage. Code: 1-3-1-3. Take them. Use them.\n\nIf you're a raider: seventeen cans of pre-war green beans. Enjoy.\n\nIf you're a survivor: Shelter 13 is yours now. Build something.\n\n— Last of Shelter 13` },
+    body:`If you find this — we left. Six of us. Heading north.\n\nSupplies in lower storage. Code: 1-3-1-3.\n\nIf you're a survivor: Shelter 13 is yours now. Build something.\n\n— Last of Shelter 13` },
   { id:'L07', title:'NOTE — scratched into concrete',
-    body:`SOMETHING LIVES IN THE EAST CORRIDOR AFTER DARK.\n\nI'm serious.\n\nI know you think I'm not serious.\n\nI AM EXTREMELY SERIOUS.\n\n(The handwriting gets shakier toward the end.)` },
+    body:`SOMETHING LIVES IN THE EAST CORRIDOR AFTER DARK.\n\nI'm serious.\n\nI AM EXTREMELY SERIOUS.\n\n(The handwriting gets shakier toward the end.)` },
   { id:'L08', title:'FRAGMENT — torn from a hand-drawn map',
-    body:`The northern settlement — people say it's real. Past the Ashfields, beyond the Dead River, where the radiation cleared.\n\nI've heard this before. But Carla spoke to someone who CAME from there. Who walked all the way south just to tell us it exists.\n\nMaybe.` },
+    body:`The northern settlement — people say it's real. Past the Ashfields, beyond the Dead River.\n\nCarla spoke to someone who CAME from there. Who walked all the way south just to tell people it exists.\n\nMaybe.` },
   { id:'L09', title:'HOLOTAPE — "Dream Recording," unknown date',
-    body:`I keep dreaming of the shelter full of people. Arguing over rations. Martinez doing bad impressions.\n\nWhat if someone stayed? What if someone turned this place into something real?\n\nJust a dream. But sometimes a dream is an instruction.` },
+    body:`I keep dreaming of the shelter full of people. Arguing over rations. Martinez doing bad impressions.\n\nWhat if someone stayed? What if someone turned this into something real?\n\nJust a dream. But sometimes a dream is an instruction.` },
   { id:'L10', title:'NOTE — written in something that isn\'t ink',
-    body:`I've spoken to the thing in the east corridor.\n\nIt spoke back.\n\nIt said: the waste takes everything, eventually. Why fight it? Become the wasteland.\n\nI declined. I'm writing this note, not becoming a creature of ancient dark.\n\nI thought about it, though.` },
+    body:`I've spoken to the thing in the east corridor.\n\nIt said: the waste takes everything. Why fight it? Become the wasteland.\n\nI declined. I'm writing this note, not becoming a creature of ancient dark.\n\nI thought about it, though.` },
 ];
 
 const ENEMIES = {
-  raider:  { name:'RAIDER',       maxHp:35,  atk:[5,12],  loot:{caps:[8,22],scrap:[2,6],food:[1,4],dirtyWater:[0,2]},            rad:0,  msg:"raider down. wasteland economics." },
-  ghoul:   { name:'FERAL GHOUL',  maxHp:28,  atk:[4,10],  loot:{scrap:[2,5],caps:[4,12],food:[0,2]},                             rad:4,  msg:"the ghoul collapses. ghouls stopped shopping long ago." },
-  glowing: { name:'GLOWING ONE',  maxHp:50,  atk:[8,16],  loot:{medicine:[1,3],caps:[12,24],radAway:[0,1],scrap:[1,3]},          rad:14, msg:"the glowing one dims. your dosimeter beeps disapproval." },
-  mutant:  { name:'SUPER MUTANT', maxHp:90,  atk:[14,24], loot:{scrap:[4,9],caps:[14,32],food:[2,5],medicine:[0,2],fuel:[0,2]},  rad:0,  msg:"the mutant hits the floor like a building. impressive haul." },
-  robot:   { name:'PROTECTRON',   maxHp:60,  atk:[10,18], loot:{scrap:[6,14],fuel:[2,5],caps:[8,18]},                            rad:0,  msg:"the robot goes dark. its parts outperform the whole." },
-  raidBoss:{ name:'RAID BOSS',    maxHp:110, atk:[18,28], loot:{caps:[25,52],scrap:[5,12],medicine:[2,6],fuel:[2,5],food:[2,5]}, rad:0,  msg:"the raid boss is dead. word will spread." },
+  raider:  { name:'RAIDER',       maxHp:35,  atk:[5,12],  loot:{caps:[8,24],scrap:[3,7],food:[2,5],dirtyWater:[1,3]},           rad:0,  msg:"raider down." },
+  ghoul:   { name:'FERAL GHOUL',  maxHp:28,  atk:[4,10],  loot:{scrap:[2,6],caps:[5,14],food:[1,3]},                            rad:5,  msg:"the ghoul collapses." },
+  glowing: { name:'GLOWING ONE',  maxHp:50,  atk:[8,16],  loot:{medicine:[2,4],caps:[14,28],radAway:[0,1],scrap:[2,5]},         rad:16, msg:"the glowing one dims." },
+  mutant:  { name:'SUPER MUTANT', maxHp:90,  atk:[14,24], loot:{scrap:[5,12],caps:[16,36],food:[3,7],medicine:[1,3],fuel:[1,3]},rad:0,  msg:"the mutant hits the floor like a building." },
+  robot:   { name:'PROTECTRON',   maxHp:60,  atk:[10,18], loot:{scrap:[7,16],fuel:[3,7],caps:[10,22]},                          rad:0,  msg:"the robot goes dark." },
+  raidBoss:{ name:'RAID BOSS',    maxHp:110, atk:[18,28], loot:{caps:[30,60],scrap:[6,14],medicine:[3,7],fuel:[3,7],food:[3,7]},rad:0,  msg:"the raid boss is dead." },
 };
 
 const ZONES = {
-  ruins: { name:'NEARBY RUINS', tickDur:40,  events:3, risk:.20, loot:'ruins', hungerCost:4,  thirstCost:7  },
-  town:  { name:'DEAD TOWN',    tickDur:70,  events:4, risk:.32, loot:'town',  hungerCost:8,  thirstCost:12 },
-  bunker:{ name:'MILITARY BUNKER',tickDur:100,events:5, risk:.55, loot:'bunker',hungerCost:14, thirstCost:18 },
+  ruins: { name:'NEARBY RUINS',    tickDur:40,  events:3, risk:.18, loot:'ruins',  hungerCost:4,  thirstCost:6  },
+  town:  { name:'DEAD TOWN',       tickDur:70,  events:4, risk:.30, loot:'town',   hungerCost:8,  thirstCost:12 },
+  bunker:{ name:'MILITARY BUNKER', tickDur:100, events:5, risk:.52, loot:'bunker', hungerCost:14, thirstCost:18 },
 };
 
 const HALLUCINATIONS = [
   'something moves in your peripheral vision. when you look: nothing.',
   'you hear your name. nobody knows your name.',
-  'the walls are closer than they were. you measure them. you are not certain.',
-  'a radio plays in a room with no radio. the song is almost familiar.',
-  'you find a photograph in your pocket. three smiling people. one of them might be you.',
-  'the shadow on the east wall is shaped like a person. it waves. you wave back.',
+  'the walls are closer than before. you measure them. you are not certain.',
+  'a radio plays in a room with no radio. almost familiar.',
+  'you find a photograph in your pocket. three smiling people. one might be you.',
+  'the shadow on the east wall waves at you. you wave back.',
   'you have been humming for six hours. you don\'t know this song.',
   'the water tastes like rust and old apologies.',
   'you wake and the fire has been tended. nobody tended the fire.',
-  'there is writing on the floor. when you look directly, it\'s gone.',
 ];
 
 const DARK_VOICES = [
   'the dark says: you are already what you are becoming.',
-  'from the east corridor: "stay. the waste keeps everyone, eventually."',
+  '"stay. the waste keeps everyone, eventually."',
   'the dark says: everyone who left is gone. you are what remains.',
-  'from the walls: "stop fighting it. the wasteland always wins."',
+  '"stop fighting it. the wasteland always wins."',
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -246,9 +268,9 @@ const DARK_VOICES = [
 // ═══════════════════════════════════════════════════════════
 
 let G, TICK_ID;
-const CD = {}; // id -> expiry timestamp
+const CD = {};
 
-function freshState() {
+function freshState(){
   return {
     hp:100, maxHp:100,
     hunger:75, thirst:75, sanity:100, radiation:0,
@@ -257,16 +279,14 @@ function freshState() {
     equipped:{ hand1:null, hand2:null },
     base:{ fire:false, generator:false, purifier:false, bench:false, storage:0, defenses:0 },
     day:1, hour:8, ticks:0,
-    phase:'shelter', // shelter | expedition | combat | dead | ending
-    exp:null,  // { zone, ticksLeft, events, nextEvt, paused }
-    foe:null,  // combat enemy
-    prevPhase:'shelter', // phase before combat
+    phase:'shelter',
+    exp:null,
+    foe:null, prevPhase:'shelter',
     luck:ri(4,7), per:ri(4,7),
-    flags:{ vehicleFound:false, strangerMet:false, strangerHelped:false,
-            settlersHere:false, darkListened:0, darkOffered:false,
-            showEscape:false, showRebuild:false },
+    flags:{ vehicleFound:false, strangerMet:false, strangerHelped:false, settlersHere:false,
+            darkListened:0, darkOffered:false, showEscape:false, showRebuild:false },
     lore:[], choices:{ threat:0, help:0, dark:0 },
-    nextRaid:ri(600,1000), nextHalluc:ri(60,120),
+    nextRaid:ri(500,900), nextHalluc:ri(60,120),
     resCap:20,
   };
 }
@@ -278,22 +298,23 @@ function freshState() {
 function ri(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
 function capRes(k){ G.res[k]=clamp(G.res[k]||0,0,G.resCap); }
+function addRes(k,n){ G.res[k]=Math.min(G.resCap,(G.res[k]||0)+n); }
 
 // ═══════════════════════════════════════════════════════════
 // LOG
 // ═══════════════════════════════════════════════════════════
 
-function log(text, cls=''){
+function log(text,cls=''){
   const el=document.createElement('div');
   el.className='log-entry'+(cls?' '+cls:'');
   el.textContent=text;
   const L=document.getElementById('log');
   L.prepend(el);
-  document.getElementById('left-panel').scrollTop=0;
-  while(L.children.length>160) L.removeChild(L.lastChild);
+  document.getElementById('log-panel').scrollTop=0;
+  while(L.children.length>180) L.removeChild(L.lastChild);
 }
 function logSep(){
-  const hr=document.createElement('hr');hr.className='log-sep';
+  const hr=document.createElement('hr'); hr.className='log-sep';
   document.getElementById('log').prepend(hr);
 }
 
@@ -301,21 +322,21 @@ function logSep(){
 // BUTTON FACTORY
 // ═══════════════════════════════════════════════════════════
 
-// opts: { cd, cost, cls, disabled, action }
 function makeBtn(parent, id, label, opts={}){
   const b=document.createElement('button');
   b.className='act-btn'+(opts.cls?' '+opts.cls:'');
-  b.innerHTML=label+(opts.cost?` <span class="cost">${opts.cost}</span>`:'');
+  let html=label;
+  if(opts.cost) html+=` <span class="cost">${opts.cost}</span>`;
+  if(opts.sub)  html+=`<span class="sub">${opts.sub}</span>`;
+  b.innerHTML=html;
 
-  const bar=document.createElement('div');
-  bar.className='cd-bar'; bar.style.width='0%';
+  const bar=document.createElement('div'); bar.className='cd-bar'; bar.style.width='0%';
   b.appendChild(bar);
 
   const now=Date.now(), exp=CD[id], dur=CD[id+'_d'];
-  if(exp && exp>now){
+  if(exp&&exp>now){
     b.disabled=true;
     const rem=exp-now;
-    bar.style.transition='none';
     bar.style.width=(rem/(dur||rem)*100)+'%';
     requestAnimationFrame(()=>{ bar.style.transition=`width ${rem}ms linear`; bar.style.width='0%'; });
   } else if(opts.disabled){
@@ -340,40 +361,33 @@ function makeBtn(parent, id, label, opts={}){
   parent.appendChild(b); return b;
 }
 
-function secHdr(parent, label){
-  const d=document.createElement('div');
-  d.className='s-hdr'; d.style.marginTop='10px'; d.textContent=label;
+function actSec(parent,label){
+  const d=document.createElement('div'); d.className='act-section'; d.textContent=label;
   parent.appendChild(d);
 }
 
 // ═══════════════════════════════════════════════════════════
-// EQUIP
+// EQUIP SYSTEM
 // ═══════════════════════════════════════════════════════════
-
-function canEquip(key){
-  const def=WEAPON_DEFS[key]; if(!def) return false;
-  if(G.inv[key]<1) return false;
-  if(def.hands===2) return G.equipped.hand1===null&&G.equipped.hand2===null;
-  if(def.hands===1){
-    // check not both taken by a 2H weapon
-    if(G.equipped.hand1!==null&&WEAPON_DEFS[G.equipped.hand1]?.hands===2) return false;
-    return G.equipped.hand1===null||G.equipped.hand2===null;
-  }
-  return false;
-}
 
 function equipWeapon(key){
   const def=WEAPON_DEFS[key];
-  if(!def||G.inv[key]<1) return;
+  if(!def){ log('unknown weapon.','danger'); return; }
+  if((G.inv[key]||0)<1){ log('you don\'t have that.','danger'); return; }
   if(def.hands===2){
-    // unequip anything first
+    if(G.equipped.hand1!==null||G.equipped.hand2!==null){
+      log('unequip your current weapons first.','danger'); return;
+    }
     G.equipped.hand1=key; G.equipped.hand2=key;
-    log(`equipped: ${def.name} (both hands).`,'good');
+    log(`equipped ${def.name} (both hands).`,'good');
   } else {
-    if(G.equipped.hand1===null){ G.equipped.hand1=key; }
-    else if(G.equipped.hand2===null){ G.equipped.hand2=key; }
-    else { log('both hands full. unequip something first.','danger'); return; }
-    log(`equipped: ${def.name}.`,'good');
+    // Check if both slots are occupied by a 2H weapon
+    if(G.equipped.hand1!==null&&WEAPON_DEFS[G.equipped.hand1]?.hands===2){
+      log('unequip your 2-handed weapon first.','danger'); return;
+    }
+    if(G.equipped.hand1===null){ G.equipped.hand1=key; log(`equipped ${def.name} in left hand.`,'good'); }
+    else if(G.equipped.hand2===null){ G.equipped.hand2=key; log(`equipped ${def.name} in right hand.`,'good'); }
+    else{ log('both hands full — unequip something first.','danger'); return; }
   }
 }
 
@@ -382,35 +396,29 @@ function unequipSlot(slot){
   const def=WEAPON_DEFS[key];
   if(def.hands===2){ G.equipped.hand1=null; G.equipped.hand2=null; }
   else { G.equipped[slot]=null; }
-  log(`unequipped: ${def.name}.`,'sys');
+  log(`unequipped ${def.name}.`,'sys');
 }
 
 function getAttackDmg(){
-  // Returns total min/max damage from equipped weapons (or fists)
-  let minD=2, maxD=7;
   const h1=G.equipped.hand1, h2=G.equipped.hand2;
-  if(h1&&h1===h2){
-    // 2H weapon
-    const d=WEAPON_DEFS[h1].dmg; return [d[0],d[1]];
-  }
-  let added=false;
-  if(h1&&WEAPON_DEFS[h1]){ const d=WEAPON_DEFS[h1].dmg; if(!added){minD=d[0];maxD=d[1];added=true;} }
-  if(h2&&WEAPON_DEFS[h2]&&h2!==h1){ const d=WEAPON_DEFS[h2].dmg; minD+=Math.round(d[0]*.6); maxD+=Math.round(d[1]*.6); added=true; }
-  return [minD,maxD];
+  if(!h1&&!h2) return [2,7]; // fists
+  if(h1&&h1===h2){ const d=WEAPON_DEFS[h1].dmg; return [d[0],d[1]]; } // 2H
+  let mn=2,mx=7,added=false;
+  if(h1&&WEAPON_DEFS[h1]){ const d=WEAPON_DEFS[h1].dmg; if(!added){mn=d[0];mx=d[1];added=true;} }
+  if(h2&&h2!==h1&&WEAPON_DEFS[h2]){ const d=WEAPON_DEFS[h2].dmg; mn+=Math.round(d[0]*.6); mx+=Math.round(d[1]*.6); }
+  return [mn,mx];
 }
 
 function getAttackLabel(){
   const h1=G.equipped.hand1, h2=G.equipped.hand2;
   if(!h1&&!h2) return 'Strike (Fists)';
-  if(h1===h2) return `Attack (${WEAPON_DEFS[h1].name})`;
-  const parts=[];
-  if(h1) parts.push(WEAPON_DEFS[h1].name);
-  if(h2&&h2!==h1) parts.push(WEAPON_DEFS[h2].name);
-  return `Attack (${parts.join(' + ')})`;
+  if(h1&&h1===h2) return `Attack — ${WEAPON_DEFS[h1].name}`;
+  const parts=[]; if(h1)parts.push(WEAPON_DEFS[h1].name); if(h2&&h2!==h1)parts.push(WEAPON_DEFS[h2].name);
+  return `Attack — ${parts.join(' + ')}`;
 }
 
 // ═══════════════════════════════════════════════════════════
-// UI UPDATE
+// UI
 // ═══════════════════════════════════════════════════════════
 
 function setBar(id,val,max){
@@ -421,78 +429,77 @@ function setBar(id,val,max){
 }
 
 function updateStats(){
-  // Vitals
+  // Bars
   setBar('HP',G.hp,G.maxHp); setBar('HU',G.hunger,100);
   setBar('TH',G.thirst,100); setBar('SA',G.sanity,100); setBar('RA',G.radiation,100);
 
-  // Resources
-  const RN={food:'Food',dirtyWater:'Dirty H₂O',cleanWater:'Clean H₂O',scrap:'Scrap',medicine:'Medicine',fuel:'Fuel',caps:'Caps'};
+  // Resources (single col)
+  const RN={food:'Food',dirtyWater:'Dirty Water',cleanWater:'Clean Water',scrap:'Scrap',medicine:'Medicine',fuel:'Fuel',caps:'Caps'};
   const rd=document.getElementById('res-display'); rd.innerHTML='';
   for(const[k,n] of Object.entries(RN)){
     const v=G.res[k]||0;
-    const lo=(k==='food'&&v<2)||(k==='dirtyWater'&&v<1&&!G.base.purifier)||(k==='cleanWater'&&v<1&&G.base.purifier);
+    const lo=(k==='food'&&v<2)||(k==='dirtyWater'&&v<1&&!G.base.purifier);
     rd.innerHTML+=`<div class="res-row"><span class="res-name">${n}</span><span class="res-val${v===0?' z':lo?' lo':''}">${v}</span></div>`;
   }
 
-  // Equipment slots
+  // Equipment
   const ed=document.getElementById('equip-display'); ed.innerHTML='';
-  const slotDefs=[['hand1','L.HAND'],['hand2','R.HAND']];
-  const shownKeys=new Set();
-  slotDefs.forEach(([slot,lbl])=>{
+  const shown=new Set();
+  [['hand1','L.HAND'],['hand2','R.HAND']].forEach(([slot,lbl])=>{
     const key=G.equipped[slot];
-    const row=document.createElement('div'); row.className='equip-row';
-    const lblEl=`<span class="equip-lbl">${lbl}</span>`;
+    const row=document.createElement('div'); row.className='eq-row';
     if(key){
-      const def=WEAPON_DEFS[key];
-      const shown=shownKeys.has(key);
-      row.innerHTML=`${lblEl}<span class="equip-val">${shown?'╰ '+def.name:def.name}</span>`;
-      shownKeys.add(key);
-      if(G.phase==='shelter'&&!shown){
-        const xb=document.createElement('button'); xb.className='equip-x'; xb.textContent='✕';
-        xb.addEventListener('click',()=>{ unequipSlot(slot); updateStats(); });
-        row.appendChild(xb);
+      const def=WEAPON_DEFS[key], isShown=shown.has(key);
+      row.innerHTML=`<span class="eq-lbl">${lbl}</span><span class="eq-val">${isShown?'╰ ':''} ${def.name}</span>`;
+      shown.add(key);
+      if(G.phase==='shelter'&&!isShown){
+        const x=document.createElement('button'); x.className='eq-x'; x.textContent='UNEQUIP';
+        x.addEventListener('click',()=>{ unequipSlot(slot); updateStats(); });
+        row.appendChild(x);
       }
     } else {
-      row.innerHTML=`${lblEl}<span class="equip-empty">— empty —</span>`;
+      row.innerHTML=`<span class="eq-lbl">${lbl}</span><span class="eq-empty">— empty —</span>`;
     }
     ed.appendChild(row);
   });
 
-  // Inventory
-  const IN={ knife:'Knife',machete:'Machete',pipeRifle:'Pipe Rifle',shotgun:'Shotgun',molotov:'Molotov',stimpak:'Stimpak',radAway:'Rad-Away' };
-  const inv=document.getElementById('inv-display'); inv.innerHTML='';
-  for(const[k,n] of Object.entries(IN)){
-    const v=G.inv[k]||0;
-    const row=document.createElement('div'); row.className='res-row'; row.style.alignItems='center';
-    const weaponKeys=Object.keys(WEAPON_DEFS);
-    const isWeapon=weaponKeys.includes(k);
-    const isEquipped=G.equipped.hand1===k||G.equipped.hand2===k;
-    row.innerHTML=`<span class="res-name">${n}${isEquipped?' ✦':''}</span><span class="res-val${v===0?' z':''}">${v}</span>`;
-    if(v>0&&isWeapon&&!isEquipped&&G.phase==='shelter'){
-      const eb=document.createElement('button'); eb.className='equip-btn-small'; eb.textContent='Equip';
+  // Inventory — weapons as full rows with EQUIP button
+  const id2=document.getElementById('inv-display'); id2.innerHTML='';
+  const weaponKeys=Object.keys(WEAPON_DEFS);
+
+  // Weapons first
+  for(const k of weaponKeys){
+    const def=WEAPON_DEFS[k], v=G.inv[k]||0;
+    const isEq=G.equipped.hand1===k||G.equipped.hand2===k;
+    const row=document.createElement('div'); row.className='inv-weapon';
+    row.innerHTML=`<span class="wname">${def.name}${isEq?' ✦':''}</span><span class="wcount${v===0?' z':''}">${v}</span>`;
+    if(v>0&&!isEq&&G.phase==='shelter'){
+      const eb=document.createElement('button'); eb.className='weq'; eb.textContent='EQUIP';
       eb.addEventListener('click',()=>{ equipWeapon(k); updateStats(); });
       row.appendChild(eb);
     }
-    inv.appendChild(row);
+    id2.appendChild(row);
+  }
+  // Consumables
+  const consumes={molotov:'Molotov',stimpak:'Stimpak',radAway:'Rad-Away'};
+  for(const[k,n] of Object.entries(consumes)){
+    const v=G.inv[k]||0;
+    id2.innerHTML+=`<div class="res-row"><span class="res-name">${n}</span><span class="res-val${v===0?' z':''}">${v}</span></div>`;
   }
 
   // Base
   const bi=document.getElementById('base-info');
   const parts=[];
-  if(G.base.generator) parts.push('⚡ Generator');
-  else if(G.base.fire) parts.push('🔥 Fire');
-  if(G.base.purifier) parts.push('💧 Purifier');
-  if(G.base.bench) parts.push('🔧 Workbench');
-  if(G.base.storage>0) parts.push(`📦 Storage Lv${G.base.storage}`);
-  if(G.base.defenses>0) parts.push(`🛡 Defenses Lv${G.base.defenses}`);
+  if(G.base.generator)parts.push('⚡ Generator'); else if(G.base.fire)parts.push('🔥 Fire');
+  if(G.base.purifier)parts.push('💧 Purifier');
+  if(G.base.bench)parts.push('🔧 Workbench');
+  if(G.base.storage>0)parts.push(`📦 Storage Lv${G.base.storage}`);
+  if(G.base.defenses>0)parts.push(`🛡 Defenses Lv${G.base.defenses}`);
   bi.innerHTML=parts.length?parts.join('<br>'):'<span style="color:var(--border)">bare concrete</span>';
 
   // HUD
-  const ampm=G.hour<12?'AM':'PM', h12=G.hour===0?12:G.hour>12?G.hour-12:G.hour;
-  document.getElementById('time-line').textContent=`DAY ${G.day} — ${String(h12).padStart(2,'0')}:00 ${ampm}`;
+  document.getElementById('time-line').textContent=`DAY ${G.day} · ${TIME_LABELS[G.hour]||'NIGHT'}`;
   document.getElementById('sp-line').textContent=`LUCK ${G.luck} · PER ${G.per}`;
-
-  // Night
   document.getElementById('night-veil').className=(G.hour<6||G.hour>=20)?'on':'';
 
   // Combat box
@@ -516,124 +523,115 @@ function renderActions(){
   if(G.phase==='dead'||G.phase==='ending') return;
   if(G.phase==='combat'){ renderCombat(A); return; }
   if(G.phase==='expedition'){ renderExpedition(A); return; }
-  if(G.phase==='choice'){ return; } // choice rendered separately
+  if(G.phase==='choice') return;
 
   const r=G.res, inv=G.inv, b=G.base;
 
   // ── SURVIVE
-  secHdr(A,'SURVIVE');
-  makeBtn(A,'eat','Eat Food',{ cost:'food ×1', cd:5000, disabled:r.food<1,
+  actSec(A,'SURVIVE');
+  makeBtn(A,'eat','Eat Food',{ cost:'food ×1', cd:5000, disabled:r.food<1, sub:'restores hunger',
     action(){ r.food--; G.hunger=clamp(G.hunger+ri(20,30),0,100); G.sanity=clamp(G.sanity+2,0,100);
-      log('you eat. the beans are cold. it is enough.','sys'); }});
-  makeBtn(A,'drink','Drink Water',{ cost:'water ×1', cd:4000, disabled:r.dirtyWater<1&&r.cleanWater<1,
-    action(){ if(r.cleanWater>0){ r.cleanWater--; G.thirst=clamp(G.thirst+ri(30,40),0,100); G.sanity=clamp(G.sanity+3,0,100); log('clean water. almost forgot what it tastes like.','sys'); }
-      else{ r.dirtyWater--; G.thirst=clamp(G.thirst+ri(22,30),0,100); const rg=ri(3,8); G.radiation=clamp(G.radiation+rg,0,100); log(`dirty water. it keeps you alive. (+${rg} rad)`,'sys'); } }});
-  makeBtn(A,'stimpak','Use Stimpak',{ cost:'stimpak ×1', cd:7000, disabled:inv.stimpak<1||G.hp>=G.maxHp,
-    action(){ inv.stimpak--; const h=ri(25,45); G.hp=clamp(G.hp+h,0,G.maxHp); log(`stimpak. the needle is familiar now. (+${h} hp)`,'good'); }});
-  makeBtn(A,'radaway','Use Rad-Away',{ cost:'rad-away ×1', cd:9000, disabled:inv.radAway<1||G.radiation<5,
-    action(){ inv.radAway--; const rr=ri(22,38); G.radiation=clamp(G.radiation-rr,0,100); log(`rad-away. slightly less luminescent. (-${rr} rad)`,'good'); }});
+      log('you eat. cold beans. it is enough.','sys'); }});
+  makeBtn(A,'drink','Drink Water',{ cost:'water ×1', cd:4000, disabled:r.dirtyWater<1&&r.cleanWater<1, sub:'restores thirst',
+    action(){ if(r.cleanWater>0){ r.cleanWater--; G.thirst=clamp(G.thirst+ri(30,40),0,100); G.sanity=clamp(G.sanity+3,0,100); log('clean water.','sys'); }
+      else{ r.dirtyWater--; G.thirst=clamp(G.thirst+ri(22,30),0,100); const rg=ri(3,8); G.radiation=clamp(G.radiation+rg,0,100); log(`dirty water. (+${rg} rad)`,'sys'); } }});
+  makeBtn(A,'stim','Use Stimpak',{ cost:'stimpak ×1', cd:7000, disabled:inv.stimpak<1||G.hp>=G.maxHp, sub:'restores hp',
+    action(){ inv.stimpak--; const h=ri(25,45); G.hp=clamp(G.hp+h,0,G.maxHp); log(`stimpak. (+${h} hp)`,'good'); }});
+  makeBtn(A,'rad','Use Rad-Away',{ cost:'rad-away ×1', cd:9000, disabled:inv.radAway<1||G.radiation<5, sub:'reduces radiation',
+    action(){ inv.radAway--; const rr=ri(22,38); G.radiation=clamp(G.radiation-rr,0,100); log(`rad-away. (-${rr} rad)`,'good'); }});
 
-  // ── GATHER
-  secHdr(A,'GATHER');
-  makeBtn(A,'forage','Forage for Food',{ cost:'~25s', cd:25000,
-    action(){ const n=ri(1,2+(G.per>5?1:0)); r.food=Math.min(G.resCap,r.food+n); log(`foraging in the rubble. found ${n} food.`,'good'); }});
-  makeBtn(A,'gscrap','Gather Scrap',{ cost:'~20s', cd:20000,
-    action(){ const n=ri(1,2); r.scrap=Math.min(G.resCap,r.scrap+n); log(`scavenged ${n} scrap from the shelter walls.`,'good'); }});
-  makeBtn(A,'scav','Search Shelter',{ cost:'~30s', cd:30000, action:doScavenge });
+  // ── GATHER (always available)
+  actSec(A,'GATHER');
+  makeBtn(A,'forage','Forage for Food',{ cost:'25s', cd:25000, sub:'reliable: 1–2 food',
+    action(){ const n=ri(1,2+(G.per>5?1:0)); addRes('food',n); log(`foraged ${n} food.`,'good'); }});
+  makeBtn(A,'gscrap','Gather Scrap',{ cost:'20s', cd:20000, sub:'reliable: 1–2 scrap',
+    action(){ const n=ri(1,2); addRes('scrap',n); log(`gathered ${n} scrap.`,'good'); }});
+  makeBtn(A,'scav','Search Shelter',{ cost:'30s', cd:30000, sub:'random: food, water, scrap, medicine',
+    action:doScavenge});
 
   // ── EXPLORE
-  secHdr(A,'EXPLORE');
-  makeBtn(A,'exp_ruins','→ Nearby Ruins',{ cost:'~1 min',
+  actSec(A,'EXPLORE');
+  makeBtn(A,'exp_ruins','→ Nearby Ruins',{ sub:'low risk · low reward · ~40s',
     action(){ startExp('ruins'); }});
-  if(G.day>=2) makeBtn(A,'exp_town','→ Dead Town',{ cost:'~2 min',
+  if(G.day>=2) makeBtn(A,'exp_town','→ Dead Town',{ sub:'medium risk · good reward · ~70s',
     action(){ startExp('town'); }});
-  else { const info=document.createElement('div'); info.style.cssText='font-size:10px;color:var(--border);padding:3px 0'; info.textContent='→ Dead Town (unlocks day 2)'; A.appendChild(info); }
-  if(G.day>=5) makeBtn(A,'exp_bunker','→ Military Bunker',{ cost:'~3 min',
+  else{ const d=document.createElement('div');d.style.cssText='font-size:10px;color:var(--border);padding:3px 0';d.textContent='→ Dead Town (unlocks day 2)';A.appendChild(d); }
+  if(G.day>=5) makeBtn(A,'exp_bunker','→ Military Bunker',{ sub:'high risk · high reward · ~100s',
     action(){ startExp('bunker'); }});
-  else { const info=document.createElement('div'); info.style.cssText='font-size:10px;color:var(--border);padding:3px 0'; info.textContent=`→ Military Bunker (unlocks day 5)`; A.appendChild(info); }
+  else{ const d=document.createElement('div');d.style.cssText='font-size:10px;color:var(--border);padding:3px 0';d.textContent=`→ Military Bunker (unlocks day 5)`;A.appendChild(d); }
 
   // ── BUILD
-  const buildItems=[];
-  if(!b.fire) buildItems.push(['bfire','Build a Fire','scrap ×3',r.scrap<3,'fire']);
-  if(b.fire&&!b.generator) buildItems.push(['bgen','Build Generator','scrap ×8, fuel ×2',r.scrap<8||r.fuel<2,'generator']);
-  if(!b.purifier) buildItems.push(['bpur','Water Purifier','scrap ×6',r.scrap<6,'purifier']);
-  if(b.fire&&!b.bench) buildItems.push(['bbench','Workbench','scrap ×5',r.scrap<5,'bench']);
-  if(b.storage<3) buildItems.push([`bstor`,'Upgrade Storage Lv'+(b.storage+1),`scrap ×${4+b.storage*2}`,r.scrap<4+b.storage*2,'storage']);
-  if(b.defenses<3) buildItems.push([`bdef`,'Reinforce Defenses Lv'+(b.defenses+1),`scrap ×${5+b.defenses*3}`,r.scrap<5+b.defenses*3,'defenses']);
-  if(buildItems.length){ secHdr(A,'BUILD'); buildItems.forEach(([id,lbl,cost,dis,what])=>makeBtn(A,id,lbl,{cost,cd:20000,disabled:dis,action(){doBuild(what);}})); }
+  const builds=[];
+  if(!b.fire)              builds.push(['bfire', 'Build a Fire',                 'scrap ×3',                  r.scrap<3,           'fire']);
+  if(b.fire&&!b.generator) builds.push(['bgen',  'Build Generator',              'scrap ×8, fuel ×2',          r.scrap<8||r.fuel<2, 'generator']);
+  if(!b.purifier)          builds.push(['bpur',  'Water Purifier',               'scrap ×6',                  r.scrap<6,           'purifier']);
+  if(b.fire&&!b.bench)     builds.push(['bbench','Workbench',                    'scrap ×5',                  r.scrap<5,           'bench']);
+  if(b.storage<3)          builds.push([`bstor${b.storage}`,'Upgrade Storage Lv'+(b.storage+1), `scrap ×${4+b.storage*2}`, r.scrap<4+b.storage*2,'storage']);
+  if(b.defenses<3)         builds.push([`bdef${b.defenses}`,'Reinforce Defenses Lv'+(b.defenses+1),`scrap ×${5+b.defenses*3}`,r.scrap<5+b.defenses*3,'defenses']);
+  if(builds.length){ actSec(A,'BUILD'); builds.forEach(([id,lbl,cost,dis,what])=>makeBtn(A,id,lbl,{cost,cd:20000,disabled:dis,action(){doBuild(what);}})); }
 
   // ── PURIFY
-  if(b.purifier&&r.dirtyWater>=1){ secHdr(A,'PURIFY');
+  if(b.purifier&&r.dirtyWater>=1){ actSec(A,'PURIFY');
     makeBtn(A,'purify','Run Purifier',{cost:'dirty ×1 → clean ×2',cd:18000,
-      action(){ r.dirtyWater--; r.cleanWater=Math.min(G.resCap,(r.cleanWater||0)+2); log('purifier hums. dirty in, clean out.','good'); }}); }
+      action(){ r.dirtyWater--; addRes('cleanWater',2); log('purifier runs. clean water.','good'); }}); }
 
   // ── CRAFT
-  if(b.bench){ secHdr(A,'CRAFT');
-    makeBtn(A,'cr_stim','Craft Stimpak',{cost:'med ×2, scrap ×1',cd:14000,disabled:r.medicine<2||r.scrap<1,
-      action(){ r.medicine-=2; r.scrap--; inv.stimpak++; log('stimpak assembled. medically suspect, practically necessary.','good'); }});
+  if(b.bench){ actSec(A,'CRAFT');
+    makeBtn(A,'cr_stim','Craft Stimpak',{cost:'med ×2 · scrap ×1',cd:14000,disabled:r.medicine<2||r.scrap<1,
+      action(){ r.medicine-=2;r.scrap--;inv.stimpak++;log('stimpak assembled.','good');}});
     makeBtn(A,'cr_rad','Craft Rad-Away',{cost:'med ×3',cd:14000,disabled:r.medicine<3,
-      action(){ r.medicine-=3; inv.radAway++; log('rad-away mixed. smells like solvent and hope.','good'); }});
-    makeBtn(A,'cr_molo','Craft Molotov',{cost:'fuel ×2, scrap ×1',cd:8000,disabled:r.fuel<2||r.scrap<1,
-      action(){ r.fuel-=2; r.scrap--; inv.molotov++; log('fire in a bottle.','good'); }});
-    if(!inv.knife&&!G.equipped.hand1!==null)
-    makeBtn(A,'cr_knife','Craft Knife',{cost:'scrap ×3',cd:10000,disabled:r.scrap<3,
-      action(){ r.scrap-=3; inv.knife++; log('blade from scrap. crude. efficient.','good'); }});
-    makeBtn(A,'cr_mach','Craft Machete',{cost:'scrap ×4',cd:12000,disabled:r.scrap<4,
-      action(){ r.scrap-=4; inv.machete++; log('machete. heavier than a knife, worth it.','good'); }});
-    makeBtn(A,'cr_rifle','Craft Pipe Rifle',{cost:'scrap ×5, fuel ×2',cd:22000,disabled:r.scrap<5||r.fuel<2,
-      action(){ r.scrap-=5; r.fuel-=2; inv.pipeRifle++; log('pipe rifle. ugly. dangerous. mostly dangerous.','good'); }});
-    makeBtn(A,'cr_shot','Craft Pipe Shotgun',{cost:'scrap ×6, fuel ×3',cd:22000,disabled:r.scrap<6||r.fuel<3,
-      action(){ r.scrap-=6; r.fuel-=3; inv.shotgun++; log('shotgun. the loudest hello in the wasteland.','good'); }});
+      action(){ r.medicine-=3;inv.radAway++;log('rad-away mixed.','good');}});
+    makeBtn(A,'cr_molo','Craft Molotov',{cost:'fuel ×2 · scrap ×1',cd:8000,disabled:r.fuel<2||r.scrap<1,
+      action(){ r.fuel-=2;r.scrap--;inv.molotov++;log('fire in a bottle.','good');}});
+    makeBtn(A,'cr_knife','Craft Knife',{cost:'scrap ×3',cd:10000,disabled:r.scrap<3,sub:'1H weapon',
+      action(){ r.scrap-=3;inv.knife++;log('blade from scrap. crude. efficient.','good');}});
+    makeBtn(A,'cr_mach','Craft Machete',{cost:'scrap ×4',cd:12000,disabled:r.scrap<4,sub:'1H weapon',
+      action(){ r.scrap-=4;inv.machete++;log('machete. heavier than a knife, worth it.','good');}});
+    makeBtn(A,'cr_rifle','Craft Pipe Rifle',{cost:'scrap ×5 · fuel ×2',cd:22000,disabled:r.scrap<5||r.fuel<2,sub:'2H weapon',
+      action(){ r.scrap-=5;r.fuel-=2;inv.pipeRifle++;log('pipe rifle. ugly. dangerous.','good');}});
+    makeBtn(A,'cr_shot','Craft Pipe Shotgun',{cost:'scrap ×6 · fuel ×3',cd:22000,disabled:r.scrap<6||r.fuel<3,sub:'2H weapon',
+      action(){ r.scrap-=6;r.fuel-=3;inv.shotgun++;log('shotgun. the loudest hello in the wasteland.','good');}});
   }
 
-  // ── DARK (sanity < 20 and radiation > 35)
-  if(G.sanity<20&&G.radiation>35){ secHdr(A,'THE DARK');
+  // ── THE DARK
+  if(G.sanity<20&&G.radiation>35){ actSec(A,'THE DARK');
     makeBtn(A,'darkact','Listen to the Walls',{cls:'special',action:doDarkAction}); }
 
   // ── ENDINGS
-  if(G.flags.showEscape){ secHdr(A,'ESCAPE NORTH');
-    makeBtn(A,'end_north','★ FLEE NORTH',{cost:'fuel ×5, caps ×20',disabled:r.fuel<5||r.caps<20,action:doEscapeEnd}); }
-  if(G.flags.showRebuild){ secHdr(A,'REBUILD');
+  if(G.flags.showEscape){ actSec(A,'ESCAPE NORTH');
+    makeBtn(A,'end_north','★ FLEE NORTH',{cost:'fuel ×5 · caps ×20',disabled:r.fuel<5||r.caps<20,action:doEscapeEnd}); }
+  if(G.flags.showRebuild){ actSec(A,'REBUILD');
     makeBtn(A,'end_rebuild','★ FOUND SETTLEMENT',{action:doRebuildEnd}); }
 }
 
 function renderExpedition(A){
   const z=ZONES[G.exp?.zone];
-  const d=document.createElement('div');
-  d.style.cssText='font-size:11px;color:var(--amber-dim);padding:4px 0';
-  d.textContent=`→ ${z?.name||'EXPEDITION'}`; A.appendChild(d);
-  const p=document.createElement('div');
-  p.style.cssText='font-size:10px;color:var(--text-dim);padding:2px 0 8px';
-  if(G.exp) p.textContent=`events remaining: ${G.exp.events}`;
-  A.appendChild(p);
-  makeBtn(A,'retreat','← EMERGENCY RETREAT',{cls:'red',
-    action(){ G.hp=Math.max(1,G.hp-20); log('you run. the wasteland lets you go this time. (-20 hp)','danger'); G.exp=null; G.phase='shelter'; }});
+  actSec(A,'EXPEDITION');
+  const d=document.createElement('div'); d.style.cssText='font-size:11px;color:var(--amber-dim);padding:4px 0';
+  d.textContent=`→ ${z?.name||'...'}`;A.appendChild(d);
+  if(G.exp){ const p=document.createElement('div');p.style.cssText='font-size:10px;color:var(--text-dim);padding:2px 0 10px';
+    p.textContent=`events remaining: ${G.exp.events}`;A.appendChild(p); }
+  makeBtn(A,'retreat','← Emergency Retreat',{cls:'red',sub:'costs 20 hp',
+    action(){ G.hp=Math.max(1,G.hp-20);log('you run. made it. (-20 hp)','danger');G.exp=null;G.phase='shelter';updateStats(); }});
 }
 
 function renderCombat(A){
-  // Main attack
-  const [minD,maxD]=getAttackDmg();
-  makeBtn(A,'catk',getAttackLabel(),{cost:`~${minD}–${maxD} dmg`, cd:1500,
-    action(){ playerAttack(); }});
-
-  // Molotov
+  const [mn,mx]=getAttackDmg();
+  actSec(A,'COMBAT');
+  makeBtn(A,'catk',getAttackLabel(),{cost:`${mn}–${mx} dmg`,cd:1500, action:playerAttack});
   if(G.inv.molotov>0)
-  makeBtn(A,'cmolo','Throw Molotov',{cost:'molotov ×1', cd:1500,
-    action(){ G.inv.molotov--; const dmg=ri(22,42); G.foe.hp=Math.max(0,G.foe.hp-dmg);
-      log(`molotov. ${G.foe.name} takes ${dmg} fire damage.`,'combat');
-      if(G.foe.hp>0) enemyTurn(); else endCombat(true); }});
-
-  // Stimpak in combat
+    makeBtn(A,'cmolo','Throw Molotov',{cost:'molotov ×1 · 22–42 dmg',cd:1500,
+      action(){ G.inv.molotov--;const dmg=ri(22,42);G.foe.hp=Math.max(0,G.foe.hp-dmg);
+        log(`molotov. ${G.foe.name} takes ${dmg} fire damage.`,'combat');
+        if(G.foe.hp>0)enemyTurn();else endCombat(true); }});
   if(G.inv.stimpak>0&&G.hp<G.maxHp)
-  makeBtn(A,'cstim','Use Stimpak',{cost:'stimpak ×1', cd:1500,
-    action(){ G.inv.stimpak--; const h=ri(25,45); G.hp=clamp(G.hp+h,0,G.maxHp);
-      log(`stimpak. (+${h} hp)`,'good'); enemyTurn(); }});
-
-  // Flee
-  makeBtn(A,'cflee','Flee',{cls:'red',
+    makeBtn(A,'cstim','Use Stimpak',{cost:'stimpak ×1',cd:1500,
+      action(){ G.inv.stimpak--;const h=ri(25,45);G.hp=clamp(G.hp+h,0,G.maxHp);
+        log(`stimpak. (+${h} hp)`,'good');enemyTurn(); }});
+  makeBtn(A,'cflee','Flee',{cls:'red',sub:'40% chance · -12 hp if caught',
     action(){ const ch=.40+(G.luck-5)*.05;
-      if(Math.random()<ch){ G.hp=Math.max(1,G.hp-12); log('you run. made it. (-12 hp)','sys'); endCombat(false); }
-      else{ log('you try to run. fail.','danger'); G.hp=Math.max(1,G.hp-8); enemyTurn(); } }});
+      if(Math.random()<ch){G.hp=Math.max(1,G.hp-12);log('you run. made it. (-12 hp)','sys');endCombat(false);}
+      else{log('you try to flee. fail.','danger');G.hp=Math.max(1,G.hp-8);enemyTurn();} }});
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -644,66 +642,54 @@ function doBuild(name){
   const costs={fire:{scrap:3},generator:{scrap:8,fuel:2},purifier:{scrap:6},bench:{scrap:5},
                 storage:{scrap:4+G.base.storage*2},defenses:{scrap:5+G.base.defenses*3}};
   const c=costs[name];
-  for(const[k,v] of Object.entries(c)){ if((G.res[k]||0)<v){log(`not enough ${k}.`,'danger');return;} }
-  for(const[k,v] of Object.entries(c)) G.res[k]-=v;
-
-  const msgs={fire:'a fire in the center of the shelter. the light is small. it is enough.',
-    generator:'the generator coughs to life. electricity. you feel almost human.',
-    purifier:'the water purifier hums. purified water. a luxury.',
-    bench:'a workbench from salvaged parts. crafting unlocked.',
+  for(const[k,v]of Object.entries(c)){if((G.res[k]||0)<v){log(`not enough ${k}.`,'danger');return;}}
+  for(const[k,v]of Object.entries(c)) G.res[k]-=v;
+  const msgs={fire:'a fire. the light is small. it is enough.',generator:'the generator coughs to life. electricity.',
+    purifier:'the water purifier hums.',bench:'a workbench. crafting unlocked.',
     storage:'storage expanded.',defenses:'defenses reinforced.'};
-
-  if(name==='fire') G.base.fire=true;
+  if(name==='fire')G.base.fire=true;
   else if(name==='generator'){G.base.generator=true;G.base.fire=true;}
-  else if(name==='purifier') G.base.purifier=true;
-  else if(name==='bench') G.base.bench=true;
+  else if(name==='purifier')G.base.purifier=true;
+  else if(name==='bench')G.base.bench=true;
   else if(name==='storage'){G.base.storage++;G.resCap=20+G.base.storage*10;}
-  else if(name==='defenses') G.base.defenses++;
-
+  else if(name==='defenses')G.base.defenses++;
   log(msgs[name],'good'); checkEndings();
 }
 
 function doScavenge(){
   const roll=Math.random()+(G.per-5)*.04;
   const found=[];
-  if(roll>.30){const n=ri(1,2+(roll>.65?1:0));G.res.food=Math.min(G.resCap,G.res.food+n);found.push(`${n} food`);}
-  if(roll>.40){const n=ri(1,2);G.res.dirtyWater=Math.min(G.resCap,G.res.dirtyWater+n);found.push(`${n} dirty water`);}
-  if(roll>.50){const n=ri(1,3);G.res.scrap=Math.min(G.resCap,G.res.scrap+n);found.push(`${n} scrap`);}
-  if(roll>.68&&Math.random()>.5){G.res.medicine=Math.min(G.resCap,G.res.medicine+1);found.push('1 medicine');}
-  if(roll>.78&&Math.random()>.5){const c=ri(3,8);G.res.caps+=c;found.push(`${c} caps`);}
+  if(roll>.28){const n=ri(1,3);addRes('food',n);found.push(`${n} food`);}
+  if(roll>.38){const n=ri(1,3);addRes('dirtyWater',n);found.push(`${n} dirty water`);}
+  if(roll>.45){const n=ri(1,4);addRes('scrap',n);found.push(`${n} scrap`);}
+  if(roll>.65&&Math.random()>.45){addRes('medicine',1);found.push('1 medicine');}
+  if(roll>.75&&Math.random()>.5){const c=ri(4,10);G.res.caps+=c;found.push(`${c} caps`);}
   G.sanity=clamp(G.sanity-1.5,0,100);
-  if(found.length) log(`shelter search: ${found.join(', ')}.`,'good');
+  if(found.length)log(`shelter search: ${found.join(', ')}.`,'good');
   else log('you search. the shelter has given everything it has.','sys');
-  if(Math.random()>.6) tryRevealLore(['L01','L02','L03','L04','L07']);
+  if(Math.random()>.6)tryRevealLore(['L01','L02','L03','L04','L07']);
 }
 
 // ═══════════════════════════════════════════════════════════
-// EXPEDITIONS (tick-driven)
+// EXPEDITIONS
 // ═══════════════════════════════════════════════════════════
 
 function startExp(zone){
   const z=ZONES[zone];
-  G.exp={ zone, ticksLeft:z.tickDur, events:z.events, nextEvt:ri(6,12) };
+  G.exp={zone,ticksLeft:z.tickDur,events:z.events,nextEvt:ri(6,12)};
   G.phase='expedition';
   logSep();
-  log(`you leave the shelter. the wasteland exhales.`,'imp');
-  log(`heading: ${z.name}.`,'sys');
+  log(`you leave. the wasteland exhales.`,'imp');
+  log(`→ ${z.name}`,'sys');
 }
 
 function tickExp(){
   if(!G.exp||G.phase==='dead'||G.phase==='ending') return;
-  if(G.phase==='combat') return; // pause during combat
+  if(G.phase==='combat') return;
   const e=G.exp;
-  e.ticksLeft--;
-  e.nextEvt--;
-
-  if(e.nextEvt<=0&&e.events>0){
-    e.events--;
-    e.nextEvt=ri(8,15);
-    runExpEvt(e.zone);
-  }
-
-  if(e.ticksLeft<=0){ returnExp(); }
+  e.ticksLeft--; e.nextEvt--;
+  if(e.nextEvt<=0&&e.events>0){ e.events--; e.nextEvt=ri(8,15); runExpEvt(e.zone); }
+  if(e.ticksLeft<=0) returnExp();
 }
 
 function returnExp(){
@@ -711,49 +697,49 @@ function returnExp(){
   const zone=G.exp.zone; const z=ZONES[zone];
   G.exp=null; G.phase='shelter';
   logSep();
-  log('you return to the shelter. the familiar dark.','sys');
+  log('you return. the familiar dark.','sys');
   G.hunger=clamp(G.hunger-z.hungerCost,0,100);
   G.thirst=clamp(G.thirst-z.thirstCost,0,100);
-  G.sanity=clamp(G.sanity-ri(3,7),0,100);
-  if(zone==='bunker'){const rg=ri(8,14);G.radiation=clamp(G.radiation+rg,0,100);log(`the bunker leaves its mark. (+${rg} rad)`,'danger');}
+  G.sanity=clamp(G.sanity-ri(2,5),0,100);
+  if(zone==='bunker'){const rg=ri(8,14);G.radiation=clamp(G.radiation+rg,0,100);log(`bunker radiation. (+${rg} rad)`,'danger');}
   checkEndings(); updateStats();
 }
 
 function runExpEvt(zone){
   const risk=ZONES[zone].risk-(G.luck-5)*.04;
   if(Math.random()<risk){
-    const pools={ ruins:['raider','ghoul'], town:['raider','ghoul','glowing','mutant'], bunker:['glowing','mutant','robot'] };
-    const pool=pools[zone], eid=pool[ri(0,pool.length-1)];
-    const e=ENEMIES[eid];
-    startCombat({...e,hp:e.maxHp});
-    return;
+    const pools={ruins:['raider','ghoul'],town:['raider','ghoul','glowing','mutant'],bunker:['glowing','mutant','robot']};
+    const pool=pools[zone]; const eid=pool[ri(0,pool.length-1)];
+    const e=ENEMIES[eid]; startCombat({...e,hp:e.maxHp}); return;
   }
 
+  // LOOT — significantly increased
   const evts={
     ruins:[
-      ()=>{const f=ri(1,3),s=ri(1,4),c=ri(0,5);G.res.food=Math.min(G.resCap,G.res.food+f);G.res.scrap=Math.min(G.resCap,G.res.scrap+s);if(c>0)G.res.caps+=c;log(`collapsed dwelling — ${f} food, ${s} scrap${c>0?`, ${c} caps`:''}.`,'good');},
-      ()=>{const w=ri(1,3);G.res.dirtyWater=Math.min(G.resCap,G.res.dirtyWater+w);log(`cracked water jugs. still wet. (+${w} dirty water)`,'good');},
-      ()=>{const c=ri(4,14);G.res.caps+=c;log(`caps scattered like dropped hope. (+${c} caps)`,'good');},
-      ()=>{G.res.medicine=Math.min(G.resCap,G.res.medicine+1);log('a medicine cabinet, mostly empty. one bottle survives.','good');},
-      ()=>{G.sanity=clamp(G.sanity-5,0,100);log('a child\'s drawing on the wall. you look too long.','lore');},
-      ()=>{tryRevealLore(['L01','L02','L07']);log('papers scattered across a table. you read while the wind watches.','lore');},
+      ()=>{ const f=ri(3,6),s=ri(3,8),c=ri(3,12); addRes('food',f);addRes('scrap',s);G.res.caps+=c; log(`collapsed home — ${f} food, ${s} scrap, ${c} caps.`,'good'); },
+      ()=>{ const w=ri(2,5); addRes('dirtyWater',w); log(`cracked water jugs. (+${w} dirty water)`,'good'); },
+      ()=>{ const c=ri(8,20); G.res.caps+=c; log(`scattered caps. (+${c} caps)`,'good'); },
+      ()=>{ const m=ri(1,3); addRes('medicine',m); log(`medicine cabinet — not empty. (+${m} medicine)`,'good'); },
+      ()=>{ const f=ri(1,3),s=ri(2,5); addRes('fuel',f);addRes('scrap',s); log(`utility closet — ${f} fuel, ${s} scrap.`,'good'); },
+      ()=>{ G.sanity=clamp(G.sanity-4,0,100); tryRevealLore(['L01','L02','L07']); log('papers scattered. you read. the wind watches.','lore'); },
     ],
     town:[
-      ()=>{const f=ri(2,5),s=ri(2,6),c=ri(6,18);G.res.food=Math.min(G.resCap,G.res.food+f);G.res.scrap=Math.min(G.resCap,G.res.scrap+s);G.res.caps+=c;log(`general store — ${f} food, ${s} scrap, ${c} caps.`,'good');},
-      ()=>{const fu=ri(1,3);G.res.fuel=Math.min(G.resCap,G.res.fuel+fu);log(`gas station back room. (+${fu} fuel)`,'good');},
-      ()=>{G.sanity=clamp(G.sanity+12,0,100);log('a radio, somehow functional. one pre-war song. (+12 sanity)','good');},
-      ()=>tryRevealVehicle(),
-      ()=>tryMeetStranger(),
-      ()=>{const m=ri(1,3);G.res.medicine=Math.min(G.resCap,G.res.medicine+m);log(`clinic, ransacked but not empty. (+${m} medicine)`,'good');},
-      ()=>{tryRevealLore(['L02','L05','L06','L08']);},
+      ()=>{ const f=ri(4,9),s=ri(4,10),c=ri(12,30); addRes('food',f);addRes('scrap',s);G.res.caps+=c; log(`general store — ${f} food, ${s} scrap, ${c} caps.`,'good'); },
+      ()=>{ const fu=ri(2,5); addRes('fuel',fu); log(`gas station back room. (+${fu} fuel)`,'good'); },
+      ()=>{ G.sanity=clamp(G.sanity+15,0,100); log('a radio, somehow working. one pre-war song. (+15 sanity)','good'); },
+      ()=>{ tryRevealVehicle(); },
+      ()=>{ tryMeetStranger(); },
+      ()=>{ const m=ri(2,5); addRes('medicine',m); log(`clinic — mostly ransacked, not empty. (+${m} medicine)`,'good'); },
+      ()=>{ const f=ri(2,5),w=ri(2,4),c=ri(8,22); addRes('food',f);addRes('dirtyWater',w);G.res.caps+=c; log(`apartment block — ${f} food, ${w} dirty water, ${c} caps.`,'good'); },
+      ()=>{ tryRevealLore(['L02','L05','L06','L08']); log('a terminal in a locked office. you find a way in.','lore'); },
     ],
     bunker:[
-      ()=>{const s=ri(5,12),fu=ri(2,4);G.res.scrap=Math.min(G.resCap,G.res.scrap+s);G.res.fuel=Math.min(G.resCap,G.res.fuel+fu);log(`military locker — ${s} scrap, ${fu} fuel.`,'good');},
-      ()=>{const m=ri(2,5);G.res.medicine=Math.min(G.resCap,G.res.medicine+m);log(`military medkits. expired 2085. better than nothing. (+${m} medicine)`,'good');},
-      ()=>{const rg=ri(10,22);G.radiation=clamp(G.radiation+rg,0,100);log(`a hot room in the bunker. you learn this the hard way. (+${rg} rad)`,'danger');},
-      ()=>{const c=ri(22,55);G.res.caps+=c;log(`paymaster's lockbox. the army paid caps to the end. (+${c} caps)`,'good');},
-      ()=>{tryRevealLore(['L05','L06','L08','L09','L10']);log('an emergency terminal on backup power.','lore');},
-      ()=>{const s=ri(4,9);G.res.scrap=Math.min(G.resCap,G.res.scrap+s);const fu=ri(1,3);G.res.fuel=Math.min(G.resCap,G.res.fuel+fu);log(`armory remnants — ${s} scrap, ${fu} fuel.`,'good');},
+      ()=>{ const s=ri(8,16),fu=ri(3,7); addRes('scrap',s);addRes('fuel',fu); log(`military locker — ${s} scrap, ${fu} fuel.`,'good'); },
+      ()=>{ const m=ri(3,7); addRes('medicine',m); log(`military medkits. expired 2085. (+${m} medicine)`,'good'); },
+      ()=>{ const rg=ri(10,20); G.radiation=clamp(G.radiation+rg,0,100); log(`hot room. you learn the hard way. (+${rg} rad)`,'danger'); },
+      ()=>{ const c=ri(30,70); G.res.caps+=c; log(`paymaster's lockbox. (+${c} caps)`,'good'); },
+      ()=>{ const s=ri(5,12),fu=ri(2,6),c=ri(15,40); addRes('scrap',s);addRes('fuel',fu);G.res.caps+=c; log(`armory — ${s} scrap, ${fu} fuel, ${c} caps.`,'good'); },
+      ()=>{ tryRevealLore(['L05','L06','L08','L09','L10']); log('emergency terminal on backup power.','lore'); },
     ],
   };
   const pool=evts[zone]; pool[ri(0,pool.length-1)]();
@@ -764,11 +750,10 @@ function tryRevealVehicle(){
   if(!G.flags.vehicleFound){
     G.flags.vehicleFound=true;
     log('a vehicle. battered. possibly functional.','imp');
-    log('with fuel and caps, you could leave this place. head north.','lore');
+    log('with fuel and caps, you could leave. head north.','lore');
     tryRevealLore(['L08']);
   } else {
-    const fu=ri(1,2);G.res.fuel=Math.min(G.resCap,G.res.fuel+fu);
-    log(`vehicle bay — still something useful. (+${fu} fuel)`,'good');
+    const fu=ri(2,4); addRes('fuel',fu); log(`vehicle bay — still useful. (+${fu} fuel)`,'good');
   }
 }
 
@@ -776,67 +761,55 @@ function tryMeetStranger(){
   if(G.flags.strangerMet||G.flags.settlersHere) return;
   G.flags.strangerMet=true;
   log('a figure in the road. hands raised.','imp');
-  log('"we\'re not a threat." exactly what a threat says. they mention a group — looking for shelter.','lore');
+  log('"we\'re not a threat." exactly what a threat says. they mention a group.','lore');
   showStrangerChoice();
 }
 
 function showStrangerChoice(){
   G.phase='choice';
   const A=document.getElementById('actions'); A.innerHTML='';
-  secHdr(A,'A STRANGER');
+  actSec(A,'A STRANGER');
   const p=document.createElement('div');
-  p.style.cssText='font-size:11px;color:var(--text-dim);padding:6px 0 8px;line-height:1.7';
-  p.textContent='"six of us. we have skills. we can help you rebuild, or we can go."'; A.appendChild(p);
-
-  const choices=[
-    { l:'Welcome them inside', fn(){
-      G.flags.strangerHelped=true; G.flags.settlersHere=true; G.choices.help++;
-      G.res.food=Math.min(G.resCap,G.res.food+5); G.res.medicine=Math.min(G.resCap,G.res.medicine+2);
-      G.sanity=clamp(G.sanity+15,0,100);
-      log('you step aside. six people file in, eyes suspicious and grateful.','good');
-      log('settlers arrive at shelter 13.','imp'); tryRevealLore(['L09']); resumeAfterChoice(); }},
-    { l:'Turn them away', fn(){
-      G.sanity=clamp(G.sanity-5,0,100);
-      log('you shake your head. they leave without argument.','sys');
-      log('the shelter feels emptier than it did.','lore'); resumeAfterChoice(); }},
-    { l:'Drive them off (threaten)', cls:'red', fn(){
-      G.choices.threat++; log('you raise whatever you have. they scatter.','danger');
-      G.res.food=Math.min(G.resCap,G.res.food+2);
-      tryRevealLore(['L10']); resumeAfterChoice(); }},
-  ];
-  choices.forEach(c=>{
-    const b=document.createElement('button'); b.className='act-btn'+(c.cls?' '+c.cls:'');
-    b.textContent=c.l; b.addEventListener('click',()=>{ c.fn(); updateStats(); }); A.appendChild(b); });
+  p.style.cssText='font-size:11px;color:var(--text-dim);padding:6px 0 10px;line-height:1.7';
+  p.textContent='"six of us. we have skills. we can help rebuild this shelter — or we can keep walking."';
+  A.appendChild(p);
+  [
+    {l:'Welcome them inside', fn(){
+      G.flags.strangerHelped=true;G.flags.settlersHere=true;G.choices.help++;
+      addRes('food',6);addRes('medicine',3);G.sanity=clamp(G.sanity+15,0,100);
+      log('you step aside. six people file in.','good');log('settlers arrive at shelter 13.','imp');
+      tryRevealLore(['L09']);resumeAfterChoice();}},
+    {l:'Turn them away', fn(){
+      G.sanity=clamp(G.sanity-5,0,100);log('you shake your head. they leave.','sys');
+      log('the shelter feels emptier.','lore');resumeAfterChoice();}},
+    {l:'Drive them off',cls:'red',fn(){
+      G.choices.threat++;log('you raise whatever you have. they scatter.','danger');
+      addRes('food',2);tryRevealLore(['L10']);resumeAfterChoice();}},
+  ].forEach(c=>{
+    const b=document.createElement('button');b.className='act-btn'+(c.cls?' '+c.cls:'');b.textContent=c.l;
+    b.addEventListener('click',()=>{c.fn();updateStats();});A.appendChild(b);
+  });
 }
 
-function resumeAfterChoice(){
-  // return to expedition if we were on one
-  G.phase=G.exp?'expedition':'shelter';
-  checkEndings();
-}
+function resumeAfterChoice(){ G.phase=G.exp?'expedition':'shelter'; checkEndings(); }
 
 // ═══════════════════════════════════════════════════════════
 // COMBAT
 // ═══════════════════════════════════════════════════════════
 
 function startCombat(enemy){
-  G.prevPhase=G.phase;
-  G.phase='combat'; G.foe={...enemy};
-  logSep();
-  log(`⚠ ${enemy.name}`,'danger');
-  log(enemy.desc||'','lore');
-  updateStats();
+  G.prevPhase=G.phase; G.phase='combat'; G.foe={...enemy};
+  logSep(); log(`⚠ ${enemy.name}`,'danger'); log(enemy.desc||'','lore'); updateStats();
 }
 
 function playerAttack(){
   if(!G.foe) return;
-  let [minD,maxD]=getAttackDmg();
-  let dmg=ri(minD,maxD);
-  dmg=Math.round(dmg*(1+(G.luck-5)*.05));
+  let [mn,mx]=getAttackDmg();
+  let dmg=ri(mn,mx); dmg=Math.round(dmg*(1+(G.luck-5)*.05));
   G.foe.hp=Math.max(0,G.foe.hp-dmg);
   const verbs=['you hit','you connect','you strike','you land a blow'];
   log(`${verbs[ri(0,verbs.length-1)]}. ${G.foe.name} takes ${dmg} damage.`,'combat');
-  if(G.foe.hp<=0){ endCombat(true); return; }
+  if(G.foe.hp<=0){endCombat(true);return;}
   enemyTurn();
 }
 
@@ -845,9 +818,9 @@ function enemyTurn(){
   let dmg=ri(G.foe.atk[0],G.foe.atk[1]);
   if(G.base.defenses>0&&G.prevPhase==='shelter') dmg=Math.floor(dmg*(1-G.base.defenses*.12));
   G.hp=clamp(G.hp-dmg,0,G.maxHp);
-  if(G.foe.rad){G.radiation=clamp(G.radiation+G.foe.rad,0,100);log(`intense radiation. (+${G.foe.rad} rad)`,'danger');}
-  const verbs=[`${G.foe.name} strikes back.`,`${G.foe.name} attacks.`,`${G.foe.name} retaliates.`];
-  log(`${verbs[ri(0,verbs.length-1)]} -${dmg} hp`,'danger');
+  if(G.foe.rad){G.radiation=clamp(G.radiation+G.foe.rad,0,100);log(`radiation. (+${G.foe.rad} rad)`,'danger');}
+  const v=[`${G.foe.name} strikes back.`,`${G.foe.name} attacks.`,`${G.foe.name} retaliates.`];
+  log(`${v[ri(0,v.length-1)]} -${dmg} hp`,'danger');
   if(G.hp<=0) die(`you fall to the ${G.foe.name.toLowerCase()}.`);
 }
 
@@ -856,17 +829,13 @@ function endCombat(won){
   const foe=G.foe;
   if(won){
     log(foe.msg,'good');
-    for(const[k,range] of Object.entries(foe.loot)){
+    for(const[k,range]of Object.entries(foe.loot)){
       const amt=ri(range[0],range[1]); if(amt<=0) continue;
-      if(k in G.res) G.res[k]=Math.min(G.resCap,(G.res[k]||0)+amt);
-      else if(k in G.inv) G.inv[k]+=amt;
+      if(k in G.res) addRes(k,amt); else if(k in G.inv) G.inv[k]+=amt;
     }
-    G.sanity=clamp(G.sanity-8,0,100);
-    log('killing takes something.','sys');
+    G.sanity=clamp(G.sanity-8,0,100); log('killing takes something.','sys');
   }
-  G.foe=null;
-  G.phase=G.exp?'expedition':'shelter';
-  updateStats();
+  G.foe=null; G.phase=G.exp?'expedition':'shelter'; updateStats();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -874,34 +843,31 @@ function endCombat(won){
 // ═══════════════════════════════════════════════════════════
 
 function doDarkAction(){
-  G.flags.darkListened++;
-  G.choices.dark++;
+  G.flags.darkListened++; G.choices.dark++;
   if(G.flags.darkListened===1){
-    log('you press your ear to the east wall. something breathes on the other side.','dark');
-    log('"you\'re still fighting," it says. "you don\'t have to."','dark');
+    log('you press your ear to the east wall. something breathes.','dark');
+    log('"you\'re still fighting. you don\'t have to."','dark');
   } else if(G.flags.darkListened===2){
-    log('"the shelter is the wasteland. you are the wasteland. stop pretending otherwise."','dark');
-    log('something loosens inside you. it isn\'t bad, exactly.','haunt');
+    log('"the shelter is the wasteland. you are the wasteland."','dark');
+    log('something loosens inside you. not entirely bad.','haunt');
   } else if(G.flags.darkListened>=3&&!G.flags.darkOffered){
-    G.flags.darkOffered=true;
-    showDarkChoice();
+    G.flags.darkOffered=true; showDarkChoice();
   }
 }
 
 function showDarkChoice(){
   G.phase='choice';
   const A=document.getElementById('actions'); A.innerHTML='';
-  secHdr(A,'THE OFFER');
+  actSec(A,'THE OFFER');
   const p=document.createElement('div');
-  p.style.cssText='font-size:11px;color:#4a2a6a;padding:6px 0 8px;line-height:1.8;font-style:italic';
+  p.style.cssText='font-size:11px;color:#4a2a6a;padding:6px 0 10px;line-height:1.8;font-style:italic';
   p.textContent='"stop being afraid. stop surviving. just become. the waste takes everything — why not choose it?"'; A.appendChild(p);
-
-  [
-    { l:'Refuse. Survive.', fn(){ log('you pull back from the wall. the voice goes quiet.','good'); G.sanity=clamp(G.sanity+20,0,100); log('+20 sanity.','good'); G.phase='shelter'; }},
-    { l:'Accept. Become.', cls:'special', fn(){ doDarkEnd(); }},
+  [{l:'Refuse. Survive.',fn(){log('you pull back. the voice goes quiet.','good');G.sanity=clamp(G.sanity+20,0,100);log('+20 sanity.','good');G.phase='shelter';}},
+   {l:'Accept. Become.',cls:'special',fn(){doDarkEnd();}}
   ].forEach(c=>{
-    const b=document.createElement('button'); b.className='act-btn'+(c.cls?' '+c.cls:'');
-    b.textContent=c.l; b.addEventListener('click',()=>{ c.fn(); updateStats(); }); A.appendChild(b); });
+    const b=document.createElement('button');b.className='act-btn'+(c.cls?' '+c.cls:'');b.textContent=c.l;
+    b.addEventListener('click',()=>{c.fn();updateStats();});A.appendChild(b);
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -909,22 +875,19 @@ function showDarkChoice(){
 // ═══════════════════════════════════════════════════════════
 
 function tryRevealLore(ids){
-  const candidates=ids.filter(id=>!G.lore.includes(id));
-  if(!candidates.length) return;
-  const id=candidates[ri(0,candidates.length-1)];
+  const cs=ids.filter(id=>!G.lore.includes(id));
+  if(!cs.length) return;
+  const id=cs[ri(0,cs.length-1)];
   const lore=LORE_DB.find(l=>l.id===id); if(!lore) return;
   G.lore.push(id);
   setTimeout(()=>showModal(lore.title,lore.body),300);
 }
-
 function showModal(title,body){
   document.getElementById('modal-title').textContent=title;
   document.getElementById('modal-body').textContent=body;
   document.getElementById('modal').style.display='block';
 }
-document.getElementById('modal-close').addEventListener('click',()=>{
-  document.getElementById('modal').style.display='none';
-});
+document.getElementById('modal-close').addEventListener('click',()=>{document.getElementById('modal').style.display='none';});
 
 // ═══════════════════════════════════════════════════════════
 // TICK
@@ -934,59 +897,47 @@ function tick(){
   if(G.phase==='dead'||G.phase==='ending') return;
   G.ticks++;
 
-  // Time (1 in-game hour = 15 ticks)
+  // Time: 1 hour = 15 ticks
   if(G.ticks%15===0){
-    G.hour++; if(G.hour>=24){ G.hour=0; G.day++; dailyEvent(); }
+    G.hour++; if(G.hour>=24){G.hour=0;G.day++;dailyEvent();}
     updateStats();
   }
 
-  // Expedition tick (every tick)
-  if(G.phase==='expedition'||G.exp){ tickExp(); }
+  // Expedition tick
+  if(G.exp) tickExp();
 
-  // Stat decay (every 5 ticks)
+  // Stat decay every 5 ticks
   if(G.ticks%5===0){
     const night=G.hour<6||G.hour>=20, lit=G.base.fire||G.base.generator;
     G.hunger=clamp(G.hunger-1,0,100);
     G.thirst=clamp(G.thirst-1.5,0,100);
-
     let sd=0.35;
-    if(night&&!lit) sd+=0.65;
-    if(G.radiation>50) sd+=0.4;
-    if(G.phase==='expedition') sd+=0.25;
+    if(night&&!lit)sd+=0.65;
+    if(G.radiation>50)sd+=0.4;
+    if(G.phase==='expedition')sd+=0.25;
     G.sanity=clamp(G.sanity-sd,0,100);
 
-    // HP damage from starvation/thirst
-    if(G.hunger<=0){ G.hp=clamp(G.hp-.8,0,G.maxHp); if(G.ticks%25===0)log('starvation.','danger'); }
-    if(G.thirst<=0){ G.hp=clamp(G.hp-1.2,0,G.maxHp); if(G.ticks%20===0)log('dehydration.','danger'); }
+    if(G.hunger<=0){G.hp=clamp(G.hp-.8,0,G.maxHp);if(G.ticks%25===0)log('starvation.','danger');}
+    if(G.thirst<=0){G.hp=clamp(G.hp-1.2,0,G.maxHp);if(G.ticks%20===0)log('dehydration.','danger');}
 
-    // HP regen when well fed & hydrated
-    if(G.hunger>65&&G.thirst>65&&G.hp<G.maxHp){
-      G.hp=Math.min(G.maxHp,G.hp+0.6);
-    }
+    // HP regen when well fed and hydrated
+    if(G.hunger>65&&G.thirst>65&&G.hp<G.maxHp) G.hp=Math.min(G.maxHp,G.hp+0.6);
 
-    // Radiation cap on maxHp
+    // Radiation cap
     G.maxHp=Math.max(15,100-Math.floor(G.radiation/3));
     if(G.hp>G.maxHp) G.hp=G.maxHp;
 
-    // Death: if HP < radiation, radiation poisoning overwhelms
-    if(G.radiation>0&&G.hp<G.radiation){
-      die('radiation poisoning overwhelms your body. your cells lose the argument.'); return;
-    }
+    // Rads overtake HP = death
+    if(G.radiation>0&&G.hp<G.radiation){die('radiation poisoning overwhelms you. your cells lose the argument.');return;}
+    if(G.hp<=0){const r=G.hunger<=0?'starvation':G.thirst<=0?'thirst':'wounds';die(`you die of ${r}.`);return;}
 
-    if(G.hp<=0){
-      const r=G.hunger<=0?'starvation':G.thirst<=0?'thirst':'wounds';
-      die(`you die of ${r}.`); return;
-    }
-
-    // Warnings every 20 ticks
+    // Warnings
     if(G.ticks%20===0){
-      if(G.hunger<20) log('hunger gnaws. eat something.','danger');
-      if(G.thirst<20) log('your throat is ash. find water.','danger');
-      if(G.sanity<25) log('the edges of things are getting softer.','haunt');
-      if(G.radiation>70&&G.ticks%40===0) log('radiation poisoning is advancing. your hp ceiling drops.','danger');
-      if(G.radiation>0&&G.radiation*.8>G.hp) log('warning: radiation is catching up to your health.','danger');
+      if(G.hunger<20)log('hunger gnaws.','danger');
+      if(G.thirst<20)log('your throat is ash.','danger');
+      if(G.sanity<25)log('the edges of things grow soft.','haunt');
+      if(G.radiation>0&&G.radiation*.85>G.hp)log('⚠ radiation is closing in on your hp.','danger');
     }
-
     updateStats();
   }
 
@@ -994,32 +945,29 @@ function tick(){
   if(G.sanity<40&&G.ticks>=G.nextHalluc){
     G.nextHalluc=G.ticks+ri(35,90);
     log(HALLUCINATIONS[ri(0,HALLUCINATIONS.length-1)],'haunt');
-    if(G.sanity<15&&G.radiation>35)
-      setTimeout(()=>log(DARK_VOICES[ri(0,DARK_VOICES.length-1)],'dark'),1600);
+    if(G.sanity<15&&G.radiation>35)setTimeout(()=>log(DARK_VOICES[ri(0,DARK_VOICES.length-1)],'dark'),1600);
   }
 
   // Night raids
   if(G.ticks>=G.nextRaid&&G.phase==='shelter'&&(G.hour<5||G.hour>=21)){
-    G.nextRaid=G.ticks+ri(500,1000);
-    nightRaid();
+    G.nextRaid=G.ticks+ri(500,1000); nightRaid();
   }
 
-  // Passive purifier (every 80 ticks)
+  // Passive purifier
   if(G.base.purifier&&G.ticks%80===0&&G.res.dirtyWater>0){
-    G.res.dirtyWater--; G.res.cleanWater=Math.min(G.resCap,(G.res.cleanWater||0)+1);
-    log('purifier runs quietly. one more clean water.','sys');
+    G.res.dirtyWater--;addRes('cleanWater',1);log('purifier — one more clean water.','sys');
   }
 }
 
 function dailyEvent(){
+  logSep();
   const evts=[
-    ()=>log(`day ${G.day}. the sun rises over the ashfields.`,'sys'),
-    ()=>log(`day ${G.day}. distant gunfire. far enough to not care about.`,'sys'),
-    ()=>{G.res.dirtyWater=Math.min(G.resCap,G.res.dirtyWater+1);log(`day ${G.day}. light rain. (+1 dirty water)`,'good');},
-    ()=>log(`day ${G.day}. a radio signal, fragmentary. voices, then static.`,'lore'),
-    ()=>{G.sanity=clamp(G.sanity+6,0,100);log(`day ${G.day}. a good night's sleep. (+6 sanity)`,'good');},
-    ()=>log(`day ${G.day}. something large moved past the shelter. didn't come in.`,'lore'),
-    ()=>{G.res.scrap=Math.min(G.resCap,G.res.scrap+1);log(`day ${G.day}. debris from a collapsed wall. (+1 scrap)`,'good');},
+    ()=>log(`— day ${G.day} —`,'sys'),
+    ()=>{G.res.dirtyWater=Math.min(G.resCap,G.res.dirtyWater+1);log(`day ${G.day}. light rain. containers catch it. (+1 dirty water)`,'good');},
+    ()=>{G.sanity=clamp(G.sanity+6,0,100);log(`day ${G.day}. a decent night's sleep. (+6 sanity)`,'good');},
+    ()=>{addRes('scrap',1);log(`day ${G.day}. a wall collapses nearby. salvageable. (+1 scrap)`,'good');},
+    ()=>log(`day ${G.day}. distant gunfire. far enough.`,'sys'),
+    ()=>log(`day ${G.day}. something large passed by in the night. didn't come in.`,'lore'),
     ()=>log(`day ${G.day}. quiet. you're not sure if quiet is good anymore.`,'sys'),
   ];
   evts[ri(0,evts.length-1)]();
@@ -1028,12 +976,11 @@ function dailyEvent(){
 
 function nightRaid(){
   logSep();
-  log('sounds at the perimeter. they found the shelter.','danger');
+  log('sounds at the perimeter.','danger');
   const defMod=G.base.defenses*.25+(G.luck-5)*.05;
-  if(Math.random()<defMod){ log('your defenses hold. you hear them leave.','good'); return; }
+  if(Math.random()<defMod){log('your defenses hold. they leave.','good');return;}
   const eid=G.day>8?'raidBoss':'raider';
-  const e=ENEMIES[eid];
-  startCombat({...e,hp:e.maxHp});
+  startCombat({...ENEMIES[eid],hp:ENEMIES[eid].maxHp});
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1042,101 +989,33 @@ function nightRaid(){
 
 function checkEndings(){
   if(G.flags.vehicleFound&&G.res.fuel>=5&&G.res.caps>=20&&!G.flags.showEscape){
-    G.flags.showEscape=true; log('the vehicle. the fuel. the caps. you have everything to leave.','imp');
+    G.flags.showEscape=true;log('you have everything needed to leave. the north waits.','imp');
   }
   if(G.flags.settlersHere&&G.base.defenses>=2&&G.base.storage>=2&&G.base.bench&&!G.flags.showRebuild){
-    G.flags.showRebuild=true; log('shelter 13 is becoming something. you can feel it.','imp');
+    G.flags.showRebuild=true;log('shelter 13 is becoming something real.','imp');
   }
 }
 
 function doEscapeEnd(){
-  if(G.res.fuel<5||G.res.caps<20) return;
-  G.res.fuel-=5; G.res.caps-=20;
-  G.phase='ending'; clearInterval(TICK_ID);
-  setTimeout(()=>showEnd('EXODUS',
-`You fix the vehicle. It takes three days and everything you have.
-
-Then it runs.
-
-You drive north. The ashfields give way to grey soil, then to something you hesitantly call grass. The dosimeter reading drops for the first time in weeks.
-
-You don't look back.
-
-Three weeks later: the northern settlement. It's real. It's small. It's warm.
-
-"We didn't think anyone else was left," someone says.
-
-You survived. That's the whole story. That's enough.
-
-─────────────────────────
-DAYS SURVIVED: ${G.day}
-LUCK: ${G.luck} · PERCEPTION: ${G.per}
-─────────────────────────`),500);
+  if(G.res.fuel<5||G.res.caps<20)return;
+  G.res.fuel-=5;G.res.caps-=20;G.phase='ending';clearInterval(TICK_ID);
+  setTimeout(()=>showEnd('EXODUS',`You fix the vehicle. It takes three days and everything you have.\n\nThen it runs.\n\nYou drive north. The ashfields give way to grey soil, then to something you hesitantly call grass. The dosimeter drops for the first time in weeks.\n\nYou don't look back.\n\nThree weeks later: the northern settlement. Real. Small. Warm.\n\n"We didn't think anyone else was left," someone says.\n\nYou survived. That's the whole story. That's enough.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nLUCK: ${G.luck} · PERCEPTION: ${G.per}\n─────────────────────────`),500);
 }
 
 function doRebuildEnd(){
-  G.phase='ending'; clearInterval(TICK_ID);
-  setTimeout(()=>showEnd('HOME',
-`You hold a vote. Your first vote in Shelter 13.
-
-Everyone gets a say. The settlers are surprised. They weren't expecting democracy.
-
-Neither were you.
-
-The shelter grows. More people come — word of a real settlement travels. You build walls, then a water system, then a garden. An argument about the garden. Then a bigger garden.
-
-You name it. Not Shelter 13. Something new.
-
-It's not paradise. The wasteland doesn't do paradise. But it's warm, and it's yours, and people are laughing in it.
-
-─────────────────────────
-DAYS SURVIVED: ${G.day}
-LUCK: ${G.luck} · PERCEPTION: ${G.per}
-─────────────────────────`),500);
+  G.phase='ending';clearInterval(TICK_ID);
+  setTimeout(()=>showEnd('HOME',`You hold a vote. Your first vote in Shelter 13.\n\nEveryone gets a say. The settlers are surprised. They weren't expecting democracy.\n\nThe shelter grows. More people come — word travels. Walls, a water system, a garden. An argument about the garden. Then a bigger garden.\n\nYou name it. Not Shelter 13. Something new.\n\nIt's not paradise. The wasteland doesn't do paradise. But it's warm, and it's yours, and people are laughing in it.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nLUCK: ${G.luck} · PERCEPTION: ${G.per}\n─────────────────────────`),500);
 }
 
 function doDarkEnd(){
-  G.phase='ending'; clearInterval(TICK_ID);
-  setTimeout(()=>showEnd('THE WASTE',
-`You stop fighting.
-
-It's not dramatic. You just stop.
-
-The thing from the east corridor comes through — or maybe it was never in the corridor. Maybe it was in you.
-
-You remain in Shelter 13.
-
-Travelers who pass by find something there. They don't stay long. They don't come back. But they tell stories.
-
-There's something in the old shelter, they say. Not dangerous. Not safe.
-
-A remnant. A thing that used to be a survivor, that chose to be what the wasteland made instead.
-
-You are what remains.
-
-─────────────────────────
-DAYS SURVIVED: ${G.day}
-ENDING: THE DARK
-─────────────────────────`),500);
+  G.phase='ending';clearInterval(TICK_ID);
+  setTimeout(()=>showEnd('THE WASTE',`You stop fighting.\n\nIt's not dramatic. You just stop.\n\nThe thing from the east corridor comes through — or maybe it was never in the corridor.\n\nYou remain in Shelter 13.\n\nTravelers who pass find something there. They don't stay long. They don't come back. But they tell stories.\n\nThere's something in the old shelter, they say. Not dangerous. Not safe.\n\nA remnant. A thing that chose to be what the wasteland made.\n\nYou are what remains.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nENDING: THE DARK\n─────────────────────────`),500);
 }
 
 function die(reason){
-  G.phase='dead'; clearInterval(TICK_ID);
-  log(`✗ ${reason}`,'danger');
-  updateStats();
-  setTimeout(()=>showEnd('DEAD',
-`${reason}
-
-Shelter 13 goes quiet. Whatever fire you built burns down to nothing.
-
-The wasteland reclaims what was always the wasteland's.
-
-Somewhere, a machine records the fact of your existence and then forgets it.
-
-─────────────────────────
-DAYS SURVIVED: ${G.day}
-LUCK: ${G.luck} · PERCEPTION: ${G.per}
-─────────────────────────`),2000);
+  G.phase='dead';clearInterval(TICK_ID);
+  log(`✗ ${reason}`,'danger'); updateStats();
+  setTimeout(()=>showEnd('DEAD',`${reason}\n\nShelter 13 goes quiet. Whatever fire you built burns to nothing.\n\nThe wasteland reclaims what was always the wasteland's.\n\nSomewhere, a machine records the fact of your existence and then forgets it.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nLUCK: ${G.luck} · PERCEPTION: ${G.per}\n─────────────────────────`),2000);
 }
 
 function showEnd(title,body){
@@ -1148,7 +1027,7 @@ function showEnd(title,body){
 document.getElementById('end-restart').addEventListener('click',()=>{
   document.getElementById('end-screen').classList.remove('on');
   document.getElementById('log').innerHTML='';
-  clearInterval(TICK_ID); Object.keys(CD).forEach(k=>delete CD[k]);
+  clearInterval(TICK_ID);Object.keys(CD).forEach(k=>delete CD[k]);
   init();
 });
 
@@ -1158,23 +1037,26 @@ document.getElementById('end-restart').addEventListener('click',()=>{
 
 function init(){
   G=freshState();
-  const intro=[
+  const seq=[
     [200,'you wake up.','imp'],
     [900,'you don\'t remember falling asleep.','sys'],
-    [1700,'concrete walls. the smell of rust and old air. a shelter.','lore'],
-    [2600,'you don\'t remember coming here, either.','sys'],
+    [1700,'concrete walls. rust. old air. a shelter.','lore'],
+    [2600,'you don\'t remember coming here either.','sys'],
     [3400,'there are supplies. not many. enough to not die immediately.','sys'],
     [4200,'for now, that\'s the whole plan.','lore'],
-    [5100,`—`,''],
-    [5400,`luck: ${G.luck}. perception: ${G.per}. some things are decided before you wake up.`,'sys'],
-    [6200,'gather what you can. the wasteland is patient.','sys'],
+    [5100,'—','sep'],
+    [5400,`luck: ${0}, perception: ${0}. some things are decided before you wake up.`,'sys'],
+    [6000,'gather what you can. the wasteland is patient.','sys'],
   ];
-  intro.forEach(([t,txt,cls])=>{
-    if(txt==='—'){ setTimeout(()=>logSep(),t); return; }
+  seq.forEach(([t,txt,cls])=>{
+    if(cls==='sep'){setTimeout(()=>logSep(),t);return;}
+    if(txt.includes('luck:')){
+      setTimeout(()=>log(`luck: ${G.luck}, perception: ${G.per}. some things are decided before you wake up.`,cls),t);return;
+    }
     setTimeout(()=>log(txt,cls),t);
   });
   TICK_ID=setInterval(tick,1000);
-  setTimeout(updateStats,150);
+  setTimeout(updateStats,100);
 }
 
 init();
