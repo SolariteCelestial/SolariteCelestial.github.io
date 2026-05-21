@@ -633,6 +633,41 @@ function isStarPoint(r, c, s) {
   return false;
 }
 
+// ── Eye detection ──────────────────────────────
+// A "simple eye" = empty point whose every orthogonal neighbour is
+// the same player's stone (or off the board).  Never fill these.
+function isSimpleEye(game, r, c, player) {
+  if (game.board[r][c] !== 0) return false;
+  const s = game.size;
+  if (r > 0   && game.board[r-1][c] !== player) return false;
+  if (r < s-1 && game.board[r+1][c] !== player) return false;
+  if (c > 0   && game.board[r][c-1] !== player) return false;
+  if (c < s-1 && game.board[r][c+1] !== player) return false;
+  return true;
+}
+
+// A "false eye" is a simple eye where the opponent occupies more than
+// the allowed diagonal intersections (interior: ≥2 bad diags; edge: ≥1).
+// Filling a false eye is still better than filling a true eye, but we
+// treat both as highly undesirable.
+function isTrueEye(game, r, c, player) {
+  if (!isSimpleEye(game, r, c, player)) return false;
+  const s = game.size, opp = 3 - player;
+  const diags = [[r-1,c-1],[r-1,c+1],[r+1,c-1],[r+1,c+1]]
+    .filter(([dr,dc]) => dr >= 0 && dr < s && dc >= 0 && dc < s);
+  const bad = diags.filter(([dr,dc]) => game.board[dr][dc] === opp).length;
+  const maxBad = diags.length === 4 ? 1 : 0;  // interior allows 1 bad diagonal
+  return bad <= maxBad;
+}
+
+// Penalty value to apply when scoring a move into own eye-space.
+// True eye = catastrophic penalty; false/simple eye = heavy penalty.
+function eyePenalty(game, r, c, player) {
+  if (isTrueEye(game, r, c, player))   return 1800;
+  if (isSimpleEye(game, r, c, player)) return 900;
+  return 0;
+}
+
 function shuffle(arr) {
   for (let i = arr.length-1; i > 0; i--) {
     const j = (Math.random()*(i+1))|0;
@@ -646,8 +681,11 @@ function shuffle(arr) {
 // ══════════════════════════════════════════════
 
 function aiNovice(game) {
-  const moves = shuffle(game.validMoves());
-  return moves.length ? moves[0] : null;
+  const player = game.current;
+  const moves = shuffle(game.validMoves(player));
+  // Prefer moves that don't fill own eyes
+  const safe = moves.filter(([r,c]) => !isSimpleEye(game, r, c, player));
+  return (safe.length ? safe : moves)[0] || null;
 }
 
 // ══════════════════════════════════════════════
@@ -658,7 +696,8 @@ function scoreMoveHeuristic(game, r, c, player) {
   const s = game.size, opp = 3 - player;
   let score = 0;
 
-  // Temporarily place stone and capture
+  // Hard-penalise filling own eye-space — true eyes cost most
+  score -= eyePenalty(game, r, c, player);
   game.board[r][c] = player;
   const removed = [];
   for (const [nr, nc] of game._nbrs(r, c)) {
@@ -735,16 +774,22 @@ function aiAdept(game) {
 // ══════════════════════════════════════════════
 
 function fastRolloutMove(game) {
-  const s = game.size;
+  const s = game.size, player = game.current;
   const empties = [];
   for (let r = 0; r < s; r++)
     for (let c = 0; c < s; c++)
       if (game.board[r][c] === 0) empties.push([r,c]);
   shuffle(empties);
   const limit = Math.min(empties.length, 40);
+  // First pass: skip own simple eyes
   for (let i = 0; i < limit; i++) {
     const [r,c] = empties[i];
-    if (game.isValid(r, c, game.current)) return [r,c];
+    if (!isSimpleEye(game, r, c, player) && game.isValid(r, c, player)) return [r,c];
+  }
+  // Fallback: allow eye moves if nothing else playable
+  for (let i = 0; i < limit; i++) {
+    const [r,c] = empties[i];
+    if (game.isValid(r, c, player)) return [r,c];
   }
   return null;
 }
