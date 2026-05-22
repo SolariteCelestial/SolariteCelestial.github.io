@@ -7,11 +7,11 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#070600;--bg2:#0d0b04;
-  --amber:#c8960c;--amber-dim:#5a420a;--amber-glow:#f0b820;
-  --red:#9a2020;--red-bright:#c84040;
-  --text:#a87808;--text-dim:#5a4010;
-  --border:#1a1508;--purple:#6a3a9a;
+  --bg:#0e0c04;--bg2:#151208;
+  --amber:#e0aa18;--amber-dim:#8a6418;--amber-glow:#ffd040;
+  --red:#c03030;--red-bright:#e85050;
+  --text:#d4a030;--text-dim:#8a6a28;
+  --border:#2e2410;--purple:#9058c8;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.5;overflow:hidden}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9999}
@@ -28,13 +28,13 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 #log{display:flex;flex-direction:column;gap:4px}
 .log-entry{opacity:0;animation:fadeIn .45s ease forwards;line-height:1.55;font-size:10.5px;padding:1px 0}
 .log-entry.sys{color:var(--text-dim)}
-.log-entry.lore{color:#7a6a48;font-style:italic}
+.log-entry.lore{color:#a89060;font-style:italic}
 .log-entry.danger{color:var(--red-bright)}
-.log-entry.good{color:#4a8a4a}
+.log-entry.good{color:#60aa60}
 .log-entry.imp{color:var(--amber-glow)}
-.log-entry.combat{color:#c07030}
+.log-entry.combat{color:#e09050}
 .log-entry.haunt{color:var(--purple);font-style:italic}
-.log-entry.dark{color:#4a2a6a;font-style:italic}
+.log-entry.dark{color:#7040a0;font-style:italic}
 .log-sep{border:none;border-top:1px solid var(--border);margin:5px 0;opacity:.3;width:100%}
 
 /* MAIN — 78%: info col + actions col */
@@ -113,14 +113,14 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 /* modal */
 #modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--amber-dim);padding:24px;max-width:480px;width:90vw;z-index:500;animation:modalIn .2s ease}
 #modal .mtitle{color:var(--amber-glow);letter-spacing:2px;margin-bottom:10px;font-size:11px}
-#modal .mbody{color:#7a6a48;line-height:1.8;font-style:italic;margin-bottom:16px;white-space:pre-wrap;font-size:11px}
+#modal .mbody{color:#a89060;line-height:1.8;font-style:italic;margin-bottom:16px;white-space:pre-wrap;font-size:11px}
 #modal .mclose{background:transparent;border:1px solid var(--amber-dim);color:var(--text);padding:6px 16px;font-family:inherit;cursor:pointer;font-size:11px;letter-spacing:1px}
 
 /* end screen */
 #end-screen{display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:600;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px}
 #end-screen.on{display:flex}
 #end-title{font-size:22px;letter-spacing:8px;color:var(--amber-glow);margin-bottom:18px;text-shadow:0 0 20px var(--amber)}
-#end-body{max-width:520px;color:#7a6a48;line-height:1.9;font-style:italic;margin-bottom:28px;white-space:pre-wrap;font-size:12px}
+#end-body{max-width:520px;color:#a89060;line-height:1.9;font-style:italic;margin-bottom:28px;white-space:pre-wrap;font-size:12px}
 #end-restart{background:transparent;border:1px solid var(--amber);color:var(--amber);padding:10px 30px;font-family:inherit;font-size:12px;letter-spacing:3px;cursor:pointer}
 #end-restart:hover{background:rgba(200,150,12,.08)}
 
@@ -139,7 +139,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 <div id="game">
   <div id="header">
     <div id="title">◈ SHELTER 13 ◈</div>
-    <div id="hud-r"><div id="time-line">DAY 1 · MORNING</div><div id="sp-line">LUCK 5 · PER 5</div></div>
+    <div id="hud-r"><div id="time-line">DAY 1 · MORNING</div><div id="sp-line">PER 5</div></div>
   </div>
 
   <!-- LOG (22%) -->
@@ -276,6 +276,7 @@ function freshState(){
     hunger:75, thirst:75, sanity:100, radiation:0,
     res:{ food:4, dirtyWater:3, cleanWater:0, scrap:6, medicine:1, fuel:0, caps:10 },
     inv:{ knife:0, machete:0, pipeRifle:0, shotgun:0, molotov:0, stimpak:0, radAway:0 },
+    dmgBuff:0,
     equipped:{ hand1:null, hand2:null },
     base:{ fire:false, generator:false, purifier:false, bench:false, storage:0, defenses:0 },
     day:1, hour:8, ticks:0,
@@ -299,6 +300,15 @@ function ri(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
 function capRes(k){ G.res[k]=clamp(G.res[k]||0,0,G.resCap); }
 function addRes(k,n){ G.res[k]=Math.min(G.resCap,(G.res[k]||0)+n); }
+function changeLuck(delta, reason){
+  const prev=G.luck;
+  G.luck=clamp(G.luck+delta,1,10);
+  if(G.luck!==prev){
+    // Subtle hint without revealing the number
+    if(delta>0) log(`something feels slightly more favorable.`,'sys');
+    else log(`something feels slightly off.`,'sys');
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
 // LOG
@@ -401,11 +411,15 @@ function unequipSlot(slot){
 
 function getAttackDmg(){
   const h1=G.equipped.hand1, h2=G.equipped.hand2;
-  if(!h1&&!h2) return [2,7]; // fists
-  if(h1&&h1===h2){ const d=WEAPON_DEFS[h1].dmg; return [d[0],d[1]]; } // 2H
-  let mn=2,mx=7,added=false;
-  if(h1&&WEAPON_DEFS[h1]){ const d=WEAPON_DEFS[h1].dmg; if(!added){mn=d[0];mx=d[1];added=true;} }
-  if(h2&&h2!==h1&&WEAPON_DEFS[h2]){ const d=WEAPON_DEFS[h2].dmg; mn+=Math.round(d[0]*.6); mx+=Math.round(d[1]*.6); }
+  let mn,mx;
+  if(!h1&&!h2){ mn=2; mx=7; }
+  else if(h1&&h1===h2){ const d=WEAPON_DEFS[h1].dmg; mn=d[0]; mx=d[1]; }
+  else {
+    mn=2; mx=7; let added=false;
+    if(h1&&WEAPON_DEFS[h1]){ const d=WEAPON_DEFS[h1].dmg; if(!added){mn=d[0];mx=d[1];added=true;} }
+    if(h2&&h2!==h1&&WEAPON_DEFS[h2]){ const d=WEAPON_DEFS[h2].dmg; mn+=Math.round(d[0]*.6); mx+=Math.round(d[1]*.6); }
+  }
+  mn+=G.dmgBuff||0; mx+=G.dmgBuff||0;
   return [mn,mx];
 }
 
@@ -445,8 +459,10 @@ function updateStats(){
   // Equipment
   const ed=document.getElementById('equip-display'); ed.innerHTML='';
   const shown=new Set();
+  const anyEquipped=G.equipped.hand1!==null||G.equipped.hand2!==null;
   [['hand1','L.HAND'],['hand2','R.HAND']].forEach(([slot,lbl])=>{
     const key=G.equipped[slot];
+    if(!key&&!anyEquipped) return; // hide both empty rows if nothing equipped
     const row=document.createElement('div'); row.className='eq-row';
     if(key){
       const def=WEAPON_DEFS[key], isShown=shown.has(key);
@@ -462,15 +478,17 @@ function updateStats(){
     }
     ed.appendChild(row);
   });
+  if(!anyEquipped){ ed.innerHTML='<div class="res-row"><span class="res-name" style="color:var(--border)">— unarmed —</span></div>'; }
 
   // Inventory — weapons as full rows with EQUIP button
   const id2=document.getElementById('inv-display'); id2.innerHTML='';
   const weaponKeys=Object.keys(WEAPON_DEFS);
 
-  // Weapons first
+  // Weapons — only show if owned or equipped
   for(const k of weaponKeys){
     const def=WEAPON_DEFS[k], v=G.inv[k]||0;
     const isEq=G.equipped.hand1===k||G.equipped.hand2===k;
+    if(v===0&&!isEq) continue; // hide ghost items
     const row=document.createElement('div'); row.className='inv-weapon';
     row.innerHTML=`<span class="wname">${def.name}${isEq?' ✦':''}</span><span class="wcount${v===0?' z':''}">${v}</span>`;
     if(v>0&&!isEq&&G.phase==='shelter'){
@@ -480,12 +498,14 @@ function updateStats(){
     }
     id2.appendChild(row);
   }
-  // Consumables
+  // Consumables — only show if owned
   const consumes={molotov:'Molotov',stimpak:'Stimpak',radAway:'Rad-Away'};
   for(const[k,n] of Object.entries(consumes)){
     const v=G.inv[k]||0;
-    id2.innerHTML+=`<div class="res-row"><span class="res-name">${n}</span><span class="res-val${v===0?' z':''}">${v}</span></div>`;
+    if(v===0) continue;
+    id2.innerHTML+=`<div class="res-row"><span class="res-name">${n}</span><span class="res-val">${v}</span></div>`;
   }
+  if(id2.innerHTML===''){ id2.innerHTML='<div class="res-row"><span class="res-name" style="color:var(--border)">— nothing —</span></div>'; }
 
   // Base
   const bi=document.getElementById('base-info');
@@ -499,7 +519,7 @@ function updateStats(){
 
   // HUD
   document.getElementById('time-line').textContent=`DAY ${G.day} · ${TIME_LABELS[G.hour]||'NIGHT'}`;
-  document.getElementById('sp-line').textContent=`LUCK ${G.luck} · PER ${G.per}`;
+  document.getElementById('sp-line').textContent=`PER ${G.per}`;
   document.getElementById('night-veil').className=(G.hour<6||G.hour>=20)?'on':'';
 
   // Combat box
@@ -535,9 +555,12 @@ function renderActions(){
   makeBtn(A,'drink','Drink Water',{ cost:'water ×1', cd:4000, disabled:r.dirtyWater<1&&r.cleanWater<1, sub:'restores thirst',
     action(){ if(r.cleanWater>0){ r.cleanWater--; G.thirst=clamp(G.thirst+ri(30,40),0,100); G.sanity=clamp(G.sanity+3,0,100); log('clean water.','sys'); }
       else{ r.dirtyWater--; G.thirst=clamp(G.thirst+ri(22,30),0,100); const rg=ri(3,8); G.radiation=clamp(G.radiation+rg,0,100); log(`dirty water. (+${rg} rad)`,'sys'); } }});
-  makeBtn(A,'stim','Use Stimpak',{ cost:'stimpak ×1', cd:7000, disabled:inv.stimpak<1||G.hp>=G.maxHp, sub:'restores hp',
-    action(){ inv.stimpak--; const h=ri(25,45); G.hp=clamp(G.hp+h,0,G.maxHp); log(`stimpak. (+${h} hp)`,'good'); }});
-  makeBtn(A,'rad','Use Rad-Away',{ cost:'rad-away ×1', cd:9000, disabled:inv.radAway<1||G.radiation<5, sub:'reduces radiation',
+  makeBtn(A,'usemed','Use Medicine',{ cost:'medicine ×1', cd:6000, disabled:r.medicine<1||G.hp>=G.maxHp, sub:'restores 15–25 hp',
+    action(){ r.medicine--; const h=ri(15,25); G.hp=clamp(G.hp+h,0,G.maxHp); log(`applied medicine. (+${h} hp)`,'good'); }});
+  makeBtn(A,'stim','Use Stimpak',{ cost:'stimpak ×1', cd:7000, disabled:inv.stimpak<1, sub:'-10 hp · +5 dmg for next battle',
+    action(){ inv.stimpak--; G.hp=Math.max(1,G.hp-10); G.dmgBuff=(G.dmgBuff||0)+5;
+      log(`stimpak injected. the needle burns. (-10 hp, +5 dmg next fight)`,'combat'); }});
+  makeBtn(A,'userad','Use Rad-Away',{ cost:'rad-away ×1', cd:9000, disabled:inv.radAway<1||G.radiation<5, sub:'reduces radiation',
     action(){ inv.radAway--; const rr=ri(22,38); G.radiation=clamp(G.radiation-rr,0,100); log(`rad-away. (-${rr} rad)`,'good'); }});
 
   // ── GATHER (always available)
@@ -607,31 +630,50 @@ function renderActions(){
 function renderExpedition(A){
   const z=ZONES[G.exp?.zone];
   actSec(A,'EXPEDITION');
-  const d=document.createElement('div'); d.style.cssText='font-size:11px;color:var(--amber-dim);padding:4px 0';
-  d.textContent=`→ ${z?.name||'...'}`;A.appendChild(d);
-  if(G.exp){ const p=document.createElement('div');p.style.cssText='font-size:10px;color:var(--text-dim);padding:2px 0 10px';
-    p.textContent=`events remaining: ${G.exp.events}`;A.appendChild(p); }
-  makeBtn(A,'retreat','← Emergency Retreat',{cls:'red',sub:'costs 20 hp',
-    action(){ G.hp=Math.max(1,G.hp-20);log('you run. made it. (-20 hp)','danger');G.exp=null;G.phase='shelter';updateStats(); }});
+  const loc=document.createElement('div');
+  loc.style.cssText='font-size:11px;color:var(--amber-dim);padding:4px 0 2px';
+  loc.textContent=`→ ${z?.name||'...'}`;A.appendChild(loc);
+  const depth=document.createElement('div');
+  depth.style.cssText='font-size:10px;color:var(--text-dim);padding:0 0 10px';
+  depth.textContent=`depth: ${G.exp?.depth||0} · each step costs hp & rads`;A.appendChild(depth);
+
+  makeBtn(A,'explore','Continue Exploring',{sub:'loot · rads · passive dmg · fight chance',cd:1500,
+    action(){ doExpStep(); }});
+
+  makeBtn(A,'return','Return to Shelter',{sub:'safe exit, no hp cost',
+    action(){ returnExp(false); }});
+
+  makeBtn(A,'retreat','← Emergency Retreat',{cls:'red',sub:'costs 15 hp — use when cornered',
+    action(){ G.hp=Math.max(1,G.hp-15);log('you run. (-15 hp)','danger');returnExp(true); }});
 }
 
 function renderCombat(A){
   const [mn,mx]=getAttackDmg();
+  const buffNote=G.dmgBuff>0?` ⚡+${G.dmgBuff}`:'';
   actSec(A,'COMBAT');
-  makeBtn(A,'catk',getAttackLabel(),{cost:`${mn}–${mx} dmg`,cd:1500, action:playerAttack});
+  makeBtn(A,'catk',getAttackLabel(),{cost:`${mn}–${mx} dmg${buffNote}`,cd:1500, action:playerAttack});
   if(G.inv.molotov>0)
     makeBtn(A,'cmolo','Throw Molotov',{cost:'molotov ×1 · 22–42 dmg',cd:1500,
       action(){ G.inv.molotov--;const dmg=ri(22,42);G.foe.hp=Math.max(0,G.foe.hp-dmg);
         log(`molotov. ${G.foe.name} takes ${dmg} fire damage.`,'combat');
         if(G.foe.hp>0)enemyTurn();else endCombat(true); }});
-  if(G.inv.stimpak>0&&G.hp<G.maxHp)
-    makeBtn(A,'cstim','Use Stimpak',{cost:'stimpak ×1',cd:1500,
-      action(){ G.inv.stimpak--;const h=ri(25,45);G.hp=clamp(G.hp+h,0,G.maxHp);
-        log(`stimpak. (+${h} hp)`,'good');enemyTurn(); }});
-  makeBtn(A,'cflee','Flee',{cls:'red',sub:'40% chance · -12 hp if caught',
+  if(G.res.medicine>0&&G.hp<G.maxHp)
+    makeBtn(A,'cmed','Use Medicine',{cost:'medicine ×1 · 15–25 hp',cd:1500,
+      action(){ G.res.medicine--;const h=ri(15,25);G.hp=clamp(G.hp+h,0,G.maxHp);
+        log(`applied medicine. (+${h} hp)`,'good');enemyTurn(); }});
+  if(G.inv.stimpak>0)
+    makeBtn(A,'cstim','Use Stimpak',{cost:'stimpak ×1 · -10 hp · +5 dmg',cd:1500,
+      sub:G.dmgBuff>0?`current buff: +${G.dmgBuff} dmg`:'stacks with existing buff',
+      action(){ G.inv.stimpak--;G.hp=Math.max(1,G.hp-10);G.dmgBuff=(G.dmgBuff||0)+5;
+        log(`stimpak. burns going in. (+5 dmg, -10 hp)`,'combat'); }});
+  makeBtn(A,'cflee','Flee Combat',{cls:'red',sub:'40% chance · -12 hp if caught',
     action(){ const ch=.40+(G.luck-5)*.05;
-      if(Math.random()<ch){G.hp=Math.max(1,G.hp-12);log('you run. made it. (-12 hp)','sys');endCombat(false);}
-      else{log('you try to flee. fail.','danger');G.hp=Math.max(1,G.hp-8);enemyTurn();} }});
+      if(Math.random()<ch){G.hp=Math.max(1,G.hp-12);log('you break away. (-12 hp)','sys');endCombat(false);}
+      else{log('you try to flee. they cut you off.','danger');G.hp=Math.max(1,G.hp-8);enemyTurn();} }});
+  if(G.exp)
+    makeBtn(A,'cretreat','← Emergency Retreat',{cls:'red',sub:'abandon expedition · -15 hp',
+      action(){ G.hp=Math.max(1,G.hp-15);log('you break and run. (-15 hp)','danger');
+        G.foe=null; returnExp(true); }});
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -676,44 +718,46 @@ function doScavenge(){
 
 function startExp(zone){
   const z=ZONES[zone];
-  G.exp={zone,ticksLeft:z.tickDur,events:z.events,nextEvt:ri(6,12)};
+  G.exp={zone, depth:0};
   G.phase='expedition';
   logSep();
-  log(`you leave. the wasteland exhales.`,'imp');
-  log(`→ ${z.name}`,'sys');
+  log(`you leave the shelter. the wasteland exhales.`,'imp');
+  log(`→ ${z.name}. press "Continue Exploring" to push deeper.`,'sys');
 }
 
-function tickExp(){
+function doExpStep(){
   if(!G.exp||G.phase==='dead'||G.phase==='ending') return;
-  if(G.phase==='combat') return;
-  const e=G.exp;
-  e.ticksLeft--; e.nextEvt--;
-  if(e.nextEvt<=0&&e.events>0){ e.events--; e.nextEvt=ri(8,15); runExpEvt(e.zone); }
-  if(e.ticksLeft<=0) returnExp();
+  const zone=G.exp.zone;
+  G.exp.depth++;
+  const depth=G.exp.depth;
+
+  // Passive cost per step — scales with depth and zone
+  const hpCost={ruins:ri(3,6),town:ri(5,9),bunker:ri(8,14)}[zone];
+  const radGain={ruins:ri(2,6),town:ri(4,9),bunker:ri(10,18)}[zone];
+  const hungerCost={ruins:1,town:2,bunker:3}[zone];
+  const thirstCost={ruins:2,town:3,bunker:4}[zone];
+
+  G.hp=Math.max(1,G.hp-hpCost);
+  G.radiation=clamp(G.radiation+radGain,0,100);
+  G.hunger=clamp(G.hunger-hungerCost,0,100);
+  G.thirst=clamp(G.thirst-thirstCost,0,100);
+  G.sanity=clamp(G.sanity-ri(1,3),0,100);
+
+  log(`depth ${depth} — -${hpCost} hp, +${radGain} rad.`,'danger');
+
+  runExpEvt(zone);
 }
 
-function returnExp(){
+function returnExp(emergency){
   if(!G.exp) return;
-  const zone=G.exp.zone; const z=ZONES[zone];
   G.exp=null; G.phase='shelter';
   logSep();
-  log('you return. the familiar dark.','sys');
-  G.hunger=clamp(G.hunger-z.hungerCost,0,100);
-  G.thirst=clamp(G.thirst-z.thirstCost,0,100);
-  G.sanity=clamp(G.sanity-ri(2,5),0,100);
-  if(zone==='bunker'){const rg=ri(8,14);G.radiation=clamp(G.radiation+rg,0,100);log(`bunker radiation. (+${rg} rad)`,'danger');}
+  if(!emergency) log('you head back. the shelter door closes behind you.','sys');
   checkEndings(); updateStats();
 }
 
 function runExpEvt(zone){
-  const risk=ZONES[zone].risk-(G.luck-5)*.04;
-  if(Math.random()<risk){
-    const pools={ruins:['raider','ghoul'],town:['raider','ghoul','glowing','mutant'],bunker:['glowing','mutant','robot']};
-    const pool=pools[zone]; const eid=pool[ri(0,pool.length-1)];
-    const e=ENEMIES[eid]; startCombat({...e,hp:e.maxHp}); return;
-  }
-
-  // LOOT — significantly increased
+  // Always loot something
   const evts={
     ruins:[
       ()=>{ const f=ri(3,6),s=ri(3,8),c=ri(3,12); addRes('food',f);addRes('scrap',s);G.res.caps+=c; log(`collapsed home — ${f} food, ${s} scrap, ${c} caps.`,'good'); },
@@ -721,7 +765,7 @@ function runExpEvt(zone){
       ()=>{ const c=ri(8,20); G.res.caps+=c; log(`scattered caps. (+${c} caps)`,'good'); },
       ()=>{ const m=ri(1,3); addRes('medicine',m); log(`medicine cabinet — not empty. (+${m} medicine)`,'good'); },
       ()=>{ const f=ri(1,3),s=ri(2,5); addRes('fuel',f);addRes('scrap',s); log(`utility closet — ${f} fuel, ${s} scrap.`,'good'); },
-      ()=>{ G.sanity=clamp(G.sanity-4,0,100); tryRevealLore(['L01','L02','L07']); log('papers scattered. you read. the wind watches.','lore'); },
+      ()=>{ const f=ri(2,4),w=ri(1,3); addRes('food',f);addRes('dirtyWater',w); log(`dwelling kitchen — ${f} food, ${w} dirty water.`,'good'); },
     ],
     town:[
       ()=>{ const f=ri(4,9),s=ri(4,10),c=ri(12,30); addRes('food',f);addRes('scrap',s);G.res.caps+=c; log(`general store — ${f} food, ${s} scrap, ${c} caps.`,'good'); },
@@ -731,18 +775,35 @@ function runExpEvt(zone){
       ()=>{ tryMeetStranger(); },
       ()=>{ const m=ri(2,5); addRes('medicine',m); log(`clinic — mostly ransacked, not empty. (+${m} medicine)`,'good'); },
       ()=>{ const f=ri(2,5),w=ri(2,4),c=ri(8,22); addRes('food',f);addRes('dirtyWater',w);G.res.caps+=c; log(`apartment block — ${f} food, ${w} dirty water, ${c} caps.`,'good'); },
-      ()=>{ tryRevealLore(['L02','L05','L06','L08']); log('a terminal in a locked office. you find a way in.','lore'); },
+      ()=>{ const s=ri(3,7),fu=ri(1,4),c=ri(10,25); addRes('scrap',s);addRes('fuel',fu);G.res.caps+=c; log(`hardware store — ${s} scrap, ${fu} fuel, ${c} caps.`,'good'); },
     ],
     bunker:[
       ()=>{ const s=ri(8,16),fu=ri(3,7); addRes('scrap',s);addRes('fuel',fu); log(`military locker — ${s} scrap, ${fu} fuel.`,'good'); },
-      ()=>{ const m=ri(3,7); addRes('medicine',m); log(`military medkits. expired 2085. (+${m} medicine)`,'good'); },
-      ()=>{ const rg=ri(10,20); G.radiation=clamp(G.radiation+rg,0,100); log(`hot room. you learn the hard way. (+${rg} rad)`,'danger'); },
+      ()=>{ const m=ri(3,7); addRes('medicine',m); log(`military medkits. (+${m} medicine)`,'good'); },
       ()=>{ const c=ri(30,70); G.res.caps+=c; log(`paymaster's lockbox. (+${c} caps)`,'good'); },
       ()=>{ const s=ri(5,12),fu=ri(2,6),c=ri(15,40); addRes('scrap',s);addRes('fuel',fu);G.res.caps+=c; log(`armory — ${s} scrap, ${fu} fuel, ${c} caps.`,'good'); },
-      ()=>{ tryRevealLore(['L05','L06','L08','L09','L10']); log('emergency terminal on backup power.','lore'); },
+      ()=>{ const m=ri(2,5),s=ri(4,10); addRes('medicine',m);addRes('scrap',s); log(`research lab — ${m} medicine, ${s} scrap.`,'good'); },
+      ()=>{ const fu=ri(3,8),c=ri(20,50); addRes('fuel',fu);G.res.caps+=c; log(`vehicle bay — ${fu} fuel, ${c} caps.`,'good'); },
     ],
   };
   const pool=evts[zone]; pool[ri(0,pool.length-1)]();
+
+  // Lore occasionally
+  if(Math.random()>.65){
+    const lorePools={ruins:['L01','L02','L07'],town:['L02','L05','L06','L08'],bunker:['L05','L06','L08','L09','L10']};
+    tryRevealLore(lorePools[zone]);
+  }
+
+  // Combat roll — independent, after loot
+  const risk=clamp(ZONES[zone].risk+(G.exp?.depth||1)*0.04-(G.luck-5)*0.04,0.05,0.85);
+  if(Math.random()<risk){
+    const pools={ruins:['raider','ghoul'],town:['raider','ghoul','glowing','mutant'],bunker:['glowing','mutant','robot']};
+    const pool2=pools[zone]; const eid=pool2[ri(0,pool2.length-1)];
+    const e=ENEMIES[eid];
+    log(`movement in the dark.`,'danger');
+    startCombat({...e,hp:e.maxHp});
+  }
+
   updateStats();
 }
 
@@ -777,13 +838,15 @@ function showStrangerChoice(){
     {l:'Welcome them inside', fn(){
       G.flags.strangerHelped=true;G.flags.settlersHere=true;G.choices.help++;
       addRes('food',6);addRes('medicine',3);G.sanity=clamp(G.sanity+15,0,100);
+      changeLuck(1);
       log('you step aside. six people file in.','good');log('settlers arrive at shelter 13.','imp');
       tryRevealLore(['L09']);resumeAfterChoice();}},
     {l:'Turn them away', fn(){
       G.sanity=clamp(G.sanity-5,0,100);log('you shake your head. they leave.','sys');
       log('the shelter feels emptier.','lore');resumeAfterChoice();}},
     {l:'Drive them off',cls:'red',fn(){
-      G.choices.threat++;log('you raise whatever you have. they scatter.','danger');
+      G.choices.threat++;changeLuck(-1);
+      log('you raise whatever you have. they scatter.','danger');
       addRes('food',2);tryRevealLore(['L10']);resumeAfterChoice();}},
   ].forEach(c=>{
     const b=document.createElement('button');b.className='act-btn'+(c.cls?' '+c.cls:'');b.textContent=c.l;
@@ -834,8 +897,9 @@ function endCombat(won){
       if(k in G.res) addRes(k,amt); else if(k in G.inv) G.inv[k]+=amt;
     }
     G.sanity=clamp(G.sanity-8,0,100); log('killing takes something.','sys');
+    changeLuck(1); // survived = slightly luckier
   }
-  G.foe=null; G.phase=G.exp?'expedition':'shelter'; updateStats();
+  G.foe=null; G.dmgBuff=0; G.phase=G.exp?'expedition':'shelter'; updateStats();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -844,6 +908,7 @@ function endCombat(won){
 
 function doDarkAction(){
   G.flags.darkListened++; G.choices.dark++;
+  changeLuck(-1);
   if(G.flags.darkListened===1){
     log('you press your ear to the east wall. something breathes.','dark');
     log('"you\'re still fighting. you don\'t have to."','dark');
@@ -862,8 +927,8 @@ function showDarkChoice(){
   const p=document.createElement('div');
   p.style.cssText='font-size:11px;color:#4a2a6a;padding:6px 0 10px;line-height:1.8;font-style:italic';
   p.textContent='"stop being afraid. stop surviving. just become. the waste takes everything — why not choose it?"'; A.appendChild(p);
-  [{l:'Refuse. Survive.',fn(){log('you pull back. the voice goes quiet.','good');G.sanity=clamp(G.sanity+20,0,100);log('+20 sanity.','good');G.phase='shelter';}},
-   {l:'Accept. Become.',cls:'special',fn(){doDarkEnd();}}
+  [{l:'Refuse. Survive.',fn(){log('you pull back. the voice goes quiet.','good');changeLuck(2);G.sanity=clamp(G.sanity+20,0,100);log('+20 sanity.','good');G.phase='shelter';}},
+   {l:'Accept. Become.',cls:'special',fn(){changeLuck(-3);doDarkEnd();}}
   ].forEach(c=>{
     const b=document.createElement('button');b.className='act-btn'+(c.cls?' '+c.cls:'');b.textContent=c.l;
     b.addEventListener('click',()=>{c.fn();updateStats();});A.appendChild(b);
@@ -903,9 +968,6 @@ function tick(){
     updateStats();
   }
 
-  // Expedition tick
-  if(G.exp) tickExp();
-
   // Stat decay every 5 ticks
   if(G.ticks%5===0){
     const night=G.hour<6||G.hour>=20, lit=G.base.fire||G.base.generator;
@@ -920,8 +982,8 @@ function tick(){
     if(G.hunger<=0){G.hp=clamp(G.hp-.8,0,G.maxHp);if(G.ticks%25===0)log('starvation.','danger');}
     if(G.thirst<=0){G.hp=clamp(G.hp-1.2,0,G.maxHp);if(G.ticks%20===0)log('dehydration.','danger');}
 
-    // HP regen when well fed and hydrated
-    if(G.hunger>65&&G.thirst>65&&G.hp<G.maxHp) G.hp=Math.min(G.maxHp,G.hp+0.6);
+    // HP regen when well fed and hydrated — 1hp/s
+    if(G.hunger>65&&G.thirst>65&&G.hp<G.maxHp) G.hp=Math.min(G.maxHp,G.hp+1);
 
     // Radiation cap
     G.maxHp=Math.max(15,100-Math.floor(G.radiation/3));
@@ -978,7 +1040,7 @@ function nightRaid(){
   logSep();
   log('sounds at the perimeter.','danger');
   const defMod=G.base.defenses*.25+(G.luck-5)*.05;
-  if(Math.random()<defMod){log('your defenses hold. they leave.','good');return;}
+  if(Math.random()<defMod){log('your defenses hold. they leave.','good');changeLuck(1);return;}
   const eid=G.day>8?'raidBoss':'raider';
   startCombat({...ENEMIES[eid],hp:ENEMIES[eid].maxHp});
 }
@@ -999,12 +1061,12 @@ function checkEndings(){
 function doEscapeEnd(){
   if(G.res.fuel<5||G.res.caps<20)return;
   G.res.fuel-=5;G.res.caps-=20;G.phase='ending';clearInterval(TICK_ID);
-  setTimeout(()=>showEnd('EXODUS',`You fix the vehicle. It takes three days and everything you have.\n\nThen it runs.\n\nYou drive north. The ashfields give way to grey soil, then to something you hesitantly call grass. The dosimeter drops for the first time in weeks.\n\nYou don't look back.\n\nThree weeks later: the northern settlement. Real. Small. Warm.\n\n"We didn't think anyone else was left," someone says.\n\nYou survived. That's the whole story. That's enough.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nLUCK: ${G.luck} · PERCEPTION: ${G.per}\n─────────────────────────`),500);
+  setTimeout(()=>showEnd('EXODUS',`You fix the vehicle. It takes three days and everything you have.\n\nThen it runs.\n\nYou drive north. The ashfields give way to grey soil, then to something you hesitantly call grass. The dosimeter drops for the first time in weeks.\n\nYou don't look back.\n\nThree weeks later: the northern settlement. Real. Small. Warm.\n\n"We didn't think anyone else was left," someone says.\n\nYou survived. That's the whole story. That's enough.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nPERCEPTION: ${G.per}\n─────────────────────────`),500);
 }
 
 function doRebuildEnd(){
   G.phase='ending';clearInterval(TICK_ID);
-  setTimeout(()=>showEnd('HOME',`You hold a vote. Your first vote in Shelter 13.\n\nEveryone gets a say. The settlers are surprised. They weren't expecting democracy.\n\nThe shelter grows. More people come — word travels. Walls, a water system, a garden. An argument about the garden. Then a bigger garden.\n\nYou name it. Not Shelter 13. Something new.\n\nIt's not paradise. The wasteland doesn't do paradise. But it's warm, and it's yours, and people are laughing in it.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nLUCK: ${G.luck} · PERCEPTION: ${G.per}\n─────────────────────────`),500);
+  setTimeout(()=>showEnd('HOME',`You hold a vote. Your first vote in Shelter 13.\n\nEveryone gets a say. The settlers are surprised. They weren't expecting democracy.\n\nThe shelter grows. More people come — word travels. Walls, a water system, a garden. An argument about the garden. Then a bigger garden.\n\nYou name it. Not Shelter 13. Something new.\n\nIt's not paradise. The wasteland doesn't do paradise. But it's warm, and it's yours, and people are laughing in it.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nPERCEPTION: ${G.per}\n─────────────────────────`),500);
 }
 
 function doDarkEnd(){
@@ -1015,7 +1077,7 @@ function doDarkEnd(){
 function die(reason){
   G.phase='dead';clearInterval(TICK_ID);
   log(`✗ ${reason}`,'danger'); updateStats();
-  setTimeout(()=>showEnd('DEAD',`${reason}\n\nShelter 13 goes quiet. Whatever fire you built burns to nothing.\n\nThe wasteland reclaims what was always the wasteland's.\n\nSomewhere, a machine records the fact of your existence and then forgets it.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nLUCK: ${G.luck} · PERCEPTION: ${G.per}\n─────────────────────────`),2000);
+  setTimeout(()=>showEnd('DEAD',`${reason}\n\nShelter 13 goes quiet. Whatever fire you built burns to nothing.\n\nThe wasteland reclaims what was always the wasteland's.\n\nSomewhere, a machine records the fact of your existence and then forgets it.\n\n─────────────────────────\nDAYS SURVIVED: ${G.day}\nPERCEPTION: ${G.per}\n─────────────────────────`),2000);
 }
 
 function showEnd(title,body){
@@ -1050,8 +1112,8 @@ function init(){
   ];
   seq.forEach(([t,txt,cls])=>{
     if(cls==='sep'){setTimeout(()=>logSep(),t);return;}
-    if(txt.includes('luck:')){
-      setTimeout(()=>log(`luck: ${G.luck}, perception: ${G.per}. some things are decided before you wake up.`,cls),t);return;
+    if(txt.includes('perception:')){
+      setTimeout(()=>log(`perception: ${G.per}. some things are decided before you wake up.`,cls),t);return;
     }
     setTimeout(()=>log(txt,cls),t);
   });
