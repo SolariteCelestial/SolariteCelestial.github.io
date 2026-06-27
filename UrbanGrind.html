@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urban Grind</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg: #131318;
+  --bg2: #1a1a22;
+  --bg3: #20202c;
+  --border: #2e2e3e;
+  --border2: #3e3e52;
+  --text: #ddd8cc;
+  --muted: #6a6a80;
+  --blue: #3a7bd5;
+  --blue-glow: #3a7bd555;
+  --blue-border: #2a5aaa;
+  --blue-bg: #0d1a2e;
+  --yellow: #c8a828;
+  --yellow-bg: #1c1808;
+  --yellow-border: #5a4808;
+  --grey-border: #3a3a50;
+  --grey-bg: #18181f;
+  --red: #c84040;
+  --red-bg: #1f0d0d;
+  --red-border: #5a1a1a;
+  --green: #48a048;
+  --muscle: #e06040;
+  --moxie: #40c878;
+  --mind: #4090e0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0b10;color:var(--text);font-family:'Courier New',Courier,monospace;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:16px}
+#app{width:980px;max-width:100%}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+
+/* ── TITLE SCREEN ── */
+#scr-title{padding:48px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px}
+.logo-word{font-size:56px;font-weight:700;letter-spacing:-3px;line-height:1;color:#fff}
+.logo-word span{color:var(--yellow)}
+.logo-tag{font-size:11px;letter-spacing:4px;color:var(--muted);text-transform:uppercase}
+.cls-section{width:100%;max-width:660px}
+.cls-section-hd{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.cls-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cls-card{background:var(--bg2);border:2px solid var(--border);border-radius:6px;padding:16px 14px;cursor:pointer;transition:border-color .12s,background .12s;text-align:left;position:relative}
+.cls-card:hover{border-color:var(--border2);background:var(--bg3)}
+.cls-card.sel{border-color:var(--blue);background:#0d1a2e}
+.cls-card.locked{opacity:.45;cursor:default}
+.cls-lock{position:absolute;top:8px;right:10px;font-size:13px;color:var(--muted)}
+.cls-icon{font-size:28px;color:var(--muted);margin-bottom:8px}
+.cls-name{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;letter-spacing:.5px}
+.cls-desc{font-size:11px;color:var(--muted);line-height:1.6}
+.cls-tags{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.ct{font-size:10px;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:.5px}
+.ct-mu{background:#2a1008;color:var(--muscle)}
+.ct-mo{background:#08200f;color:var(--moxie)}
+.ct-mi{background:#081428;color:var(--mind)}
+.cls-bars{display:flex;flex-direction:column;gap:3px;margin-top:10px}
+.cls-bar-row{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
+.cls-bar-fill{height:4px;border-radius:2px;flex:1;background:var(--border)}
+.cls-bar-inner{height:100%;border-radius:2px}
+.start-btn{background:var(--blue);color:#fff;border-radius:5px;padding:12px 40px;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:background .12s;margin-top:4px}
+.start-btn:hover:not(:disabled){background:#2a60b8}
+.start-btn:disabled{background:var(--border);color:var(--muted);cursor:default}
+.rules-note{font-size:11px;color:var(--muted);line-height:1.9;max-width:580px;text-align:center}
+.rules-note b{color:var(--text)}
+
+/* ── GAME SCREEN ── */
+#scr-game{display:none;flex-direction:column;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg)}
+
+/* top bar */
+.topbar{background:#0f0f18;border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.tb-loc{font-size:13px;font-weight:700;color:#fff;letter-spacing:.5px}
+.tb-day{font-size:10px;color:var(--muted);margin-top:1px}
+.tb-sep{width:1px;height:28px;background:var(--border)}
+.tb-stat{display:flex;align-items:center;gap:6px}
+.tb-stat-icon{font-size:16px}
+.tb-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.bar-wrap{width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.bar-hp{background:var(--red)}
+.bar-san{background:#a060d0}
+.tb-heat{display:flex;gap:4px;align-items:center}
+.heat-pip{width:12px;height:12px;border-radius:2px;background:var(--border);border:1px solid var(--border2);transition:all .2s}
+.heat-pip.on{background:#e06020;border-color:#e06020}
+.tb-spacer{flex:1}
+.tb-time{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.tb-turn{font-size:10px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:2px 8px;letter-spacing:.5px}
+
+/* main layout */
+.game-body{display:flex;flex:1;overflow:hidden}
+.left-panel{width:178px;min-width:178px;background:#0f0f18;border-right:1px solid var(--border);padding:12px 10px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.center-col{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.right-panel{width:178px;min-width:178px;background:#0f0f18;border-left:1px solid var(--border);padding:12px 10px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+
+.p-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.cls-badge{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:8px 10px}
+.cls-badge-name{font-size:13px;font-weight:700;color:#fff;letter-spacing:.5px}
+.cls-badge-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+.stat-block{display:flex;flex-direction:column;gap:5px}
+.stat-row{display:flex;align-items:center;gap:6px}
+.stat-lbl{font-size:10px;color:var(--muted);width:30px}
+.stat-bar{flex:1;height:5px;background:var(--border);border-radius:2px;overflow:hidden}
+.stat-inner{height:100%;border-radius:2px;transition:width .3s}
+.stat-val{font-size:10px;color:var(--text);min-width:28px;text-align:right}
+
+.debuff-list,.inv-list{display:flex;flex-direction:column;gap:5px}
+.dtag{background:var(--red-bg);border:1px solid var(--red-border);border-radius:5px;padding:5px 8px}
+.dtag-name{font-size:11px;font-weight:700;color:var(--red);display:flex;align-items:center;gap:4px}
+.dtag-desc{font-size:10px;color:#804040;margin-top:2px;line-height:1.4}
+.itag{background:#0a120a;border:1px solid #1e3a1e;border-radius:5px;padding:5px 8px;cursor:pointer;transition:border-color .1s}
+.itag:hover{border-color:#3a6a3a}
+.itag-name{font-size:11px;font-weight:700;color:#60b060;display:flex;align-items:center;gap:4px}
+.itag-sub{font-size:10px;color:#3a6a3a;margin-top:2px}
+.itag-stars{font-size:9px;color:#c0a820;margin-left:auto}
+.none-txt{font-size:10px;color:#333}
+
+/* help panel */
+.help-text{font-size:10px;color:var(--muted);line-height:1.9}
+.help-text b{color:var(--text)}
+.help-text .hb-mu{color:var(--muscle)}
+.help-text .hb-mo{color:var(--moxie)}
+.help-text .hb-mi{color:var(--mind)}
+
+/* board */
+.board-area{flex:1;padding:10px 12px;display:grid;grid-template-rows:1fr 1fr 1fr;gap:8px;overflow:hidden}
+.board-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{border-radius:5px;padding:8px 7px;cursor:pointer;transition:border-color .12s,background .12s,transform .08s;position:relative;min-height:80px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;border:2px solid}
+.tile:active:not(.tile-dead){transform:scale(.97)}
+.tile-grey{background:var(--grey-bg);border-color:var(--grey-border);color:#8888a0}
+.tile-grey:hover:not(.tile-dead){border-color:#5a5a78}
+.tile-grey.e-hover:hover:not(.tile-dead){border-color:#7a3030}
+.tile-yellow{background:var(--yellow-bg);border-color:var(--yellow-border);color:var(--yellow)}
+.tile-yellow:hover:not(.tile-dead){border-color:#8a6808}
+.tile-yellow.can-act{border-color:#c0a020;background:#1e1a05}
+.tile-dead{opacity:.25;pointer-events:none;border-style:dashed!important}
+.tile-red-harm{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+.tile-icon{font-size:20px;line-height:1;margin-bottom:3px}
+.tile-name{font-size:11px;font-weight:700;line-height:1.3}
+.tile-sub{font-size:9px;color:var(--muted);margin-top:2px;line-height:1.4}
+.tile-stars{font-size:10px;color:#c0a020;margin-top:2px}
+.tile-hp{font-size:9px;color:var(--red);margin-top:1px}
+.tile-badge{position:absolute;top:4px;right:4px;font-size:8px;padding:1px 5px;border-radius:2px;font-weight:700;letter-spacing:.5px}
+.badge-e{background:#200808;color:#c03030;border:1px solid #4a1010}
+.badge-l{background:#0e0c00;color:#a08010;border:1px solid #3a2c00}
+.badge-loc{background:#080818;color:#3060a0;border:1px solid #101838}
+.badge-esc{background:#082008;color:#30a030;border:1px solid #104010}
+.badge-harm{background:#1a0000;color:#d04040;border:1px solid #4a0000}
+.tile-phase{position:absolute;bottom:4px;right:4px;font-size:8px;color:#c08020;font-weight:700}
+
+/* log */
+.log-area{background:#0a0a12;border-top:1px solid var(--border);padding:5px 12px;height:54px;overflow-y:auto;flex-shrink:0}
+.log-line{font-size:10px;line-height:1.8;color:#404050}
+.lg-good{color:#306030}
+.lg-bad{color:#803030}
+.lg-info{color:#204878}
+.lg-warn{color:#705020}
+.lg-sys{color:#505060}
+
+/* hand */
+.hand-area{background:#0c0c14;border-top:1px solid var(--border);padding:10px 12px;flex-shrink:0}
+.hand-top-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+.hand-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.combo-tag{font-size:10px;background:#0d1a2e;color:#5090d8;border:1px solid #1a3a60;border-radius:3px;padding:2px 8px}
+.target-tag{font-size:10px;color:#c0a020;background:#18140a;border:1px solid #4a3808;border-radius:3px;padding:2px 8px}
+.cards-row{display:flex;gap:7px;flex-wrap:wrap;min-height:86px;align-items:flex-end}
+.hcard{border-radius:5px;padding:7px 9px;min-width:76px;max-width:102px;transition:all .12s;display:flex;flex-direction:column;gap:3px;position:relative;border:2px solid;cursor:pointer}
+.hcard-blue-mu{background:#140c08;border-color:#4a2010;color:var(--muscle)}
+.hcard-blue-mo{background:#081408;border-color:#104a18;color:var(--moxie)}
+.hcard-blue-mi{background:#080e18;border-color:#10285a;color:var(--mind)}
+.hcard-blue-mu:hover:not(.hc-used):not(.hc-dim){border-color:var(--muscle);box-shadow:0 0 10px #e0604033;transform:translateY(-5px)}
+.hcard-blue-mo:hover:not(.hc-used):not(.hc-dim){border-color:var(--moxie);box-shadow:0 0 10px #40c87833;transform:translateY(-5px)}
+.hcard-blue-mi:hover:not(.hc-used):not(.hc-dim){border-color:var(--mind);box-shadow:0 0 10px #4090e033;transform:translateY(-5px)}
+.hcard-red{background:var(--red-bg);border-color:var(--red-border);color:var(--red);cursor:default}
+.hc-used{opacity:.38;transform:none!important;box-shadow:none!important;cursor:default}
+.hc-dim{opacity:.5;cursor:not-allowed!important;transform:none!important}
+.hc-combo{border-style:dashed!important}
+.hct{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;opacity:.65}
+.hcn{font-size:12px;font-weight:700;line-height:1.2}
+.hcd{font-size:9px;opacity:.6;line-height:1.3}
+.hc-stars{font-size:9px;color:#c0a020;margin-top:1px}
+.hcc{font-size:9px;color:#5090d8;margin-top:2px}
+.hc-check{position:absolute;top:3px;right:6px;font-size:10px;color:#2a4a2a}
+.hand-bot{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.end-btn{border-radius:4px;padding:6px 16px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .12s;border:2px solid}
+.end-wait{border-color:#3a2208;color:#704010;background:#14100a}
+.end-wait:hover{border-color:#604018;color:#a06020;background:#1c1408}
+.end-rdy{border-color:#1a4a10;color:#40a020;background:#0a140a}
+.end-rdy:hover{border-color:#30701a;color:#60c030;background:#0e1c0e}
+.hand-hint{font-size:10px;color:#3a3a4a;line-height:1.6;flex:1}
+
+/* overlay */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:200}
+.modal{background:var(--bg2);border:2px solid var(--border2);border-radius:8px;padding:36px 44px;text-align:center;max-width:420px}
+.modal-h{font-size:32px;font-weight:700;letter-spacing:-1px;margin-bottom:10px}
+.modal-win{color:var(--green)}
+.modal-lose{color:var(--red)}
+.modal-body{font-size:12px;color:var(--muted);line-height:1.9;margin-bottom:24px}
+.modal-stat{color:var(--text)}
+.modal-btn{background:var(--blue);color:#fff;border-radius:4px;padding:10px 30px;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:background .12s;margin:4px}
+.modal-btn:hover{background:#2a5aaa}
+.modal-btn-sec{background:var(--bg3);color:var(--muted);border:1px solid var(--border2)}
+.modal-btn-sec:hover{border-color:var(--blue);color:var(--text)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════════ TITLE SCREEN ═══════════════ -->
+<div id="scr-title">
+  <div>
+    <div class="logo-word">Urban <span>Grind</span></div>
+    <div class="logo-tag">a street survival card game</div>
+  </div>
+
+  <div class="cls-section">
+    <div class="cls-section-hd">Choose your class — unlocks persist between runs</div>
+    <div class="cls-grid" id="cls-grid">
+
+      <div class="cls-card" data-cls="brawler">
+        <i class="ti ti-barbell cls-icon"></i>
+        <div class="cls-name">Brawler</div>
+        <div class="cls-desc">Hits first, asks later. Muscle through anything. Low sanity ceiling.</div>
+        <div class="cls-tags">
+          <span class="ct ct-mu">3 Muscle</span>
+        </div>
+        <div class="cls-bars">
+          <div class="cls-bar-row"><span style="color:var(--red);font-size:9px">HP</span><div class="cls-bar-fill"><div class="cls-bar-inner" style="background:var(--red);width:80%"></div></div><span>4</span></div>
+          <div class="cls-bar-row"><span style="color:#a060d0;font-size:9px">SAN</span><div class="cls-bar-fill"><div class="cls-bar-inner" style="background:#a060d0;width:40%"></div></div><span>2</span></div>
+        </div>
+      </div>
+
+      <div class="cls-card" data-cls="hustler">
+        <i class="ti ti-speakerphone cls-icon"></i>
+        <div class="cls-name">Hustler</div>
+        <div class="cls-desc">Silver tongue. Talk down enemies, charm shopkeepers, work every angle.</div>
+        <div class="cls-tags">
+          <span class="ct ct-mo">3 Moxie</span>
+        </div>
+        <div class="cls-bars">
+          <div class="cls-bar-row"><span style="color:var(--red);font-size:9px">HP</span><div class="cls-bar-fill"><div class="cls-bar-inner" style="background:var(--red);width:60%"></div></div><span>3</span></div>
+          <div class="cls-bar-row"><span style="color:#a060d0;font-size:9px">SAN</span><div class="cls-bar-fill"><div class="cls-bar-inner" style="background:#a060d0;width:80%"></div></div><span>4</span></div>
+        </div>
+      </div>
+
+      <div class="cls-card" data-cls="fixer">
+        <i class="ti ti-tool cls-icon"></i>
+        <div class="cls-name">Fixer</div>
+        <div class="cls-desc">Works smart. Hack, pick locks, craft. Fragile in a straight fight.</div>
+        <div class="cls-tags">
+          <span class="ct ct-mi">3 Mind</span>
+        </div>
+        <div class="cls-bars">
+          <div class="cls-bar-row"><span style="color:var(--red);font-size:9px">HP</span><div class="cls-bar-fill"><div class="cls-bar-inner" style="background:var(--red);width:40%"></div></div><span>2</span></div>
+          <div class="cls-bar-row"><span style="color:#a060d0;font-size:9px">SAN</span><div class="cls-bar-fill"><div class="cls-bar-inner" style="background:#a060d0;width:100%"></div></div><span>5</span></div>
+        </div>
+      </div>
+
+      <div class="cls-card locked" data-cls="street_kid" id="cls-street_kid">
+        <i class="ti ti-lock cls-lock"></i>
+        <i class="ti ti-rocket cls-icon"></i>
+        <div class="cls-name">Street Kid</div>
+        <div class="cls-desc">Brawler + Hustler hybrid. 2 Muscle, 2 Moxie. Unlock: survive 3 nights.</div>
+        <div class="cls-tags">
+          <span class="ct ct-mu">2 Muscle</span>
+          <span class="ct ct-mo">2 Moxie</span>
+        </div>
+      </div>
+
+      <div class="cls-card locked" data-cls="operative" id="cls-operative">
+        <i class="ti ti-lock cls-lock"></i>
+        <i class="ti ti-spy cls-icon"></i>
+        <div class="cls-name">Operative</div>
+        <div class="cls-desc">Hustler + Fixer. 2 Moxie, 2 Mind. Unlock: complete the bank heist.</div>
+        <div class="cls-tags">
+          <span class="ct ct-mo">2 Moxie</span>
+          <span class="ct ct-mi">2 Mind</span>
+        </div>
+      </div>
+
+      <div class="cls-card locked" data-cls="ghost" id="cls-ghost">
+        <i class="ti ti-lock cls-lock"></i>
+        <i class="ti ti-ghost cls-icon"></i>
+        <div class="cls-name">Ghost</div>
+        <div class="cls-desc">Fixer + Brawler. 2 Mind, 2 Muscle. Unlock: escape without killing anyone.</div>
+        <div class="cls-tags">
+          <span class="ct ct-mi">2 Mind</span>
+          <span class="ct ct-mu">2 Muscle</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" disabled>SELECT A CLASS</button>
+
+  <div class="rules-note">
+    <b>Play all blue cards every turn.</b> Unused blues = time passes = enemies act.<br>
+    Stars on cards matter: a ★★ gun beats a ★★ enemy but gets used up. Against ★ it downgrades. Against ★★★ you lose the gun and take damage.<br>
+    Yellow loot can be used on grey enemies instead of blue cards. <b>Escape = 3 intel + $100.</b>
+  </div>
+</div>
+
+<!-- ═══════════════ GAME SCREEN ═══════════════ -->
+<div id="scr-game">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div>
+      <div class="tb-loc" id="tb-loc">The Street</div>
+      <div class="tb-day" id="tb-day">Day 1 · Morning</div>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="tb-stat">
+      <i class="ti ti-heart tb-stat-icon" style="color:var(--red)"></i>
+      <div>
+        <div class="tb-stat-label">HP</div>
+        <div class="bar-wrap"><div class="bar-fill bar-hp" id="bar-hp" style="width:100%"></div></div>
+      </div>
+      <span id="hp-val" style="font-size:11px;color:var(--red);min-width:28px">4/4</span>
+    </div>
+    <div class="tb-stat">
+      <i class="ti ti-brain tb-stat-icon" style="color:#a060d0"></i>
+      <div>
+        <div class="tb-stat-label">SAN</div>
+        <div class="bar-wrap"><div class="bar-fill" id="bar-san" style="width:100%;background:#a060d0"></div></div>
+      </div>
+      <span id="san-val" style="font-size:11px;color:#a060d0;min-width:28px">3/3</span>
+    </div>
+    <div class="tb-stat">
+      <i class="ti ti-alert-triangle tb-stat-icon" style="color:#e06020"></i>
+      <div class="tb-stat-label">Heat</div>
+      <div class="tb-heat" id="heat-pips">
+        <div class="heat-pip" id="hpip0"></div>
+        <div class="heat-pip" id="hpip1"></div>
+        <div class="heat-pip" id="hpip2"></div>
+      </div>
+    </div>
+    <div class="tb-stat">
+      <i class="ti ti-currency-dollar tb-stat-icon" style="color:var(--yellow)"></i>
+      <span id="cash-val" style="font-size:14px;font-weight:700;color:var(--yellow)">$0</span>
+    </div>
+    <div class="tb-stat">
+      <i class="ti ti-file-text tb-stat-icon" style="color:var(--mind)"></i>
+      <span id="intel-val" style="font-size:13px;color:var(--mind)">0/3</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-time" id="tb-time"><i class="ti ti-sun"></i> Morning</div>
+    <div class="tb-turn" id="tb-turn">T1</div>
+  </div>
+
+  <!-- BODY -->
+  <div class="game-body">
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <div>
+        <div class="p-label">Class</div>
+        <div class="cls-badge">
+          <div class="cls-badge-name" id="p-cls-name">—</div>
+          <div class="cls-badge-sub" id="p-cls-sub">—</div>
+        </div>
+      </div>
+      <div>
+        <div class="p-label">Stats</div>
+        <div class="stat-block" id="stat-block">
+          <div class="stat-row"><span class="stat-lbl">HP</span><div class="stat-bar"><div class="stat-inner" id="lp-hp" style="background:var(--red);width:100%"></div></div><span class="stat-val" id="lp-hp-v">4/4</span></div>
+          <div class="stat-row"><span class="stat-lbl">SAN</span><div class="stat-bar"><div class="stat-inner" id="lp-san" style="background:#a060d0;width:100%"></div></div><span class="stat-val" id="lp-san-v">3/3</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="p-label">Debuffs</div>
+        <div class="debuff-list" id="debuff-list"><span class="none-txt">none active</span></div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center-col">
+      <div class="board-area" id="board-area"></div>
+      <div class="log-area" id="log-area">
+        <div class="log-line lg-info">You step onto the street. Use your blue action cards to fight, scavenge, or interact with locations.</div>
+      </div>
+      <div class="hand-area">
+        <div class="hand-top-row">
+          <span class="hand-lbl">Hand</span>
+          <span class="combo-tag" id="combo-tag" style="display:none"></span>
+          <span class="target-tag" id="target-tag" style="display:none"></span>
+        </div>
+        <div class="cards-row" id="cards-row"></div>
+        <div class="hand-bot">
+          <button class="end-btn end-wait" id="end-btn">END TURN</button>
+          <div class="hand-hint" id="hand-hint">Play blue cards first — unused blues advance time.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <div>
+        <div class="p-label">Inventory <span id="inv-count" style="color:var(--yellow)"></span></div>
+        <div class="inv-list" id="inv-list"><span class="none-txt">empty</span></div>
+        <div style="font-size:9px;color:#2a2a38;margin-top:5px">Click item to use on a tile</div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="p-label">Deck</div>
+        <div style="font-size:10px;color:var(--muted)" id="deck-count">— cards</div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="p-label">Quick guide</div>
+        <div class="help-text">
+          <span class="hb-mu">■</span> Muscle — fight &amp; smash<br>
+          <span class="hb-mo">■</span> Moxie — charm &amp; evade<br>
+          <span class="hb-mi">■</span> Mind — hack &amp; craft<br><br>
+          <b>Combos (same type ×2):</b><br>
+          2 Muscle = <b>Brute Force</b><br>
+          2 Moxie = <b>Silver Tongue</b><br>
+          2 Mind = <b>Mastermind</b><br>
+          Mu+Mi = <b>Street Smart</b><br>
+          Mo+Mi = <b>Con Artist</b><br>
+          Mu+Mo = <b>Intimidate</b><br><br>
+          <b>Items vs enemies:</b><br>
+          ★ item vs ★★ enemy → item lost, you lose HP<br>
+          ★★ item vs ★★ enemy → item used up, win<br>
+          ★★ item vs ★ enemy → item downgrades<br>
+          ★★★ item vs any → always win, item stays
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /scr-game -->
+
+</div><!-- /app -->
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <div class="modal">
+    <div class="modal-h" id="modal-h">—</div>
+    <div class="modal-body" id="modal-body">—</div>
+    <div>
+      <button class="modal-btn" id="modal-play-again">PLAY AGAIN</button>
+      <button class="modal-btn modal-btn-sec" id="modal-title-btn">TITLE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+
+// ── UNLOCKS (persisted in localStorage) ──
+const UNLOCKS_KEY='ug_unlocks';
+function getUnlocks(){try{return JSON.parse(localStorage.getItem(UNLOCKS_KEY)||'{}');}catch{return{};}}
+function grantUnlock(id){const u=getUnlocks();if(!u[id]){u[id]=true;localStorage.setItem(UNLOCKS_KEY,JSON.stringify(u));return true;}return false;}
+
+// ── DATA DEFINITIONS ──
+const CLASSES={
+  brawler:{name:'Brawler',sub:'Muscle specialist',deck:['muscle','muscle','muscle'],hp:4,san:2,bonus:'muscle',icon:'ti-barbell'},
+  hustler:{name:'Hustler',sub:'Street smooth-talker',deck:['moxie','moxie','moxie'],hp:3,san:4,bonus:'moxie',icon:'ti-speakerphone'},
+  fixer:{name:'Fixer',sub:'Technical operator',deck:['mind','mind','mind'],hp:2,san:5,bonus:'mind',icon:'ti-tool'},
+  street_kid:{name:'Street Kid',sub:'Brawler + Hustler',deck:['muscle','muscle','moxie','moxie'],hp:3,san:3,bonus:'both',icon:'ti-rocket',unlockId:'street_kid'},
+  operative:{name:'Operative',sub:'Hustler + Fixer',deck:['moxie','moxie','mind','mind'],hp:2,san:4,bonus:'both',icon:'ti-spy',unlockId:'operative'},
+  ghost:{name:'Ghost',sub:'Fixer + Brawler',deck:['mind','mind','muscle','muscle'],hp:3,san:3,bonus:'both',icon:'ti-ghost',unlockId:'ghost'},
+};
+
+const BLUES={
+  muscle:{label:'Muscle',t:'muscle',desc:'Raw force. Fight, smash, lift.',stars:1,color:'mu'},
+  moxie:{label:'Moxie',t:'moxie',desc:'Street charm and speed.',stars:1,color:'mo'},
+  mind:{label:'Mind',t:'mind',desc:'Technical skill and cunning.',stars:1,color:'mi'},
+};
+
+const COMBOS={
+  'muscle+muscle':{name:'Brute Force',desc:'No wounds on fights. Force open locations.'},
+  'moxie+moxie':{name:'Silver Tongue',desc:'Charm any NPC. Avoid cops for free.'},
+  'mind+mind':{name:'Mastermind',desc:'Full tech access. No dice needed.'},
+  'muscle+mind':{name:'Street Smart',desc:'Versatile — works on most challenges.'},
+  'moxie+mind':{name:'Con Artist',desc:'Deceive or steal. High-risk play.'},
+  'muscle+moxie':{name:'Intimidate',desc:'Force enemies to back off or drop loot.'},
+};
+
+// Stars: 0=none, 1=★, 2=★★, 3=★★★
+const ENEMIES=[
+  {eid:'thug',name:'Street Thug',icon:'ti-user-x',need:'muscle',stars:0,maxhp:1,reward:'cash',prize:20,desc:'0★ — basic muscle check'},
+  {eid:'pitbull',name:'Stray Pitbull',icon:'ti-paw',need:'moxie',stars:0,maxhp:1,reward:'none',prize:0,desc:'0★ — moxie or speed'},
+  {eid:'robber',name:'Armed Robber',icon:'ti-gun',need:'muscle',stars:1,maxhp:2,reward:'cash',prize:40,desc:'1★ — brute or muscle+wound'},
+  {eid:'cop',name:'Plainclothes Cop',icon:'ti-shield-lock',need:'mind',stars:1,maxhp:2,reward:'none',prize:0,desc:'1★ — mind or heat +1'},
+  {eid:'gang',name:'Gang Enforcer',icon:'ti-users',need:'muscle',stars:2,maxhp:3,reward:'loot',prize:'Knife',desc:'2★ — two-phase fight'},
+  {eid:'dealer',name:'Street Dealer',icon:'ti-package',need:'moxie',stars:0,maxhp:1,reward:'cash',prize:30,desc:'0★ — moxie to deal'},
+  {eid:'junkie',name:'Desperate Junkie',icon:'ti-needle',need:'moxie',stars:0,maxhp:1,reward:'loot',prize:'Lockpick',desc:'0★ — moxie to calm'},
+  {eid:'hitman',name:'Hitman',icon:'ti-crosshair',need:'muscle',stars:2,maxhp:4,reward:'cash',prize:80,desc:'2★ — needs combo to avoid wound'},
+];
+
+const LOCS=[
+  {lid:'grocer',name:'Grocer',icon:'ti-shopping-cart',desc:'Food & healing. Moxie.',need:'moxie',eff:'heal'},
+  {lid:'bank',name:'The Bank',icon:'ti-building-bank',desc:'Cash risk. Mind.',need:'mind',eff:'bank'},
+  {lid:'pawn',name:'Pawn Shop',icon:'ti-tag',desc:'Sell items for $30.',need:'moxie',eff:'pawn'},
+  {lid:'clinic',name:'Clinic',icon:'ti-first-aid-kit',desc:'Remove debuffs. Mind.',need:'mind',eff:'clinic'},
+  {lid:'alley',name:'Dark Alley',icon:'ti-door',desc:'Muscle combo for loot.',need:'muscle',eff:'alley'},
+  {lid:'station',name:'Police Station',icon:'ti-building',desc:'Mind combo to reduce heat.',need:'mind',eff:'station'},
+  {lid:'lot',name:'Abandoned Lot',icon:'ti-building-factory',desc:'Scavenge for intel.',need:'mind',eff:'lot'},
+  {lid:'busterm',name:'Bus Terminal',icon:'ti-bus',desc:'Need 3 intel + $100 to escape.',need:'any',eff:'escape'},
+];
+
+const LOOTS=[
+  {loot:'bat',name:'Baseball Bat',icon:'ti-minus',need:'muscle',stars:1,bonus:'combat',desc:'★ melee weapon'},
+  {loot:'pistol',name:'Pistol',icon:'ti-target',need:'muscle',stars:2,bonus:'combat',desc:'★★ ranged — 2 shots',shots:2},
+  {loot:'knife',name:'Knife',icon:'ti-cut',need:'muscle',stars:1,bonus:'combat',desc:'★ blade'},
+  {loot:'medkit',name:'Medkit',icon:'ti-first-aid-kit',need:'mind',stars:1,bonus:'heal',healVal:3,desc:'★ restore 3 HP'},
+  {loot:'food',name:'Canned Food',icon:'ti-apple',need:'moxie',stars:1,bonus:'food',healVal:2,desc:'★ eat: +2 HP, clears Hungry'},
+  {loot:'cash20',name:'$20 Cash',icon:'ti-currency-dollar',need:'moxie',stars:0,bonus:'cash',val:20,desc:'A little something'},
+  {loot:'cash50',name:'$50 Cash',icon:'ti-currency-dollar',need:'mind',stars:1,bonus:'cash',val:50,desc:'A decent score'},
+  {loot:'cash100',name:'$100 Cash',icon:'ti-currency-dollar',need:'muscle',stars:2,bonus:'cash',val:100,desc:'Big money'},
+  {loot:'crowbar',name:'Crowbar',icon:'ti-tool',need:'muscle',stars:1,bonus:'combat',desc:'★ opens locked areas too'},
+  {loot:'phone',name:'Burner Phone',icon:'ti-device-mobile',need:'mind',stars:1,bonus:'intel',intelVal:1,desc:'★ +1 intel on use'},
+  {loot:'lockpick',name:'Lockpick Set',icon:'ti-key',need:'mind',stars:1,bonus:'intel',intelVal:1,desc:'★ +1 intel on use'},
+  {loot:'armor',name:'Makeshift Armor',icon:'ti-shield',need:'muscle',stars:1,bonus:'defense',desc:'★ +2 max HP when worn'},
+  {loot:'molotov',name:'Molotov',icon:'ti-flame',need:'muscle',stars:2,bonus:'combat',desc:'★★ area — clears a tile'},
+  {loot:'drinks',name:'Bottle of Spirits',icon:'ti-bottle',need:'moxie',stars:1,bonus:'sanity',sanVal:2,desc:'★ +2 SAN, risk Paranoid'},
+];
+
+const REDS=[
+  {rid:'bleeding',name:'Bleeding',icon:'ti-droplet',desc:'Lose 1 HP each turn end.',eff:'dot_hp',val:1},
+  {rid:'bruised',name:'Bruised Ribs',icon:'ti-activity',desc:'No Muscle combos this run.',eff:'no_muscle_combo'},
+  {rid:'heat1',name:'Police Heat',icon:'ti-alert-triangle',desc:'+1 heat. Cops spawn faster.',eff:'heat',val:1},
+  {rid:'hungry',name:'Hungry',icon:'ti-mood-sad',desc:'Draw 1 fewer card per turn.',eff:'handsize'},
+  {rid:'paranoid',name:'Paranoid',icon:'ti-eye-off',desc:'Discard a random card each turn.',eff:'discard'},
+  {rid:'infected',name:'Infected',icon:'ti-virus',desc:'Lose 1 SAN per turn.',eff:'dot_san',val:1},
+  {rid:'withdrawal',name:'Withdrawal',icon:'ti-alert-circle',desc:'-1 to all action checks.',eff:'minus_check'},
+];
+
+// Downgrade map for items used against equal-star enemies
+const ITEM_DOWNGRADE={pistol:'bat',bat:'crowbar',crowbar:null,knife:null,molotov:null};
+
+// ── GAME STATE ──
+let G={};
+let selectedInvIdx=null; // index into G.inv for "use item on tile" mode
+
+function newGame(cls){
+  const cd=CLASSES[cls];
+  G={
+    cls,turn:1,time:0,phase:'play',over:false,
+    hp:cd.hp,maxHp:cd.hp,
+    san:cd.san,maxSan:cd.san,
+    cash:0,intel:0,heat:0,
+    deck:[],hand:[],used:[],bluePlayed:[],
+    debuffs:[],inv:[],
+    board:[],
+    killCount:0,nightCount:0,bankDone:false,noKillRun:true,
+  };
+  buildDeck();
+  buildBoard();
+  draw();
+  checkUnlockDisplay();
+  render();
+  log('You step onto the street. Play all blue cards before ending your turn.','info');
+}
+
+function buildDeck(){
+  const base=CLASSES[G.cls].deck;
+  G.deck=[];
+  for(let rep=0;rep<6;rep++) base.forEach(t=>G.deck.push({uid:'c'+Math.random(),...BLUES[t]}));
+  shuffle(G.deck);
+}
+
+function buildBoard(){
+  G.board=[];
+  const locsPool=shuffle([...LOCS]);
+  const enPool=shuffle([...ENEMIES]);
+  const lootPool=shuffle([...LOOTS]);
+  // Row 0: locations (4)
+  for(let c=0;c<4;c++) G.board.push(mkLoc(locsPool[c%locsPool.length]));
+  // Row 1: enemies (4)
+  for(let c=0;c<4;c++) G.board.push(mkEnemy(enPool[c%enPool.length]));
+  // Row 2: loot (4)
+  for(let c=0;c<4;c++) G.board.push(mkLoot(lootPool[c%lootPool.length]));
+}
+
+function mkLoc(l){return{...l,kind:'loc',alive:true};}
+function mkEnemy(e){return{...e,kind:'enemy',alive:true,hp:e.maxhp,phase:1};}
+function mkLoot(l){return{...l,kind:'loot',alive:true};}
+
+function draw(){
+  if(G.deck.length<5) buildDeck();
+  let size=CLASSES[G.cls].deck.length;
+  if(G.debuffs.find(d=>d.rid==='hungry')) size=Math.max(2,size-1);
+  G.hand=[];
+  for(let i=0;i<size&&G.deck.length;i++) G.hand.push(G.deck.pop());
+  // Inject red harm cards into hand (visual only, can't play them)
+  G.debuffs.forEach(d=>{if(d.eff==='discard'){/* handled in paranoid */}});
+  if(G.debuffs.find(d=>d.rid==='paranoid')&&G.hand.length>1){
+    const ri=rnd(0,G.hand.length-1);
+    const lost=G.hand.splice(ri,1)[0];
+    log(`Paranoia: discarded ${lost.label}.`,'bad');
+  }
+  G.used=[];G.bluePlayed=[];
+}
+
+// ── COMBO LOGIC ──
+function getCombo(){
+  const types=G.bluePlayed.map(c=>c.t);
+  const mu=types.filter(t=>t==='muscle').length;
+  const mo=types.filter(t=>t==='moxie').length;
+  const mi=types.filter(t=>t==='mind').length;
+  const bruised=G.debuffs.find(d=>d.rid==='bruised');
+  if(mu>=2&&!bruised) return 'muscle+muscle';
+  if(mo>=2) return 'moxie+moxie';
+  if(mi>=2) return 'mind+mind';
+  if(mu&&mi) return 'muscle+mind';
+  if(mo&&mi) return 'moxie+mind';
+  if(mu&&mo) return 'muscle+moxie';
+  return null;
+}
+
+function allBluesPlayed(){
+  return G.hand.filter(c=>c.t&&!G.used.includes(c.uid)).length===0;
+}
+
+function hasType(t){return G.bluePlayed.some(c=>c.t===t);}
+
+// ── CARD PLAY ──
+function playBlue(card){
+  if(G.over||G.used.includes(card.uid)||!card.t) return;
+  G.used.push(card.uid);
+  G.bluePlayed.push(card);
+  const combo=getCombo();
+  if(combo) log(`${card.label} played → ${COMBOS[combo].name}!`,'info');
+  else log(`${card.label} played.`,'info');
+  render();
+}
+
+// ── BOARD INTERACTIONS ──
+function clickTile(idx){
+  if(G.over) return;
+  const tile=G.board[idx];
+  if(!tile||!tile.alive) return;
+
+  // If item-targeting mode active, use item on this tile
+  if(selectedInvIdx!==null){
+    useItemOnTile(selectedInvIdx,idx);
+    selectedInvIdx=null;
+    render();
+    return;
+  }
+
+  if(!G.bluePlayed.length){log('Play at least one blue card first!','warn');return;}
+  const combo=getCombo();
+
+  if(tile.kind==='loot') doPickup(tile,idx);
+  else if(tile.kind==='enemy') doFight(tile,idx,combo);
+  else if(tile.kind==='loc') doLocation(tile,idx,combo);
+}
+
+function doPickup(tile,idx){
+  const played=G.bluePlayed.map(c=>c.t);
+  const canPick=played.includes(tile.need)||tile.need==='any'||getCombo()!==null;
+  if(!canPick){log(`Need ${tile.need} card to pick up ${tile.name}.`,'warn');return;}
+  applyLootEffect(tile,true);
+  G.board[idx].alive=false;
+  checkWin();render();
+}
+
+function applyLootEffect(tile,announce){
+  if(tile.bonus==='cash'){G.cash+=tile.val||20;if(announce)log(`Grabbed ${tile.name}: +$${tile.val||20}.`,'good');}
+  else if(tile.bonus==='heal'){G.hp=clamp(G.hp+(tile.healVal||3),0,G.maxHp);if(announce)log(`Used ${tile.name}: +${tile.healVal||3} HP.`,'good');}
+  else if(tile.bonus==='food'){G.hp=clamp(G.hp+(tile.healVal||2),0,G.maxHp);const hi=G.debuffs.findIndex(d=>d.rid==='hungry');if(hi>=0)G.debuffs.splice(hi,1);if(announce)log(`Ate ${tile.name}: +${tile.healVal||2} HP.`,'good');}
+  else if(tile.bonus==='intel'){G.intel=Math.min(3,G.intel+(tile.intelVal||1));if(announce)log(`${tile.name}: +${tile.intelVal||1} intel (${G.intel}/3).`,'good');}
+  else if(tile.bonus==='defense'){G.maxHp+=2;G.hp=Math.min(G.hp+2,G.maxHp);if(announce)log(`Equipped ${tile.name}: +2 max HP.`,'good');}
+  else if(tile.bonus==='sanity'){G.san=clamp(G.san+(tile.sanVal||2),0,G.maxSan);if(announce)log(`${tile.name}: +${tile.sanVal||2} SAN.`,'good');if(Math.random()<.3&&!G.debuffs.find(d=>d.rid==='paranoid')){G.debuffs.push({...REDS.find(r=>r.rid==='paranoid')});log('The spirits make you Paranoid.','bad');}}
+  else{G.inv.push({...tile});if(announce)log(`Picked up ${tile.name} [${starsStr(tile.stars)}].`,'good');}
+  checkDeath();
+}
+
+function starsStr(s){return s===0?'0★':'★'.repeat(s);}
+
+// Item used from inventory on a board tile
+function useItemOnTile(invIdx,tileIdx){
+  const item=G.inv[invIdx];
+  const tile=G.board[tileIdx];
+  if(!item||!tile||!tile.alive){log('Invalid target.','warn');return;}
+
+  if(tile.kind==='enemy'){
+    const iStars=item.stars||0;
+    const eStars=tile.stars||0;
+    if(iStars===0){log(`${item.name} is too weak (0★) to fight ${tile.name} (${starsStr(eStars)}).`,'warn');return;}
+
+    if(iStars>eStars){
+      // Win — item downgrades
+      const dk=ITEM_DOWNGRADE[item.loot];
+      if(dk&&iStars-eStars===1){
+        const nd={...LOOTS.find(l=>l.loot===dk)};
+        G.inv.splice(invIdx,1,nd);
+        log(`Used ${item.name} on ${tile.name} — won! Item downgraded to ${nd.name}.`,'good');
+      } else {
+        // big gap, item stays
+        G.inv.splice(invIdx,1,{...item});
+        log(`Used ${item.name} on ${tile.name} — overpowered them. Item intact.`,'good');
+      }
+      rewardEnemy(tile,tileIdx);G.killCount++;if(G.noKillRun)G.noKillRun=false;
+    } else if(iStars===eStars){
+      // Win — item consumed
+      G.inv.splice(invIdx,1);
+      log(`Used ${item.name} on ${tile.name} — matched power. Item used up.`,'good');
+      rewardEnemy(tile,tileIdx);G.killCount++;G.noKillRun=false;
+    } else {
+      // Lose — item lost + take damage
+      G.inv.splice(invIdx,1);
+      G.hp-=1;log(`${item.name} (${starsStr(iStars)}) vs ${tile.name} (${starsStr(eStars)}) — outmatched! Item lost, -1 HP.`,'bad');
+      checkDeath();
+    }
+  } else if(tile.kind==='loc'){
+    // Use an item to unlock a location
+    if(item.bonus==='combat'){
+      log(`Forced open ${tile.name} with ${item.name}.`,'good');
+      doLocation(tile,tileIdx,getCombo());
+      G.inv.splice(invIdx,1);
+    } else {log(`${item.name} can't be used on a location like that.`,'warn');}
+  } else if(tile.kind==='loot'){
+    log(`Can't use an item on loot.`,'warn');
+  }
+  render();
+}
+
+function doFight(tile,idx,combo){
+  const need=tile.need;
+  const mu=hasType('muscle'),mo=hasType('moxie'),mi=hasType('mind');
+  const bruteForce=combo==='muscle+muscle'&&!G.debuffs.find(d=>d.rid==='bruised');
+  const silverTongue=combo==='moxie+moxie';
+  const masterMind=combo==='mind+mind';
+  const streetSmart=combo==='muscle+mind';
+  const intimidate=combo==='muscle+moxie';
+  const conArtist=combo==='moxie+mind';
+  const withdrawal=G.debuffs.find(d=>d.rid==='withdrawal');
+
+  if(tile.eid==='cop'){
+    if(mi||masterMind||streetSmart){
+      log(`Slipped past the cop cleanly.`,'good');
+      G.board[idx].alive=false;
+    } else if(mo||silverTongue||intimidate){
+      log(`Talked your way past the cop — barely.`,'warn');
+      G.board[idx].alive=false;
+    } else {
+      G.heat=Math.min(3,G.heat+1);
+      log(`Cop spotted you! Heat +1 (${G.heat}/3).`,'bad');
+      if(!G.debuffs.find(d=>d.rid==='heat1'))G.debuffs.push({...REDS.find(r=>r.rid==='heat1')});
+      if(G.heat>=3){endGame(false,'heat');return;}
+    }
+    render();return;
+  }
+
+  const eStars=tile.stars||0;
+  const hasGoodCard=hasType(need);
+  const hasAnyCard=mu||mo||mi;
+  const hasCombo=combo!==null;
+  const penalty=withdrawal?1:0;
+
+  if(eStars===0){
+    if(hasGoodCard||hasCombo||intimidate){
+      const clean=bruteForce||silverTongue||masterMind||streetSmart||intimidate||conArtist;
+      if(!clean){G.hp-=(1+penalty);log(`Defeated ${tile.name} but took a wound. -${1+penalty} HP.`,'bad');}
+      else log(`Defeated ${tile.name} cleanly.`,'good');
+      rewardEnemy(tile,idx);G.killCount++;G.noKillRun=false;
+    } else {G.hp-=(1+penalty);log(`Failed to handle ${tile.name}. -${1+penalty} HP.`,'bad');checkDeath();}
+  } else if(eStars===1){
+    if(bruteForce||masterMind||streetSmart||silverTongue){log(`Overpowered ${tile.name}!`,'good');rewardEnemy(tile,idx);G.killCount++;G.noKillRun=false;}
+    else if(hasGoodCard||hasCombo){G.hp-=(2+penalty);log(`Fought ${tile.name} — barely won. -${2+penalty} HP.`,'bad');rewardEnemy(tile,idx);G.killCount++;G.noKillRun=false;}
+    else{G.hp-=(3+penalty);log(`${tile.name} beat you back! -${3+penalty} HP.`,'bad');checkDeath();}
+  } else if(eStars===2){
+    // Two-phase
+    if(bruteForce||masterMind){
+      tile.phase=(tile.phase||1)+1;
+      if(tile.phase>2){log(`${tile.name} is down!`,'good');rewardEnemy(tile,idx);G.killCount++;G.noKillRun=false;}
+      else{log(`${tile.name} staggered — phase 2! Hit again.`,'warn');G.board[idx]={...tile};}
+    } else if(hasGoodCard||hasCombo){
+      G.hp-=(3+penalty);log(`${tile.name} (★★) fights hard — -${3+penalty} HP. Need a combo to finish cleanly.`,'bad');checkDeath();
+    } else {
+      G.hp-=(4+penalty);log(`${tile.name} overwhelmed you! -${4+penalty} HP.`,'bad');checkDeath();
+    }
+  }
+  render();
+}
+
+function rewardEnemy(tile,idx){
+  if(tile.reward==='cash'&&tile.prize){G.cash+=tile.prize;log(`Looted $${tile.prize}.`,'good');}
+  else if(tile.reward==='loot'&&tile.prize){
+    const ld=LOOTS.find(l=>l.name===tile.prize);
+    if(ld){G.inv.push({...ld});log(`Found ${tile.prize}!`,'good');}
+  }
+  G.board[idx].alive=false;
+  checkDeath();checkWin();
+}
+
+function doLocation(tile,idx,combo){
+  const need=tile.need;
+  const mu=hasType('muscle'),mo=hasType('moxie'),mi=hasType('mind');
+  const hasCard=hasType(need)||need==='any';
+  const hasAny=mu||mo||mi;
+
+  if(tile.lid==='busterm'){
+    if(G.intel>=3&&G.cash>=100){log('Escaping via Bus Terminal!','good');endGame(true);}
+    else log(`Bus Terminal: need 3 intel+$100. Have ${G.intel}/3, $${G.cash}.`,'warn');
+    return;
+  }
+  if(!hasCard&&!combo){log(`Need ${need} to interact with ${tile.name}.`,'warn');return;}
+
+  if(tile.lid==='grocer'){
+    const heal=mo||combo==='moxie+moxie'?7:4;
+    G.hp=clamp(G.hp+heal,0,G.maxHp);
+    log(`Grocer: restocked. +${heal} HP.`,'good');
+  } else if(tile.lid==='bank'){
+    if(combo==='mind+mind'||combo==='muscle+mind'){G.cash+=60;log('Bank heist: +$60.',  'good');if(grantUnlock('operative')&&!G.bankDone){G.bankDone=true;log('Unlock: Operative class!','sys');}}
+    else{G.cash+=25;G.heat=Math.min(3,G.heat+1);log('Withdrew $25 — security noticed. Heat +1.','warn');if(G.heat>=3){endGame(false,'heat');return;}}
+  } else if(tile.lid==='pawn'){
+    if(G.inv.length){const it=G.inv.pop();G.cash+=30;log(`Pawned ${it.name} for $30.`,'good');}
+    else log('Nothing to pawn.','warn');
+  } else if(tile.lid==='clinic'){
+    if(G.debuffs.length){const d=G.debuffs.shift();log(`Clinic removed: ${d.name}.`,'good');}
+    else{G.hp=clamp(G.hp+4,0,G.maxHp);log('Clinic patched you up: +4 HP.','good');}
+  } else if(tile.lid==='alley'){
+    if(combo==='muscle+muscle'||combo==='muscle+moxie'||combo==='muscle+mind'){
+      const ld=pick(LOOTS.filter(l=>l.bonus==='combat'||l.bonus==='cash'));
+      G.inv.push({...ld});log(`Dark Alley score: ${ld.name}.`,'good');
+    } else {
+      G.hp-=2;log('Jumped in the alley! -2 HP.','bad');
+      if(Math.random()<.4&&!G.debuffs.find(d=>d.rid==='bleeding'))G.debuffs.push({...REDS[0]});
+      checkDeath();
+    }
+  } else if(tile.lid==='station'){
+    if(combo==='mind+mind'||combo==='moxie+mind'){G.heat=Math.max(0,G.heat-1);log('Police Station: reduced heat by 1.','good');}
+    else{G.heat=Math.min(3,G.heat+1);log('Station blew your cover! Heat +1.','bad');if(G.heat>=3){endGame(false,'heat');return;}}
+  } else if(tile.lid==='lot'){
+    if(mi||combo){G.intel=Math.min(3,G.intel+1);log(`Scavenged intel. ${G.intel}/3.`,'good');}
+    else log('Need Mind to scavenge properly.','warn');
+  }
+  render();
+}
+
+// ── END TURN ──
+function endTurn(){
+  if(G.over) return;
+  const unplayed=G.hand.filter(c=>c.t&&!G.used.includes(c.uid)).length;
+  if(unplayed>0){
+    log(`Left ${unplayed} blue card(s) — time advances!`,'warn');
+    advanceTime();
+  } else {
+    log('All blues played — clean turn.','good');
+  }
+  applyEndOfTurnDebuffs();
+  G.turn++;
+  updateTimeDisplay();
+  spawnNewStuff();
+  draw();
+  render();
+}
+
+function advanceTime(){
+  G.time++;
+  if(G.time%4===0){G.nightCount++;if(G.nightCount>=3&&grantUnlock('street_kid'))log('Unlock: Street Kid class!','sys');}
+  if(G.time%3===0){G.hp-=2;log('Exhaustion: -2 HP.','bad');}
+  if(G.heat>=1&&G.time%2===0){G.san-=1;log('Heat pressure: -1 SAN.','bad');}
+  checkDeath();
+}
+
+function applyEndOfTurnDebuffs(){
+  G.debuffs.forEach(d=>{
+    if(d.eff==='dot_hp'){G.hp-=d.val;log(`${d.name}: -${d.val} HP.`,'bad');}
+    if(d.eff==='dot_san'){G.san-=d.val;log(`${d.name}: -${d.val} SAN.`,'bad');}
+  });
+  checkDeath();
+}
+
+function updateTimeDisplay(){
+  const periods=['Morning','Afternoon','Evening','Night','Late Night','Dawn'];
+  const icons=['ti-sun','ti-sun','ti-moon','ti-moon','ti-moon-stars','ti-sun-low'];
+  const t=G.time%6;
+  $('tb-time').innerHTML=`<i class="ti ${icons[t]}"></i> ${periods[t]}`;
+  $('tb-day').textContent=`Day ${Math.floor(G.turn/6)+1} · ${periods[t]}`;
+}
+
+function spawnNewStuff(){
+  const empty=()=>G.board.findIndex(b=>!b.alive);
+  if(Math.random()<0.28+G.heat*0.12){
+    const e=pick(ENEMIES.filter(e=>e.stars<=(G.heat+1)));
+    const ei=empty();if(ei>=0){G.board[ei]=mkEnemy(e);log(`New arrival: ${e.name}.`,'bad');}
+  }
+  if(Math.random()<0.32){
+    const l=pick(LOOTS);const li=empty();
+    if(li>=0){G.board[li]=mkLoot(l);log(`Spotted: ${l.name}.`,'info');}
+  }
+  if(Math.random()<0.16&&G.debuffs.length<5){
+    const rd=pick(REDS);
+    if(!G.debuffs.find(d=>d.rid===rd.rid)){
+      G.debuffs.push({...rd});
+      if(rd.eff==='heat'){G.heat=Math.min(3,G.heat+1);}
+      log(`New condition: ${rd.name}.`,'bad');
+      if(G.heat>=3){endGame(false,'heat');}
+    }
+  }
+}
+
+// ── WIN/LOSE ──
+function checkDeath(){
+  if(G.hp<=0){endGame(false,'hp');return;}
+  if(G.san<=0){endGame(false,'san');return;}
+  if(G.heat>=3){endGame(false,'heat');return;}
+}
+
+function checkWin(){
+  if(G.intel>=3&&G.cash>=100){
+    if(!G.board.find(t=>t.lid==='busterm'&&t.alive)){
+      log('3 intel + $100 reached! Find the Bus Terminal.','info');
+    }
+  }
+}
+
+function endGame(win,reason){
+  if(G.over) return;
+  G.over=true;
+  if(G.noKillRun&&!win&&grantUnlock('ghost'))log('Unlock: Ghost class (no kills)!','sys');
+  $('modal-h').textContent=win?'You escaped.':'You didn\'t make it.';
+  $('modal-h').className='modal-h '+(win?'modal-win':'modal-lose');
+  const reasons={hp:'Ran out of HP.',san:'Lost your mind.',heat:'Heat level 3 — cops everywhere.'};
+  $('modal-body').innerHTML=win
+    ?`<span class="modal-stat">Turn ${G.turn} · $${G.cash} · ${G.intel}/3 intel</span><br><br>You slipped out of the city. Good run.`
+    :`<span class="modal-stat">${reasons[reason]||'Unknown.'}</span><br><br>Turn ${G.turn} · $${G.cash} · ${G.intel}/3 intel<br><br>Try again. The street doesn't care.`;
+  $('overlay').style.display='flex';
+}
+
+// ── RENDER ──
+function render(){
+  $('tb-loc').textContent='The Street';
+  $('bar-hp').style.width=`${clamp((G.hp/G.maxHp)*100,0,100)}%`;
+  $('bar-san').style.width=`${clamp((G.san/G.maxSan)*100,0,100)}%`;
+  $('hp-val').textContent=`${Math.max(0,G.hp)}/${G.maxHp}`;
+  $('san-val').textContent=`${Math.max(0,G.san)}/${G.maxSan}`;
+  $('lp-hp').style.width=`${clamp((G.hp/G.maxHp)*100,0,100)}%`;
+  $('lp-san').style.width=`${clamp((G.san/G.maxSan)*100,0,100)}%`;
+  $('lp-hp-v').textContent=`${Math.max(0,G.hp)}/${G.maxHp}`;
+  $('lp-san-v').textContent=`${Math.max(0,G.san)}/${G.maxSan}`;
+  $('cash-val').textContent=`$${G.cash}`;
+  $('intel-val').textContent=`${G.intel}/3`;
+  $('tb-turn').textContent=`T${G.turn}`;
+  $('p-cls-name').textContent=CLASSES[G.cls].name;
+  $('p-cls-sub').textContent=CLASSES[G.cls].sub;
+  $('deck-count').textContent=`${G.deck.length} cards`;
+  [0,1,2].forEach(i=>$('hpip'+i).className='heat-pip'+(i<G.heat?' on':''));
+
+  // Debuffs
+  const dl=$('debuff-list');
+  dl.innerHTML=G.debuffs.length
+    ?G.debuffs.map(d=>`<div class="dtag"><div class="dtag-name"><i class="ti ${d.icon}"></i> ${d.name}</div><div class="dtag-desc">${d.desc}</div></div>`).join('')
+    :'<span class="none-txt">none active</span>';
+
+  // Inventory
+  const il=$('inv-list');
+  $('inv-count').textContent=G.inv.length?`(${G.inv.length})`:'';
+  if(G.inv.length){
+    il.innerHTML=G.inv.map((it,i)=>`
+      <div class="itag${selectedInvIdx===i?' itag-sel':''}" data-ii="${i}" onclick="selectInvItem(${i})">
+        <div class="itag-name"><i class="ti ${it.icon}"></i> ${it.name}<span class="itag-stars">${starsStr(it.stars)}</span></div>
+        <div class="itag-sub">${it.desc||it.bonus}</div>
+      </div>`).join('');
+  } else {
+    il.innerHTML='<span class="none-txt">empty</span>';
+  }
+
+  renderBoard();
+  renderHand();
+}
+
+function renderBoard(){
+  const ba=$('board-area');
+  ba.innerHTML='';
+  for(let r=0;r<3;r++){
+    const row=document.createElement('div');
+    row.className='board-row';
+    for(let c=0;c<4;c++){
+      const idx=r*4+c;
+      const tile=G.board[idx];
+      const el=document.createElement('div');
+      if(!tile){row.appendChild(el);continue;}
+      if(!tile.alive){el.className='tile tile-grey tile-dead';row.appendChild(el);continue;}
+
+      if(tile.kind==='loot'){
+        const canAct=G.bluePlayed.length>0;
+        el.className='tile tile-yellow'+(canAct?' can-act':'');
+        el.innerHTML=`
+          <div>
+            <div class="tile-icon"><i class="ti ${tile.icon}"></i></div>
+            <div class="tile-name">${tile.name}</div>
+            <div class="tile-sub">Need: ${tile.need}</div>
+            <div class="tile-stars">${starsStr(tile.stars)}</div>
+          </div>
+          <span class="tile-badge badge-l">LOOT</span>`;
+      } else if(tile.kind==='enemy'){
+        el.className='tile tile-grey e-hover';
+        el.innerHTML=`
+          <div>
+            <div class="tile-icon"><i class="ti ${tile.icon}"></i></div>
+            <div class="tile-name">${tile.name}</div>
+            <div class="tile-hp">HP ${tile.hp}/${tile.maxhp}${tile.phase>1?' [phase '+tile.phase+']':''}</div>
+            <div class="tile-stars">${starsStr(tile.stars)}</div>
+            <div class="tile-sub">${tile.desc}</div>
+          </div>
+          <span class="tile-badge badge-e">ENEMY</span>`;
+      } else {
+        const isEsc=tile.lid==='busterm';
+        const ready=isEsc&&G.intel>=3&&G.cash>=100;
+        el.className='tile tile-grey';
+        el.innerHTML=`
+          <div>
+            <div class="tile-icon" style="${isEsc?'color:#40a0d0':''}"><i class="ti ${tile.icon}"></i></div>
+            <div class="tile-name" style="${isEsc?'color:#40a0d0':''}">${tile.name}</div>
+            <div class="tile-sub">${tile.desc}</div>
+          </div>
+          <span class="tile-badge ${isEsc&&ready?'badge-esc':(isEsc?'badge-esc':'badge-loc')}" style="${isEsc&&ready?'':'opacity:.7'}">${ready?'ESCAPE!':'LOCATION'}</span>`;
+      }
+      el.onclick=()=>clickTile(idx);
+      row.appendChild(el);
+    }
+    ba.appendChild(row);
+  }
+}
+
+function renderHand(){
+  const combo=getCombo();
+  const cr=$('cards-row');
+  cr.innerHTML='';
+  G.hand.forEach(card=>{
+    const isBlue=!!card.t;
+    const isUsed=G.used.includes(card.uid);
+    const el=document.createElement('div');
+    if(isBlue){
+      let cls=`hcard hcard-blue-${card.color}`;
+      if(isUsed) cls+=' hc-used';
+      else if(combo) cls+=' hc-combo';
+      el.className=cls;
+      el.innerHTML=`<div class="hct">${card.t}</div><div class="hcn">${card.label}</div><div class="hcd">${card.desc}</div><div class="hc-stars">${starsStr(card.stars)}</div>${combo&&!isUsed?`<div class="hcc">${COMBOS[combo].name}</div>`:''}<div class="hc-check">${isUsed?'✓':''}</div>`;
+      if(!isUsed) el.onclick=()=>playBlue(card);
+    } else {
+      el.className='hcard hcard-red hc-dim';
+      el.innerHTML=`<div class="hct">harm</div><div class="hcn">${card.name||card.label}</div><div class="hcd">${card.desc||''}</div>`;
+    }
+    cr.appendChild(el);
+  });
+
+  const ctag=$('combo-tag');
+  const ttag=$('target-tag');
+  if(combo){ctag.style.display='inline';ctag.textContent=`${COMBOS[combo].name} — ${COMBOS[combo].desc}`;}
+  else ctag.style.display='none';
+  if(selectedInvIdx!==null){
+    ttag.style.display='inline';
+    ttag.textContent=`Using: ${G.inv[selectedInvIdx]?.name} — click an enemy tile`;
+  } else ttag.style.display='none';
+
+  const allDone=allBluesPlayed();
+  const eb=$('end-btn');
+  eb.className='end-btn '+(allDone?'end-rdy':'end-wait');
+  eb.textContent=allDone?'END TURN ✓':'END TURN';
+
+  const hh=$('hand-hint');
+  const left=G.hand.filter(c=>c.t&&!G.used.includes(c.uid)).length;
+  if(selectedInvIdx!==null) hh.textContent='Click an enemy tile to use item, or click inventory again to cancel.';
+  else if(left===0) hh.textContent='All blues played — click board tiles to act, then end turn.';
+  else hh.textContent=`${left} blue card${left>1?'s':''} left to play — unplayed cards advance time.`;
+}
+
+function selectInvItem(i){
+  if(selectedInvIdx===i){selectedInvIdx=null;}
+  else{selectedInvIdx=i;log(`Selected ${G.inv[i].name} — click an enemy tile to use it.`,'info');}
+  render();
+}
+
+// ── UNLOCK DISPLAY ──
+function checkUnlockDisplay(){
+  const u=getUnlocks();
+  ['street_kid','operative','ghost'].forEach(id=>{
+    const el=$('cls-'+id);
+    if(!el) return;
+    if(u[id]){
+      el.classList.remove('locked');
+      const lock=el.querySelector('.cls-lock');
+      if(lock) lock.remove();
+    }
+  });
+}
+
+// log helper
+function log(msg,cls=''){
+  const la=$('log-area');
+  const d=document.createElement('div');
+  d.className='log-line'+(cls?' lg-'+cls:'');
+  d.textContent=msg;
+  la.appendChild(d);
+  la.scrollTop=la.scrollHeight;
+  while(la.children.length>32) la.removeChild(la.firstChild);
+}
+
+// ── EVENT WIRING ──
+$('cls-grid').addEventListener('click',e=>{
+  const cc=e.target.closest('.cls-card');
+  if(!cc||cc.classList.contains('locked')) return;
+  document.querySelectorAll('.cls-card').forEach(c=>c.classList.remove('sel'));
+  cc.classList.add('sel');
+  const sb=$('start-btn');
+  sb.disabled=false;
+  sb.textContent='START GAME — '+CLASSES[cc.dataset.cls]?.name.toUpperCase();
+  sb.dataset.cls=cc.dataset.cls;
+});
+
+$('start-btn').addEventListener('click',()=>{
+  const cls=$('start-btn').dataset.cls;
+  if(!cls) return;
+  $('scr-title').style.display='none';
+  $('scr-game').style.display='flex';
+  newGame(cls);
+});
+
+$('end-btn').addEventListener('click',endTurn);
+
+$('modal-play-again').addEventListener('click',()=>{
+  $('overlay').style.display='none';
+  newGame(G.cls);
+});
+
+$('modal-title-btn').addEventListener('click',()=>{
+  $('overlay').style.display='none';
+  $('scr-game').style.display='none';
+  $('scr-title').style.display='flex';
+  document.querySelectorAll('.cls-card').forEach(c=>c.classList.remove('sel'));
+  const sb=$('start-btn');
+  sb.disabled=true;sb.textContent='SELECT A CLASS';delete sb.dataset.cls;
+  checkUnlockDisplay();
+});
+
+// init unlock display on load
+checkUnlockDisplay();
+</script>
+</body>
+</html>
