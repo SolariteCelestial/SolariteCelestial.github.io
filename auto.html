@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-Adventure</title>
+<style>
+  body {
+    font-family: -apple-system, system-ui, sans-serif;
+    background: #111;
+    color: #eee;
+    padding: 20px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  h2 { margin-top: 0; }
+  label { display: block; margin-top: 12px; font-size: 14px; color: #aaa; }
+  input {
+    font-size: 18px;
+    padding: 10px;
+    margin-top: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #eee;
+  }
+  button {
+    font-size: 18px;
+    padding: 12px;
+    margin-top: 16px;
+    width: 100%;
+    background: #2a8f4c;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+  }
+  button:disabled { background: #355; }
+  .card {
+    background: #1c1c1c;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 14px;
+    font-size: 15px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  #status { color: #8c8; }
+  #logoutBtn {
+    background: transparent;
+    border: 1px solid #555;
+    color: #aaa;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h2>Auto-Adventure</h2>
+
+<!-- CHANGE THIS to your deployed worker URL -->
+<script>const WORKER_URL = 'https://your-autoadventure-worker.workers.dev';</script>
+
+<div id="loginPanel">
+  <label>KoL Username</label>
+  <input type="text" id="username" autocomplete="username">
+  <label>Password</label>
+  <input type="password" id="password" autocomplete="current-password">
+  <button id="loginBtn">Start Session</button>
+  <div id="loginError" class="card" style="display:none; color:#f88;"></div>
+</div>
+
+<div id="advPanel" style="display:none;">
+  <div class="card" id="status">Session active.</div>
+  <label>Zone ID (snarfblat)</label>
+  <input type="number" id="snarfblat" placeholder="e.g. 123">
+  <label>Turns</label>
+  <input type="number" id="turns" value="10">
+  <button id="goBtn">Go</button>
+  <button id="logoutBtn">End Session</button>
+  <div id="result"></div>
+</div>
+
+<script>
+  const loginPanel = document.getElementById('loginPanel');
+  const advPanel = document.getElementById('advPanel');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginError = document.getElementById('loginError');
+  const goBtn = document.getElementById('goBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const result = document.getElementById('result');
+
+  // kept only in this tab's memory — never written to disk
+  let sessionToken = sessionStorage.getItem('kol_session') || null;
+  if (sessionToken) showAdvPanel();
+
+  loginBtn.addEventListener('click', async () => {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    if (!username || !password) return;
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Logging in...';
+    loginError.style.display = 'none';
+
+    try {
+      const res = await fetch(WORKER_URL + '/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || data.error || 'login failed');
+
+      sessionToken = data.session;
+      sessionStorage.setItem('kol_session', sessionToken);
+      document.getElementById('password').value = ''; // clear from the field immediately
+      showAdvPanel();
+    } catch (e) {
+      loginError.textContent = String(e.message || e);
+      loginError.style.display = 'block';
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Start Session';
+    }
+  });
+
+  goBtn.addEventListener('click', async () => {
+    const snarfblat = document.getElementById('snarfblat').value;
+    const turns = document.getElementById('turns').value;
+    if (!snarfblat) return;
+
+    goBtn.disabled = true;
+    goBtn.textContent = 'Running...';
+    result.innerHTML = '';
+
+    try {
+      const res = await fetch(`${WORKER_URL}/run?session=${sessionToken}&snarfblat=${snarfblat}&turns=${turns}`);
+      const data = await res.json();
+
+      if (res.status === 401) {
+        // session expired server-side — drop back to login
+        sessionStorage.removeItem('kol_session');
+        showLoginPanel();
+        return;
+      }
+
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.textContent = `${data.stopped ? 'Stopped' : 'Finished'}: ${data.reason}\nTurns run: ${data.turnsRun}`;
+      result.prepend(div);
+    } catch (e) {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.style.color = '#f88';
+      div.textContent = String(e.message || e);
+      result.prepend(div);
+    } finally {
+      goBtn.disabled = false;
+      goBtn.textContent = 'Go';
+    }
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    sessionStorage.removeItem('kol_session');
+    sessionToken = null;
+    showLoginPanel();
+  });
+
+  function showAdvPanel() {
+    loginPanel.style.display = 'none';
+    advPanel.style.display = 'block';
+  }
+  function showLoginPanel() {
+    advPanel.style.display = 'none';
+    loginPanel.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
