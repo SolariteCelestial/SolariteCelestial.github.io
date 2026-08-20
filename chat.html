@@ -68,6 +68,15 @@
     line-height: 1.5;
   }
 
+  kbd {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text);
+    font-family: monospace;
+    margin: 0 2px;
+  }
+
   .field {
     margin-bottom: 20px;
   }
@@ -258,28 +267,6 @@
     50% { opacity: 0.3; }
   }
 
-  .hint-bar {
-    position: absolute;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.55);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    color: var(--text-dim);
-    white-space: nowrap;
-  }
-
-  .hint-bar kbd {
-    background: #333;
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: var(--text);
-    font-family: monospace;
-    margin: 0 2px;
-  }
-
   /* ---------- TERMINATION OVERLAY ---------- */
   #black-overlay {
     position: fixed;
@@ -358,6 +345,12 @@
         appears after pressing <strong>Space</strong>. When ready, click Start —
         you'll be asked for camera access and your session will be recorded.
       </p>
+      <p class="sub">
+        <strong>Controls once live:</strong> press <kbd>Space</kbd> to trigger the
+        next chat message, and <kbd>Backspace</kbd> to end the session (10&nbsp;second
+        black screen before it ends — press <kbd>Backspace</kbd> again during that
+        countdown to skip straight to the end).
+      </p>
 
       <div class="field">
         <label for="chat-title">Chat window title</label>
@@ -405,9 +398,6 @@
     <div class="video-panel">
       <video id="camera-feed" autoplay playsinline muted></video>
       <div class="rec-indicator"><span class="rec-dot"></span> REC</div>
-      <div class="hint-bar">
-        Press <kbd>Space</kbd> for next message &nbsp;·&nbsp; Press <kbd>Backspace</kbd> to end
-      </div>
     </div>
   </div>
 
