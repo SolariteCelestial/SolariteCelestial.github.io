@@ -550,8 +550,25 @@
     startBtn.textContent = 'Start Live Session';
 
     showScreen(liveScreen);
+    requestFullscreen();
     window.addEventListener('keydown', onKeyDown);
   });
+
+  function requestFullscreen() {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (req) {
+      req.call(el).catch(err => console.warn('Fullscreen request failed:', err));
+    }
+  }
+
+  function exitFullscreen() {
+    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+    if (isFullscreen) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if (exit) exit.call(document).catch(() => {});
+    }
+  }
 
   // ---------- Live keyboard handling ----------
   function onKeyDown(e) {
@@ -603,6 +620,7 @@
     window.removeEventListener('keydown', onKeyDown);
     hideBlackOverlay();
     terminating = false;
+    exitFullscreen();
 
     const finish = () => {
       if (mediaStream) {
