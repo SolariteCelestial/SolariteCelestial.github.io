@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Live Stream Chat Simulator</title>
+<style>
+  :root {
+    --bg: #0e0e10;
+    --panel: #18181b;
+    --panel-2: #1f1f23;
+    --border: #2d2d31;
+    --text: #efeff1;
+    --text-dim: #adadb8;
+    --accent: #6441a5;
+    --accent-2: #9147ff;
+    --danger: #ff4d4d;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  .screen {
+    width: 100vw;
+    height: 100vh;
+    display: none;
+  }
+
+  .screen.active {
+    display: flex;
+  }
+
+  /* ---------- SETUP SCREEN ---------- */
+  #setup-screen {
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 40px 16px;
+  }
+
+  .setup-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .setup-card h1 {
+    margin: 0 0 6px;
+    font-size: 24px;
+  }
+
+  .setup-card p.sub {
+    margin: 0 0 24px;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .field {
+    margin-bottom: 20px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .field textarea,
+  .field input[type="text"],
+  .field input[type="number"] {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+  }
+
+  .field textarea {
+    min-height: 160px;
+    line-height: 1.5;
+  }
+
+  .field small {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  .row {
+    display: flex;
+    gap: 16px;
+  }
+  .row .field { flex: 1; }
+
+  #start-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent-2);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  #start-btn:hover { background: #7f3ce6; }
+  #start-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  #setup-error {
+    color: var(--danger);
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ---------- LIVE SCREEN ---------- */
+  #live-screen {
+    flex-direction: row;
+    position: relative;
+  }
+
+  .chat-panel {
+    width: 340px;
+    min-width: 260px;
+    background: var(--panel);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+
+  .chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .chat-header .dots { color: var(--text-dim); cursor: default; font-size: 18px; }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .chat-messages::-webkit-scrollbar { width: 6px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .chat-msg {
+    margin-bottom: 10px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    animation: fadeIn 0.25s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .chat-msg .name {
+    font-weight: 700;
+    margin-right: 6px;
+  }
+
+  .chat-input-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .chat-input-bar input {
+    flex: 1;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .chat-input-bar .icon {
+    color: var(--text-dim);
+    font-size: 16px;
+    cursor: default;
+  }
+
+  .video-panel {
+    flex: 1;
+    position: relative;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #camera-feed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* mirror like a selfie cam */
+  }
+
+  .rec-indicator {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,0.55);
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .rec-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--danger);
+    animation: pulse 1.2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hint-bar {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.55);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .hint-bar kbd {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--text);
+    font-family: monospace;
+    margin: 0 2px;
+  }
+
+  /* ---------- TERMINATION OVERLAY ---------- */
+  #black-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 50;
+  }
+
+  #black-overlay .countdown {
+    color: #444;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+  }
+
+  #black-overlay .skip-hint {
+    color: #333;
+    font-size: 12px;
+    margin-top: 10px;
+  }
+
+  /* ---------- END SCREEN ---------- */
+  #end-screen {
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  #end-screen h2 { margin: 0; }
+
+  #playback {
+    max-width: 80vw;
+    max-height: 55vh;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    transform: scaleX(-1);
+  }
+
+  .end-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-primary { background: var(--accent-2); color: white; }
+  .btn-secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+
+  @media (max-width: 700px) {
+    #live-screen { flex-direction: column; }
+    .chat-panel { width: 100%; height: 40%; border-right: none; border-bottom: 1px solid var(--border); }
+    .video-panel { height: 60%; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ================= SETUP SCREEN ================= -->
+  <div id="setup-screen" class="screen active">
+    <div class="setup-card">
+      <h1>Live Stream Chat Simulator</h1>
+      <p class="sub">
+        Write your scripted chat messages below, one per line, formatted as
+        <code>Username: message</code>. Set the delay before each message
+        appears after pressing <strong>Space</strong>. When ready, click Start —
+        you'll be asked for camera access and your session will be recorded.
+      </p>
+
+      <div class="field">
+        <label for="chat-title">Chat window title</label>
+        <input type="text" id="chat-title" value="Top chat" />
+      </div>
+
+      <div class="field">
+        <label for="script-input">Scripted chat messages</label>
+        <textarea id="script-input" placeholder="Alice: hey what's up!&#10;Bob: loving this stream&#10;Chloe: 🔥🔥🔥&#10;Dev: can you show that again?"></textarea>
+        <small>One message per line. If you omit "Name:", messages will use a default name.</small>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="delay-input">Delay per message (seconds)</label>
+          <input type="number" id="delay-input" min="0" step="0.5" value="2" />
+        </div>
+        <div class="field">
+          <label for="default-name">Default sender name</label>
+          <input type="text" id="default-name" value="viewer99" />
+        </div>
+      </div>
+
+      <button id="start-btn">Start Live Session</button>
+      <div id="setup-error"></div>
+    </div>
+  </div>
+
+  <!-- ================= LIVE SCREEN ================= -->
+  <div id="live-screen" class="screen">
+    <div class="chat-panel">
+      <div class="chat-header">
+        <span id="chat-title-display">Top chat ▾</span>
+        <span class="dots">⋮</span>
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-bar">
+        <input type="text" placeholder="Chat..." disabled />
+        <span class="icon">🙂</span>
+        <span class="icon">💲</span>
+        <span class="icon">➤</span>
+      </div>
+    </div>
+
+    <div class="video-panel">
+      <video id="camera-feed" autoplay playsinline muted></video>
+      <div class="rec-indicator"><span class="rec-dot"></span> REC</div>
+      <div class="hint-bar">
+        Press <kbd>Space</kbd> for next message &nbsp;·&nbsp; Press <kbd>Backspace</kbd> to end
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TERMINATION OVERLAY ================= -->
+  <div id="black-overlay">
+    <div class="countdown" id="countdown-text">Ending session…</div>
+    <div class="skip-hint">Press Backspace again to skip</div>
+  </div>
+
+  <!-- ================= END SCREEN ================= -->
+  <div id="end-screen" class="screen">
+    <h2>Session Ended</h2>
+    <video id="playback" controls></video>
+    <div class="end-actions">
+      <a id="download-link" class="btn btn-primary" download="live-session.webm">Download Recording</a>
+      <button class="btn btn-secondary" id="restart-btn">New Session</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  // ---------- Element refs ----------
+  const setupScreen = document.getElementById('setup-screen');
+  const liveScreen = document.getElementById('live-screen');
+  const endScreen = document.getElementById('end-screen');
+
+  const scriptInput = document.getElementById('script-input');
+  const delayInput = document.getElementById('delay-input');
+  const defaultNameInput = document.getElementById('default-name');
+  const chatTitleInput = document.getElementById('chat-title');
+  const startBtn = document.getElementById('start-btn');
+  const setupError = document.getElementById('setup-error');
+
+  const chatMessagesEl = document.getElementById('chat-messages');
+  const chatTitleDisplay = document.getElementById('chat-title-display');
+  const cameraFeed = document.getElementById('camera-feed');
+  const blackOverlay = document.getElementById('black-overlay');
+  const countdownText = document.getElementById('countdown-text');
+
+  const playback = document.getElementById('playback');
+  const downloadLink = document.getElementById('download-link');
+  const restartBtn = document.getElementById('restart-btn');
+
+  // ---------- State ----------
+  let messages = [];
+  let msgIndex = 0;
+  let delaySeconds = 2;
+  let defaultName = 'viewer99';
+  let waitingForMessage = false;
+  let terminating = false;
+  let terminationTimer = null;
+  let mediaStream = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  const nameColors = ['#ff7b7b', '#7bc0ff', '#a97bff', '#7bffb0', '#ffcf7b', '#ff7bd6', '#7bffe8'];
+  const nameColorCache = {};
+
+  function colorForName(name) {
+    if (!nameColorCache[name]) {
+      const idx = Object.keys(nameColorCache).length % nameColors.length;
+      nameColorCache[name] = nameColors[idx];
+    }
+    return nameColorCache[name];
+  }
+
+  function parseScript(raw) {
+    return raw
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 0)
+      .map(line => {
+        const idx = line.indexOf(':');
+        if (idx > 0 && idx < 30) {
+          return { name: line.slice(0, idx).trim(), text: line.slice(idx + 1).trim() };
+        }
+        return { name: defaultName, text: line };
+      });
+  }
+
+  function appendMessage(msg) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'name';
+    nameSpan.style.color = colorForName(msg.name);
+    nameSpan.textContent = msg.name + ':';
+    div.appendChild(nameSpan);
+    div.appendChild(document.createTextNode(' ' + msg.text));
+    chatMessagesEl.appendChild(div);
+    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+  }
+
+  function showScreen(el) {
+    [setupScreen, liveScreen, endScreen].forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ---------- Setup -> Start ----------
+  startBtn.addEventListener('click', async () => {
+    setupError.style.display = 'none';
+
+    messages = parseScript(scriptInput.value);
+    if (messages.length === 0) {
+      setupError.textContent = 'Please add at least one scripted chat message.';
+      setupError.style.display = 'block';
+      return;
+    }
+    delaySeconds = Math.max(0, parseFloat(delayInput.value) || 0);
+    defaultName = defaultNameInput.value.trim() || 'viewer99';
+    chatTitleDisplay.textContent = (chatTitleInput.value.trim() || 'Top chat') + ' ▾';
+
+    startBtn.disabled = true;
+    startBtn.textContent = 'Requesting camera…';
+
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    } catch (err) {
+      setupError.textContent = 'Camera access was denied or unavailable: ' + err.message;
+      setupError.style.display = 'block';
+      startBtn.disabled = false;
+      startBtn.textContent = 'Start Live Session';
+      return;
+    }
+
+    cameraFeed.srcObject = mediaStream;
+
+    // Reset live state
+    msgIndex = 0;
+    waitingForMessage = false;
+    terminating = false;
+    chatMessagesEl.innerHTML = '';
+    recordedChunks = [];
+
+    // Start recording
+    try {
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm';
+      mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+      mediaRecorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+      mediaRecorder.start();
+    } catch (err) {
+      console.warn('Recording not supported:', err);
+      mediaRecorder = null;
+    }
+
+    startBtn.disabled = false;
+    startBtn.textContent = 'Start Live Session';
+
+    showScreen(liveScreen);
+    window.addEventListener('keydown', onKeyDown);
+  });
+
+  // ---------- Live keyboard handling ----------
+  function onKeyDown(e) {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      handleSpace();
+    } else if (e.code === 'Backspace') {
+      e.preventDefault();
+      handleBackspace();
+    }
+  }
+
+  function handleSpace() {
+    if (terminating) return;
+    if (waitingForMessage) return; // ignore rapid presses while a message is "arriving"
+    if (messages.length === 0) return;
+
+    waitingForMessage = true;
+    setTimeout(() => {
+      appendMessage(messages[msgIndex]);
+      msgIndex = (msgIndex + 1) % messages.length; // loop the script
+      waitingForMessage = false;
+    }, delaySeconds * 1000);
+  }
+
+  function handleBackspace() {
+    if (!terminating) {
+      terminating = true;
+      showBlackOverlay();
+      terminationTimer = setTimeout(endSession, 10000);
+    } else {
+      // second backspace press -> skip the wait
+      clearTimeout(terminationTimer);
+      endSession();
+    }
+  }
+
+  function showBlackOverlay() {
+    countdownText.textContent = 'Ending session…';
+    blackOverlay.style.display = 'flex';
+  }
+
+  function hideBlackOverlay() {
+    blackOverlay.style.display = 'none';
+  }
+
+  // ---------- End session ----------
+  function endSession() {
+    window.removeEventListener('keydown', onKeyDown);
+    hideBlackOverlay();
+    terminating = false;
+
+    const finish = () => {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop());
+        mediaStream = null;
+      }
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      playback.src = url;
+      downloadLink.href = url;
+      showScreen(endScreen);
+    };
+
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.onstop = finish;
+      mediaRecorder.stop();
+    } else {
+      finish();
+    }
+  }
+
+  // ---------- Restart ----------
+  restartBtn.addEventListener('click', () => {
+    if (playback.src) {
+      URL.revokeObjectURL(playback.src);
+      playback.removeAttribute('src');
+    }
+    chatMessagesEl.innerHTML = '';
+    showScreen(setupScreen);
+  });
+})();
+</script>
+</body>
+</html>
